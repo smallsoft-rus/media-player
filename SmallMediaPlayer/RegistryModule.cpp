@@ -1,4 +1,4 @@
-/* Small Media Player 
+﻿/* Small Media Player 
  * Copyright (c) 2021,  MSDN.WhiteKnight (https://github.com/smallsoft-rus/media-player) 
  * License: BSD 2.0 */
 #include "RegistryModule.h"
