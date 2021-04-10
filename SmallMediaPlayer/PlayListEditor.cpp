@@ -681,6 +681,15 @@ if(p==NULL)return;
 MultiByteToWideChar(CP_ACP,0,p,512,CurrFileTags.year,512);
 }
 
+void PrepareTagString(char * str, int maxlen){
+	//replace ~ as it is used as field separator when saving
+	//playlist to text
+	for(int i=0;i<maxlen;i++){
+		if(str[i]==0)break;
+		if(str[i]=='~')str[i]=' ';
+	}
+}
+
 void WritePlaylistTags(HANDLE hFile,int index){
 char str[300]="";
 char * p = NULL;
@@ -694,31 +703,38 @@ item.mask=LVIF_TEXT;
 item.pszText=str;
 item.cchTextMax=300;
 
+//title
 SendMessageA(PlayList,LVM_GETITEMTEXTA,index,(LPARAM)&item);
+PrepareTagString(str,sizeof(str));
 
-//***
 if(str[0]=='>')p=str+1;//удалить символ текущего трека
 else p=str;
+
 WriteFile(hFile,p,lstrlenA(p),&dwCount,NULL);
-//***
 
 if(lstrlenA(str)==0)WriteFile(hFile," ",1,&dwCount,NULL);
 StringCchCopyA(str,300,"");
 WriteFile(hFile,"~",1,&dwCount,NULL);
+
 item.iSubItem=1;
 SendMessageA(PlayList,LVM_GETITEMTEXTA,index,(LPARAM)&item);
+PrepareTagString(str,sizeof(str));
 WriteFile(hFile,str,lstrlenA(str),&dwCount,NULL);
 if(lstrlenA(str)==0)WriteFile(hFile," ",1,&dwCount,NULL);
 StringCchCopyA(str,300,"");
 WriteFile(hFile,"~",1,&dwCount,NULL);
+
 item.iSubItem=2;
 SendMessageA(PlayList,LVM_GETITEMTEXTA,index,(LPARAM)&item);
+PrepareTagString(str,sizeof(str));
 WriteFile(hFile,str,lstrlenA(str),&dwCount,NULL);
 if(lstrlenA(str)==0)WriteFile(hFile," ",1,&dwCount,NULL);
 StringCchCopyA(str,300,"");
 WriteFile(hFile,"~",1,&dwCount,NULL);
+
 item.iSubItem=3;
 SendMessageA(PlayList,LVM_GETITEMTEXTA,index,(LPARAM)&item);
+PrepareTagString(str,sizeof(str));
 WriteFile(hFile,str,lstrlenA(str),&dwCount,NULL);
 if(lstrlenA(str)==0)WriteFile(hFile," ",1,&dwCount,NULL);
 WriteFile(hFile,"\r\n",2,&dwCount,NULL);
