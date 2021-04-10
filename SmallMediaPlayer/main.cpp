@@ -70,6 +70,7 @@ int pls_LastSortColumn=99;
 bool pls_SortReverse=false;
 bool fBlockContextMenu=false;
 long CurrVolume=0;
+DWORD pos_prev=0;
 
 TCHAR strMediafileFilter[]=L"All files\0*.*\0\
 Audio files\0*.wav;*.mp1;*.mp2;*.mp3;*.wma;*.cda;*.aac;*.ogg;*.flac;*.m4a\0\
@@ -708,6 +709,9 @@ void UpdatePosition(){
 	int h,m,s;
 
 	p=GetPosition()/1000;
+
+	if(p==pos_prev)return;
+
 	h=(int)p/3600;
 	m=(int)p%3600;
 	s=m%60;
@@ -717,6 +721,7 @@ void UpdatePosition(){
 	
 	SetDlgItemText(hPlaybackDlg,IDC_POSITION,buf);
 	Progress.SetTrackPosition((int)p);
+	pos_prev=p;
 }
 
 void UpdateVolume()//call when CurrVolume changes programmatically
@@ -1598,7 +1603,7 @@ wc.hIcon=hSMPIcon;
 	//determine window size
 	int ww=Settings.WndWidth,wh=Settings.WndHeight;
 	if(Settings.WndMaximized!=false){ww=CW_USEDEFAULT;wh=0;}
-	;
+	
 	//create window
 	hMainWnd=CreateWindowEx(0,wclass_name,L"SmallMediaPlayer",WS_OVERLAPPEDWINDOW|WS_CLIPCHILDREN,Settings.WndX,Settings.WndY,
 						ww,wh,NULL,NULL,GetModuleHandle(NULL),NULL);
@@ -1612,11 +1617,19 @@ wc.hIcon=hSMPIcon;
 	if(Settings.WndMaximized != false)ShowWindow(hMainWnd,SW_MAXIMIZE);
 	else ShowWindow(hMainWnd,SW_SHOWNORMAL);
 	
+	//playlist window
+	hMainDlg=CreateDialog(GetModuleHandle(NULL),MAKEINTRESOURCE(IDD_MAIN),hMainWnd,MainDlgProc);
 
-hMainDlg=CreateDialog(GetModuleHandle(NULL),MAKEINTRESOURCE(IDD_MAIN),hMainWnd,MainDlgProc);
-hPlaybackDlg=CreateDialog(GetModuleHandle(NULL),MAKEINTRESOURCE(IDD_PLAYBACK),hMainWnd,PlaybackDlgProc);
-hScrollbar=GetDlgItem(hPlaybackDlg,IDC_SCROLLBAR);
-Progress=ScrollbarControl(SB_CTL,hScrollbar,0,(int)(20+S_TRACK_SIZE),S_TRACK_SIZE);
+	//playback status window
+	hPlaybackDlg=CreateDialog(GetModuleHandle(NULL),MAKEINTRESOURCE(IDD_PLAYBACK),hMainWnd,PlaybackDlgProc);
+	
+	//enable double-buffering to prevent flickering on text updates
+	LONG_PTR es=GetWindowLongPtr(hPlaybackDlg,GWL_EXSTYLE);
+	es=es|exStyle;
+	SetWindowLongPtr(hPlaybackDlg,GWL_EXSTYLE,es);
+
+	hScrollbar=GetDlgItem(hPlaybackDlg,IDC_SCROLLBAR);
+	Progress=ScrollbarControl(SB_CTL,hScrollbar,0,(int)(20+S_TRACK_SIZE),S_TRACK_SIZE);
 
 PlayList=CreateWindowEx(0,WC_LISTVIEW,L"СПИСОК",WS_CHILD|WS_VISIBLE|LVS_SHOWSELALWAYS|LVS_REPORT ,0,40,
 		580,160,hMainDlg,NULL,GetModuleHandle(NULL),NULL);
@@ -1625,7 +1638,7 @@ if(PlayList==NULL)Beep(300,100);
 ShowWindow(PlayList,SW_SHOW);
 
 col.iSubItem=0;
-col.pszText=L"песенка";
+col.pszText=L"название";
 col.cx=150;
 col.mask=LVCF_TEXT|LVCF_SUBITEM|LVCF_WIDTH;
 ListView_InsertColumn(PlayList,0,&col);

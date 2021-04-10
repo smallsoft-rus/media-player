@@ -159,11 +159,11 @@ EXSTYLE WS_EX_WINDOWEDGE
 FONT 8, "Ms Shell Dlg 2"
 {
     LTEXT           "00:00:00", IDC_POSITION, 46, 19, 30, 8, SS_LEFT, WS_EX_RIGHT
-    LTEXT           "Позиция:", IDC_STATIC, 10, 19, 32, 8, SS_LEFT
-    LTEXT           "Длина:", IDC_STATIC, 10, 28, 25, 8, SS_LEFT
+    LTEXT           "Позиция:", IDC_STATIC, 8, 19, 32, 8, SS_LEFT
+    LTEXT           "Длина:", IDC_STATIC, 8, 28, 25, 8, SS_LEFT
     LTEXT           "00:00:00", IDC_LENGTH, 46, 28, 30, 8, SS_LEFT, WS_EX_RIGHT
     LTEXT           "Файл:", IDC_STATIC, 8, 5, 28, 8, SS_LEFT
-    LTEXT           "<не загружено>", IDC_CURRENTFILE, 33, 5, 340, 8, SS_LEFT
+    LTEXT           "<не загружено>", IDC_CURRENTFILE, 46, 5, 340, 8, SS_LEFT
     SCROLLBAR       IDC_SCROLLBAR, 11, 46, 362, 20
     PUSHBUTTON      "ВОСПР", ID_PLAY, 99, 18, 37, 20
     PUSHBUTTON      "ПАУЗА", ID_PAUSE, 147, 18, 32, 20

@@ -369,7 +369,6 @@ if(((UINT)n)>=CountTracks)return;
 		}
 		if(res==FALSE)res=ReadApeTags(str,&OpenedFileTags);	
 		if(res==FALSE){ res=ReadTagsV1(str,&OpenedFileTags);}
-		;
 		if(res!=FALSE){fOpenedFileTags=true;} else {fOpenedFileTags=false;}
 		
 		
