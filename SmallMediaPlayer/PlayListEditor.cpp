@@ -369,6 +369,7 @@ if(((UINT)n)>=CountTracks)return;
 		}
 		if(res==FALSE)res=ReadApeTags(str,&OpenedFileTags);	
 		if(res==FALSE){ res=ReadTagsV1(str,&OpenedFileTags);}
+		;
 		if(res!=FALSE){fOpenedFileTags=true;} else {fOpenedFileTags=false;}
 		
 		
@@ -530,7 +531,7 @@ int i;
 MP3TAG_V1 tags={0};
 
 memset(&tags,0,sizeof(MP3TAG_V1));
-hFile=CreateFile(file,GENERIC_READ,0,NULL,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,NULL);
+hFile=CreateFile(file,GENERIC_READ,FILE_SHARE_READ,NULL,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,NULL);
 if(hFile==INVALID_HANDLE_VALUE)return FALSE;
 										  
 
@@ -850,7 +851,7 @@ DWORD dwCount;
 BOOL res;
 APE_HEADER header;
 
-hFile=CreateFile(file,GENERIC_READ,0,NULL,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,NULL);
+hFile=CreateFile(file,GENERIC_READ,FILE_SHARE_READ,NULL,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,NULL);
 if(hFile==INVALID_HANDLE_VALUE)return FALSE;
 SetFilePointer(hFile,-(int)sizeof(APE_HEADER),NULL,FILE_END);
 res=ReadFile(hFile,&header,sizeof(APE_HEADER),&dwCount,NULL);
@@ -901,8 +902,12 @@ int i,j;
 ULONG c,n;
 DWORD_UNION length={0};
 
-hFile=CreateFile(file,GENERIC_READ,0,NULL,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,NULL);
-if(hFile==INVALID_HANDLE_VALUE)return FALSE;
+hFile=CreateFile(file,GENERIC_READ,FILE_SHARE_READ,NULL,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,NULL);
+
+if(hFile==INVALID_HANDLE_VALUE){
+	return FALSE;
+}
+
 i=0;
 while(1){
 res=ReadFile(hFile,sig,4,&dwCount,NULL);
@@ -1020,11 +1025,11 @@ TCHAR wbuf[1024]=L"";
 WORD BOM=0;
 
 DWORD i=0,j=0;
-//fwprintf(f,L"start read tags, file: %s\n",fname);
+
 memset(&extractor,0,sizeof(DWORD));memset(&packer,0,sizeof(DWORD));
 memset(out,0,sizeof(TAGS_GENERIC));
 
-hFile=CreateFile(fname,GENERIC_READ,0,NULL,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,0);
+hFile=CreateFile(fname,GENERIC_READ,FILE_SHARE_READ,NULL,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,0);
 if(hFile==INVALID_HANDLE_VALUE)return FALSE;
 res=ReadFile(hFile,&header,sizeof(ID32_HEADER),&dwCount,NULL);
 if(res==FALSE){CloseHandle(hFile);return FALSE;}

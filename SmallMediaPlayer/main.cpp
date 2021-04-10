@@ -299,7 +299,15 @@ TCHAR str[256]=L"";
 }
 
 void DisplayFileInfo(int n){
-	if(n==CurrentTrack&&PlayerState!=FILE_NOT_LOADED){DisplayOpenedFileTags();return;}
+	
+	//display info from tags
+
+	if(n==CurrentTrack && PlayerState!=FILE_NOT_LOADED){
+		//if file is opened, display info from it
+		DisplayOpenedFileTags();
+		return;
+	}
+
 	WCHAR text[5000]=L"";
 	TCHAR ext[10]=L"";
 	WCHAR buf[MAX_PATH]=L"";
@@ -308,10 +316,14 @@ void DisplayFileInfo(int n){
 	int h,sec,min;
 GetPlaylistElement(n,buf);
 GetFileExtension(buf,ext);
+
+//read tags
 res=ReadTagsv2(buf,&info);
 if(res==FALSE&&lstrcmpi(ext,L"flac")==0){res=ReadFlacTags(buf,&info);}
 if(res==FALSE)ReadApeTags(buf,&info);
 if(res==FALSE)ReadTagsV1(buf,&info);
+
+//display tags in message box
 StringCchCopy(text,5000,buf);
 StringCchCat(text,5000,L"\n\nНазвание: ");
 	StringCchCat(text,5000,info.title);
@@ -617,7 +629,7 @@ if(args==NULL)return;
 if(NumArgs==1){
 	if(IsTrayIcon==true)SwitchTrayIcon();
 	LocalFree(args);return;}
-for(i=1;i<NumArgs;i++){
+  for(i=1;i<NumArgs;i++){
 	if(args[i][0]=='/'){
 	switch(args[i][1]){
      case 'F':
@@ -627,27 +639,31 @@ for(i=1;i<NumArgs;i++){
     }
 	continue;
 	}
+
 	if(fOpenFolder!=FALSE){
-StringCchCopy(filename,MAX_PATH,args[i]);
-StringCchCat(filename,MAX_PATH,L"\\");
-Playlist_AddDirectory(filename);
-continue;
+      StringCchCopy(filename,MAX_PATH,args[i]);
+      StringCchCat(filename,MAX_PATH,L"\\");
+      Playlist_AddDirectory(filename);
+      continue;
 	}
 	else{
 		if(FirstFile!=FALSE){
 			FirstFile=FALSE;
-			if(fAddFile==FALSE){ClearPlaylist();}
-		}
-AddPlaylistElement(args[i]);
-continue;
+			if(fAddFile==FALSE){
+				//open new file - discard existing playlist
+				Close(); 
+				ClearPlaylist();
+			}
+	    }
+      AddPlaylistElement(args[i]);
+      continue;
 	}
+  }//end for
 
-}
-
-if(fAddFile==FALSE&&fOpenFolder==FALSE){
+  if(fAddFile==FALSE&&fOpenFolder==FALSE){
 	PlayTrackByNumber(0);
-}
-LocalFree(args);
+  }
+  LocalFree(args);
 }
 
 void UpdateLength(){
