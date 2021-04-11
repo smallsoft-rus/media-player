@@ -429,7 +429,7 @@ case STREAM_UNKNOWN:default:StringCchCat(text,5000,L"[нет данных]\n");b
 }
 StringCchCat(text,5000,L"==АУДИО:==\n");
 if(wRes==INFORES_AUDIO||wRes==INFORES_BOTH){
-	StringCchCat(text,5000,L"Формат:");
+	StringCchCat(text,5000,L"Формат: ");
 	switch(ai.wFormatTag){
 		case WAVE_FORMAT_PCM:StringCchCat(text,5000,L"PCM Waveform Audio");break;
 		case AUDIO_DVI_ADPCM:StringCchCat(text,5000,L"DVI ADPCM");break; 
@@ -460,7 +460,7 @@ else{StringCchCat(text,5000,L"[Нет данных]\n");}
 StringCchCat(text,5000,L"==ВИДЕО:==\n");
 if(wRes==INFORES_VIDEO||wRes==INFORES_BOTH){
 fcc=(FOURCC_EXTRACTOR*)&vi.dwVideoCodec;
-StringCchCat(text,5000,L"Кодек:");
+StringCchCat(text,5000,L"Кодек: ");
 
 if(vi.dwVideoCodec==BI_RGB){
 	switch(vi.VideoType){

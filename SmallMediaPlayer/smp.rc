@@ -163,14 +163,14 @@ FONT 8, "Ms Shell Dlg 2"
     LTEXT           "Длина:", IDC_STATIC, 8, 28, 25, 8, SS_LEFT
     LTEXT           "00:00:00", IDC_LENGTH, 46, 28, 30, 8, SS_LEFT, WS_EX_RIGHT
     LTEXT           "Файл:", IDC_STATIC, 8, 5, 28, 8, SS_LEFT
-    LTEXT           "<не загружено>", IDC_CURRENTFILE, 46, 5, 340, 8, SS_LEFT
-    SCROLLBAR       IDC_SCROLLBAR, 11, 46, 362, 20
-    PUSHBUTTON      "ВОСПР", ID_PLAY, 99, 18, 37, 20
-    PUSHBUTTON      "ПАУЗА", ID_PAUSE, 147, 18, 32, 20
-    PUSHBUTTON      "СТОП", ID_STOP, 191, 18, 31, 20
-    PUSHBUTTON      "|<<", ID_REWIND, 260, 18, 28, 21
-    PUSHBUTTON      "<", ID_PREVTRACK, 295, 18, 26, 20
-    PUSHBUTTON      ">", ID_NEXTTRACK, 330, 18, 23, 20
+    LTEXT           "<не загружено>", IDC_CURRENTFILE, 46, 5, 320, 8, SS_LEFT
+    SCROLLBAR       IDC_SCROLLBAR, 8, 46, 362, 20
+    PUSHBUTTON      "ВОСПР", ID_PLAY, 100, 18, 37, 20
+    PUSHBUTTON      "ПАУЗА", ID_PAUSE, 145, 18, 37, 20
+    PUSHBUTTON      "СТОП", ID_STOP, 190, 18, 37, 20
+    PUSHBUTTON      "|<<", ID_REWIND, 250, 18, 28, 20
+    PUSHBUTTON      "<", ID_PREVTRACK, 285, 18, 28, 20
+    PUSHBUTTON      ">", ID_NEXTTRACK, 320, 18, 28, 20
     CONTROL         "", IDC_VOLUME, TRACKBAR_CLASS, WS_TABSTOP | TBS_VERT | TBS_BOTH | TBS_NOTICKS, 377, 9, 28, 59
 }
 
