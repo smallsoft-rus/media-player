@@ -790,6 +790,7 @@ DWORD WINAPI ThreadFunc(PVOID param){
 	buf[dwCount/2]=L'\0';
  }
   ProcessCommandLine(buf);
+  SetForegroundWindow(hMainWnd);
   DisconnectNamedPipe(hPipe);
   }
  }
