@@ -40,6 +40,9 @@ TCHAR* ImageExtensions[]={
 		{L"bmp",0,0},{L"jpg",0,0},{L"jpeg",0,0},{L"gif",0,0},{L"png",0,0}
 	};
 
+    const char strPlaylistHeader[]="#~Small Media Player playlist (https://github.com/smallsoft-rus/media-player)\r\n";
+    const char strEncoding[]="#~ENCODING: UTF8\r\n";
+
 TCHAR* GetShortName(TCHAR* fullname){
 TCHAR* p;
 int i;
@@ -83,7 +86,7 @@ BOOL res;
 TCHAR buf[MAX_PATH]=L"";
 res=GetPlaylistElement(n,buf);
 if(res==FALSE)return FALSE;
-res=WideCharToMultiByte(CP_ACP,0,buf,MAX_PATH,out,MAX_PATH,NULL,NULL);
+res=WideCharToMultiByte(CP_UTF8,0,buf,MAX_PATH,out,MAX_PATH,NULL,NULL);
 if(res==FALSE)return FALSE;
 return TRUE;
 }
@@ -196,32 +199,10 @@ CountTracks++;
 }
 
 void AddPlaylistElementA(char* fname){
-TCHAR filename[MAX_PATH]=L"";
-	MultiByteToWideChar(CP_ACP,0,fname,MAX_PATH,filename,MAX_PATH);
-	AddPlaylistElement(filename);
+    TCHAR filename[MAX_PATH]=L"";
+    MultiByteToWideChar(CP_UTF8,0,fname,MAX_PATH,filename,MAX_PATH);
+    AddPlaylistElement(filename);
 }
-
-/*
-void InsertPlaylistGroup(WCHAR* fname,int pos,bool fShortName=false){
-	LVITEM item={0};
-	WCHAR buf[MAX_PATH];
-	int c;
-StringCchCopy(buf,MAX_PATH,fname);
-c=lstrlen(buf);
-if(buf[c-1]==L'\\'||buf[c-1]==L'/')buf[c-1]=0;
-item.iItem=pos;
-item.mask=LVIF_TEXT|LVIF_IMAGE;
-item.iImage=indexDirIcon;
-if(fShortName==false){
-	item.pszText=GetShortName(buf);
-}
-else{
-	item.pszText=buf;
-}
-if(lstrcmp(item.pszText,L"")==0)item.pszText=fname;
-ListView_InsertItem(PlayList,&item);
-CountTracks++;
-}*/
 
 int GetPlaylistSelectedElement(){
 	int res;
@@ -572,7 +553,7 @@ else return FALSE;
 
 BOOL ReadTagsV1A(char* file,TAGS_GENERIC* out){
 WCHAR filename[MAX_PATH]=L"";
-if(MultiByteToWideChar(CP_ACP,0,file,MAX_PATH,filename,MAX_PATH)==0)
+if(MultiByteToWideChar(CP_UTF8,0,file,MAX_PATH,filename,MAX_PATH)==0)
 return FALSE;
 else return ReadTagsV1(filename,out);
 }
@@ -602,7 +583,7 @@ int l;
 GetFileDirectory(file,dir);
 l=lstrlen(dir);
 if(dir[l-1]!='\\'){dir[l-1]='\\';dir[l]=0;}
-WideCharToMultiByte(CP_ACP,0,dir,lstrlen(dir),str_dir,sizeof(str_dir),NULL,NULL);
+WideCharToMultiByte(CP_UTF8,0,dir,lstrlen(dir),str_dir,sizeof(str_dir),NULL,NULL);
 
 hFile=CreateFile(file,GENERIC_READ,0,NULL,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,NULL);
 if(hFile==INVALID_HANDLE_VALUE)return;
@@ -649,9 +630,9 @@ CloseHandle(hFile);
 }
 
 void LoadTextPlaylistA(char* file){
-TCHAR filename[MAX_PATH]=L"";
-	MultiByteToWideChar(CP_ACP,0,file,MAX_PATH,filename,MAX_PATH);
-	LoadTextPlaylist(filename);
+    TCHAR filename[MAX_PATH]=L"";
+    MultiByteToWideChar(CP_UTF8,0,file,MAX_PATH,filename,MAX_PATH);
+    LoadTextPlaylist(filename);
 }
 
 
@@ -667,17 +648,17 @@ if(p==NULL)return;
 if(lstrcmpA(p,"#TAGS")!=0)return;
 p=strtok(NULL,"~");
 if(p==NULL)return;
-MultiByteToWideChar(CP_ACP,0,p,512,CurrFileTags.title,512);
+MultiByteToWideChar(CP_UTF8,0,p,512,CurrFileTags.title,512);
 fCurrFileTags=true;
 p=strtok(NULL,"~");
 if(p==NULL)return;
-MultiByteToWideChar(CP_ACP,0,p,512,CurrFileTags.artist,512);
+MultiByteToWideChar(CP_UTF8,0,p,512,CurrFileTags.artist,512);
 p=strtok(NULL,"~");
 if(p==NULL)return;
-MultiByteToWideChar(CP_ACP,0,p,512,CurrFileTags.album,512);
+MultiByteToWideChar(CP_UTF8,0,p,512,CurrFileTags.album,512);
 p=strtok(NULL,"~");
 if(p==NULL)return;
-MultiByteToWideChar(CP_ACP,0,p,512,CurrFileTags.year,512);
+MultiByteToWideChar(CP_UTF8,0,p,512,CurrFileTags.year,512);
 }
 
 void PrepareTagString(char * str, int maxlen){
@@ -689,21 +670,34 @@ void PrepareTagString(char * str, int maxlen){
 	}
 }
 
+//Get ListView subitem text as UTF-8
+void LvGetItemTextA(HWND hWnd,int iItem,int iSubitem,char* str,int maxcount){
+    //get UTF-16 item text
+    const int bufsize=1024;
+    WCHAR buf[bufsize]=L"";
+    LVITEM item={0};
+    item.iItem=iItem;
+    item.iSubItem=iSubitem;
+    item.mask=LVIF_TEXT;
+    item.pszText=buf;
+    item.cchTextMax=bufsize;
+    SendMessage(hWnd,LVM_GETITEMTEXT,iItem,(LPARAM)&item);
+
+    //convert UTF-16 item text to UTF-8
+    WideCharToMultiByte(CP_UTF8,0,buf,bufsize,str,maxcount,NULL,NULL);
+}
+
+// Write tags comment string of the specified trach number into playlist file. 
+// This enables faster loading of tags data when playlist is opened.
 void WritePlaylistTags(HANDLE hFile,int index){
 char str[300]="";
 char * p = NULL;
-LVITEMA item={0};
 DWORD dwCount;
 
 WriteFile(hFile,"#TAGS~",6,&dwCount,NULL);
-item.iItem=index;
-item.iSubItem=0;
-item.mask=LVIF_TEXT;
-item.pszText=str;
-item.cchTextMax=300;
 
 //title
-SendMessageA(PlayList,LVM_GETITEMTEXTA,index,(LPARAM)&item);
+LvGetItemTextA(PlayList,index,0,str,sizeof(str));
 PrepareTagString(str,sizeof(str));
 
 if(str[0]=='>')p=str+1;//удалить символ текущего трека
@@ -715,24 +709,21 @@ if(lstrlenA(str)==0)WriteFile(hFile," ",1,&dwCount,NULL);
 StringCchCopyA(str,300,"");
 WriteFile(hFile,"~",1,&dwCount,NULL);
 
-item.iSubItem=1;
-SendMessageA(PlayList,LVM_GETITEMTEXTA,index,(LPARAM)&item);
+LvGetItemTextA(PlayList,index,1,str,sizeof(str));
 PrepareTagString(str,sizeof(str));
 WriteFile(hFile,str,lstrlenA(str),&dwCount,NULL);
 if(lstrlenA(str)==0)WriteFile(hFile," ",1,&dwCount,NULL);
 StringCchCopyA(str,300,"");
 WriteFile(hFile,"~",1,&dwCount,NULL);
 
-item.iSubItem=2;
-SendMessageA(PlayList,LVM_GETITEMTEXTA,index,(LPARAM)&item);
+LvGetItemTextA(PlayList,index,2,str,sizeof(str));
 PrepareTagString(str,sizeof(str));
 WriteFile(hFile,str,lstrlenA(str),&dwCount,NULL);
 if(lstrlenA(str)==0)WriteFile(hFile," ",1,&dwCount,NULL);
 StringCchCopyA(str,300,"");
 WriteFile(hFile,"~",1,&dwCount,NULL);
 
-item.iSubItem=3;
-SendMessageA(PlayList,LVM_GETITEMTEXTA,index,(LPARAM)&item);
+LvGetItemTextA(PlayList,index,3,str,sizeof(str));
 PrepareTagString(str,sizeof(str));
 WriteFile(hFile,str,lstrlenA(str),&dwCount,NULL);
 if(lstrlenA(str)==0)WriteFile(hFile," ",1,&dwCount,NULL);
@@ -751,6 +742,12 @@ UINT i=0;
 int j=0;
 hFile=CreateFile(file,GENERIC_WRITE,0,NULL,CREATE_ALWAYS,FILE_ATTRIBUTE_NORMAL,NULL);
 if(hFile==INVALID_HANDLE_VALUE)return;
+
+    //write header
+    WriteFile(hFile,strPlaylistHeader,sizeof(strPlaylistHeader)-1,&dwCount,NULL);
+
+    //write encoding marker
+    WriteFile(hFile,strEncoding,sizeof(strEncoding)-1,&dwCount,NULL);
 
 for(i=0;i<CountTracks;i++){
 GetPlaylistElementA(i,str);
@@ -854,7 +851,7 @@ for(i=0;i<(int)ph->item_count;i++){
 
 BOOL ReadApeTagsA(char* file,TAGS_GENERIC* out){
 	TCHAR fname[MAX_PATH]=L"";
-	if(MultiByteToWideChar(CP_ACP,0,file,MAX_PATH,fname,MAX_PATH)!=0)
+	if(MultiByteToWideChar(CP_UTF8,0,file,MAX_PATH,fname,MAX_PATH)!=0)
 	{return ReadApeTags(fname,out);}
 	else return FALSE;
 }
@@ -899,7 +896,7 @@ return TRUE;
 
 BOOL ReadFlacTagsA(char* file,TAGS_GENERIC* out){
 TCHAR fname[MAX_PATH]=L"";
-	if(MultiByteToWideChar(CP_ACP,0,file,MAX_PATH,fname,MAX_PATH)!=0)
+	if(MultiByteToWideChar(CP_UTF8,0,file,MAX_PATH,fname,MAX_PATH)!=0)
 	{return ReadFlacTags(fname,out);}
 	else return FALSE;
 }
@@ -1019,7 +1016,7 @@ void ReverseWCHAR(WCHAR* c){
 
 BOOL ReadTagsv2A(char* file,TAGS_GENERIC* out){
 TCHAR fname[MAX_PATH]=L"";
-	if(MultiByteToWideChar(CP_ACP,0,file,MAX_PATH,fname,MAX_PATH)!=0)
+	if(MultiByteToWideChar(CP_UTF8,0,file,MAX_PATH,fname,MAX_PATH)!=0)
 	{return ReadTagsv2(fname,out);}
 	else return FALSE;
 }
