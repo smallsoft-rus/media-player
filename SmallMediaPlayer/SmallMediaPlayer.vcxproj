@@ -80,6 +80,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="DirectShowStuff.cpp" />
+    <ClCompile Include="errors.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="PictureManager.cpp" />
     <ClCompile Include="player.cpp" />
@@ -89,6 +90,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DirectShowStuff.h" />
+    <ClInclude Include="errors.h" />
     <ClInclude Include="generic.h" />
     <ClInclude Include="PictureManager.h" />
     <ClInclude Include="player.h" />

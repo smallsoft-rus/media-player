@@ -3,6 +3,7 @@
  * License: BSD 2.0 */
 #include "player.h"
 #include "PlayListEditor.h"
+#include "errors.h"
 
 extern SMPSETTINGS Settings;
 extern TCHAR* GetShortName(TCHAR* fullname);
@@ -765,7 +766,13 @@ if(lstrcmp(ext,L"jpg")==0||lstrcmp(ext,L"JPG")==0||
 
 //try auto build
 hr = pGraph->RenderFile(filename, NULL);
-if(FAILED(hr)){ShowError(hr,PLAY_ERROR);Close();return;}
+
+if(FAILED(hr)){
+	HandlePlayError(hr,filename);
+	Close();
+	return;
+}
+
 play:
 SearchFilters();
 PlayerState=STOPPED;
