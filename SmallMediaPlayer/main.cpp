@@ -23,6 +23,7 @@
 #include "PictureManager.h"
 #include "RegistryModule.h"
 #include "SMPSettings.h"
+#include "errors.h"
 #include <MMReg.h>
 
 #define S_TRACK_SIZE 20
@@ -910,7 +911,7 @@ case WM_INITDIALOG:
 
 case WM_COMMAND:switch(LOWORD(wParam)){
 case ID_ASSOCF:
-	if(RegisterFolderAssociation()==FALSE)MessageBox(0,L"Не удалось ассоциировать с папками",0,0);
+	if(RegisterFolderAssociation()==FALSE) HandleError(L"Не удалось ассоциировать с папками",SMP_ALERT_BLOCKING,L"");
 					
 	break;
 case ID_DELDIRA:

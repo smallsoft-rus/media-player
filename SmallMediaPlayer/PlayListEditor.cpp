@@ -3,6 +3,7 @@
  * License: BSD 2.0 */
 
 #include "PlayListEditor.h"
+#include "errors.h"
 /*
 10.09.2017 - Выделение текущего элемента в списке воспроизведения '>'
 */
@@ -456,7 +457,12 @@ TCHAR mask[MAX_PATH]=L"";
 TCHAR buf[MAX_PATH]=L"";
 
 HWND hlbt=CreateWindowW(L"LISTBOX",L"TEMP",LBS_SORT,0,0,200,200,NULL,NULL,GetModuleHandle(NULL),0);
-if(hlbt==NULL){MessageBox(0,L"Не удалось создать список",0,MB_OK|MB_ICONERROR);return;}
+
+if(hlbt==NULL){
+    HandleError(L"Не удалось создать список",SMP_ALERT_BLOCKING,L"");
+    return;
+}
+
 for(i=0;i<COUNT_EXTENSIONS;i++){
 	AddDirectory(dir,Extensions[i],hlbt);
 	

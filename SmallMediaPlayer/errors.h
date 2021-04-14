@@ -9,7 +9,12 @@
 #include <strsafe.h>
 #include <dshow.h>
 
-void HandleError(const WCHAR* message,const WCHAR* info);
+typedef int SMP_ALERTTYPE;
+const int SMP_ALERT_NONBLOCKING = 0; //modeless errors window
+const int SMP_ALERT_BLOCKING = 1;    //modal message box
+const int SMP_ALERT_SILENT = 2;      //no visible UI
+
+void HandleError(const WCHAR* message,SMP_ALERTTYPE alerttype, const WCHAR* info);
 void HandlePlayError(HRESULT hr, const WCHAR* file);
 
 #endif

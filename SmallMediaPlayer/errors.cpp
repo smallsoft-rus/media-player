@@ -44,8 +44,17 @@ void AddErrorMessage(const WCHAR* mes) {
 	SetWindowTextW(hEdit, buf);	
 }
 
-void HandleError(const WCHAR* message,const WCHAR* info){ //export
-	AddErrorMessage(message);
+void HandleError(const WCHAR* message,SMP_ALERTTYPE alerttype, const WCHAR* info){ //export
+
+	switch(alerttype){
+	case SMP_ALERT_BLOCKING:
+		MessageBoxW(NULL,message,NULL,MB_OK|MB_ICONERROR);
+		break;
+	case SMP_ALERT_SILENT:
+		break;
+	default: //non-blocking
+		AddErrorMessage(message);
+	}
 }
 
 void HandlePlayError(HRESULT hr, const WCHAR* file){ //export
@@ -64,7 +73,7 @@ void HandlePlayError(HRESULT hr, const WCHAR* file){ //export
 	StringCchCatW(output,output_len,L" - ");
 	StringCchCatW(output,output_len,file);
 	
-	HandleError(output,L"");
+	HandleError(output,SMP_ALERT_NONBLOCKING,L"");
 }
 
 void CreateErrorWindow() {

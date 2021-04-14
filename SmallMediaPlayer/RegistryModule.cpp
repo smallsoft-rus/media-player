@@ -2,7 +2,7 @@
  * Copyright (c) 2021,  MSDN.WhiteKnight (https://github.com/smallsoft-rus/media-player) 
  * License: BSD 2.0 */
 #include "RegistryModule.h"
-
+#include "errors.h"
 
 WCHAR ProgramFileName[256]=L"";
 
@@ -16,7 +16,7 @@ lstrcpy(buf,L"(SMP)Добавить в список");
 	lRes=RegCreateKeyW(HKEY_CLASSES_ROOT,L"Folder\\shell\\smp_add",&hKey);
 	if(lRes!=ERROR_SUCCESS){
 		StringCchPrintf(txt,400,L"Ошибка доступа к реестру: CreateKey вернул 0x%04x",lRes);
-		MessageBoxW(0,txt,L"Ошибка",MB_OK|MB_ICONERROR);
+		HandleError(txt,SMP_ALERT_BLOCKING,L"");
 		return FALSE;
 	}
 
@@ -25,7 +25,7 @@ lstrcpy(buf,L"(SMP)Добавить в список");
 	RegCloseKey(hKey);
 	if(lRes!=ERROR_SUCCESS){
 		StringCchPrintf(txt,400,L"Ошибка записи в реестр: RegSetValueEx вернул 0x%04x",lRes);
-		MessageBoxW(0,txt,L"Ошибка",MB_OK|MB_ICONERROR);
+		HandleError(txt,SMP_ALERT_BLOCKING,L"");
 		return FALSE;
 	}
 
@@ -34,7 +34,12 @@ lstrcpy(buf,L"(SMP)Добавить в список");
         lstrcat(buf,ProgramFileName);
         lstrcat(buf,L"\" /f \"%1\"");
 	lRes=RegCreateKeyW(HKEY_CLASSES_ROOT,L"Folder\\shell\\smp_add\\command",&hKey);
-	if(lRes!=ERROR_SUCCESS){MessageBoxW(0,L"Ошибка работы с реестром",0,0);return FALSE;}
+
+	if(lRes!=ERROR_SUCCESS){
+		HandleError(L"Ошибка работы с реестром",SMP_ALERT_BLOCKING,L"");
+		return FALSE;
+	}
+
 	lRes=RegSetValueExW(hKey,NULL,0,REG_SZ,(BYTE*)buf,wcslen(buf)*2+1);
 	RegCloseKey(hKey);
 	if(lRes!=ERROR_SUCCESS)
@@ -51,11 +56,16 @@ void DestroyFolderAssociation(){
         
 	lstrcpy(buf,L"Folder\\shell\\smp_add\\command");
 	lRes=RegDeleteKey(HKEY_CLASSES_ROOT,buf);
-	if(lRes!=ERROR_SUCCESS){MessageBoxW(0,L"Ошибка работы с реестром",0,0);}
+
+	if(lRes!=ERROR_SUCCESS){HandleError(L"Ошибка работы с реестром",SMP_ALERT_BLOCKING,L"");}
 
 	lstrcpy(buf,L"Folder\\shell\\smp_add");
 	lRes=RegDeleteKey(HKEY_CLASSES_ROOT,buf);
-	if(lRes!=ERROR_SUCCESS){MessageBoxW(0,L"Ошибка работы с реестром",0,0);return;}
+
+	if(lRes!=ERROR_SUCCESS){
+		HandleError(L"Ошибка работы с реестром",SMP_ALERT_BLOCKING,L"");
+		return;
+	}
 
     MessageBox(0,L"Операция выполнена!",L"Успех",MB_OK|MB_ICONINFORMATION);
 }
@@ -83,21 +93,25 @@ void RegisterFileAssociation(WCHAR* ext){
    if(lRes!=ERROR_SUCCESS){
         lstrcpy(type_name,L"mediafile");
         lRes=RegSetValueExW(hKey,NULL,0,REG_SZ,(BYTE*)type_name,wcslen(type_name)*2+1);
-		if(lRes!=ERROR_SUCCESS){MessageBox(0,L"Cannot set type name",0,0);goto Cleanup;}
+
+		 if(lRes!=ERROR_SUCCESS){
+			HandleError(L"Cannot set type name",SMP_ALERT_BLOCKING,L"");
+			goto Cleanup;
+		 }
         }
    }
  else {
  lRes=RegCreateKeyW(HKEY_CLASSES_ROOT,buf,&hKey);
  if(lRes!=ERROR_SUCCESS){
 		StringCchPrintf(txt,400,L"Ошибка доступа к реестру: RegCreateKey вернул 0x%04x",lRes);
-		MessageBoxW(0,txt,L"Ошибка",MB_OK|MB_ICONERROR);
+		HandleError(txt,SMP_ALERT_BLOCKING,L"");
 		goto Cleanup;
  }
   lstrcpy(type_name,L"mediafile");
   lRes=RegSetValueExW(hKey,NULL,0,REG_SZ,(BYTE*)type_name,wcslen(type_name)*2+1);
 	if(lRes!=ERROR_SUCCESS){
 		StringCchPrintf(txt,400,L"Ошибка записи в реестр: RegSetValueEx вернул 0x%04x",lRes);
-		MessageBoxW(0,txt,L"Ошибка",MB_OK|MB_ICONERROR);
+		HandleError(txt,SMP_ALERT_BLOCKING,L"");
 		goto Cleanup;
 	}
   }
@@ -108,12 +122,12 @@ void RegisterFileAssociation(WCHAR* ext){
 	lstrcpy(key_name,type_name);
 	lstrcat(key_name,L"\\shell\\smp_open");
 	lRes=RegCreateKeyW(HKEY_CLASSES_ROOT,key_name,&hKey);
-	if(lRes!=ERROR_SUCCESS){MessageBox(0,L"Cant create smp_open key",0,0);goto Cleanup;}
+	if(lRes!=ERROR_SUCCESS){HandleError(L"Cant create smp_open key",SMP_ALERT_BLOCKING,L"");goto Cleanup;}
 	lstrcpy(buf,L"Открыть в SMP");
     lRes=RegSetValueExW(hKey,NULL,0,REG_SZ,(BYTE*)buf,wcslen(buf)*2+1);
 	if(lRes!=ERROR_SUCCESS){
 		StringCchPrintf(txt,400,L"Ошибка записи в реестр: RegSetValueEx вернул 0x%04x",lRes);
-		MessageBoxW(0,txt,L"Ошибка",MB_OK|MB_ICONERROR);
+		HandleError(txt,SMP_ALERT_BLOCKING,L"");
 		goto Cleanup;
 	}
 	RegCloseKey(hKey);hKey=NULL;
@@ -121,43 +135,43 @@ void RegisterFileAssociation(WCHAR* ext){
 	lstrcpy(key_name,type_name);
 	lstrcat(key_name,L"\\shell\\smp_open\\command");
 	lRes=RegCreateKeyW(HKEY_CLASSES_ROOT,key_name,&hKey);
-	if(lRes!=ERROR_SUCCESS){MessageBox(0,L"Ошибка работы с реестром!",0,0);goto Cleanup;}
+	if(lRes!=ERROR_SUCCESS){HandleError(L"Ошибка работы с реестром!",SMP_ALERT_BLOCKING,L"");goto Cleanup;}
 	lstrcpy(buf,L"\"");
         lstrcat(buf,ProgramFileName);
         lstrcat(buf,L"\" \"%1\"");
 	lRes=RegSetValueExW(hKey,NULL,0,REG_SZ,(BYTE*)buf,wcslen(buf)*2+1);
-	if(lRes!=ERROR_SUCCESS){MessageBox(0,L"Ошибка работы с реестром!",0,0);goto Cleanup;}
+	if(lRes!=ERROR_SUCCESS){HandleError(L"Ошибка работы с реестром!",SMP_ALERT_BLOCKING,L"");goto Cleanup;}
 	RegCloseKey(hKey);hKey=NULL;
 
 	lstrcpy(key_name,type_name);
 	lstrcat(key_name,L"\\shell\\smp_add");
 	lRes=RegCreateKeyW(HKEY_CLASSES_ROOT,key_name,&hKey);
-	if(lRes!=ERROR_SUCCESS){MessageBox(0,L"Ошибка работы с реестром!",0,0);goto Cleanup;}
+	if(lRes!=ERROR_SUCCESS){HandleError(L"Ошибка работы с реестром!",SMP_ALERT_BLOCKING,L"");goto Cleanup;}
 	lstrcpy(buf,L"(SMP)Добавить в список");
    lRes=RegSetValueExW(hKey,NULL,0,REG_SZ,(BYTE*)buf,wcslen(buf)*2+1);
-	if(lRes!=ERROR_SUCCESS){MessageBox(0,L"Ошибка работы с реестром!",0,0);goto Cleanup;}
+	if(lRes!=ERROR_SUCCESS){HandleError(L"Ошибка работы с реестром!",SMP_ALERT_BLOCKING,L"");goto Cleanup;}
 	RegCloseKey(hKey);hKey=NULL;
 
 lstrcpy(key_name,type_name);
 lstrcat(key_name,L"\\shell\\smp_add\\command");
 lRes=RegCreateKeyW(HKEY_CLASSES_ROOT,key_name,&hKey);
-	if(lRes!=ERROR_SUCCESS){MessageBox(0,L"Ошибка работы с реестром!",0,0);goto Cleanup;}
+	if(lRes!=ERROR_SUCCESS){HandleError(L"Ошибка работы с реестром!",SMP_ALERT_BLOCKING,L"");goto Cleanup;}
 	lstrcpy(buf,L"\"");
         lstrcat(buf,ProgramFileName);
         lstrcat(buf,L"\"/a \"%1\"");
 	lRes=RegSetValueExW(hKey,NULL,0,REG_SZ,(BYTE*)buf,wcslen(buf)*2+1);
-	if(lRes!=ERROR_SUCCESS){MessageBox(0,L"Ошибка работы с реестром!",0,0);goto Cleanup;}
+	if(lRes!=ERROR_SUCCESS){HandleError(L"Ошибка работы с реестром!",SMP_ALERT_BLOCKING,L"");goto Cleanup;}
 	RegCloseKey(hKey);hKey=NULL;
 
 	//set default action
 	lstrcpy(key_name,type_name);
 	lstrcat(key_name,L"\\shell");
 	lRes=RegCreateKeyW(HKEY_CLASSES_ROOT,key_name,&hKey);
-	if(lRes!=ERROR_SUCCESS){MessageBox(0,L"Ошибка работы с реестром!",0,0);goto Cleanup;}
+	if(lRes!=ERROR_SUCCESS){HandleError(L"Ошибка работы с реестром!",SMP_ALERT_BLOCKING,L"");goto Cleanup;}
 	lstrcpy(buf,L"smp_open");
         
 	lRes=RegSetValueExW(hKey,NULL,0,REG_SZ,(BYTE*)buf,wcslen(buf)*2+1);
-	if(lRes!=ERROR_SUCCESS){MessageBox(0,L"Ошибка работы с реестром!",0,0);goto Cleanup;}
+	if(lRes!=ERROR_SUCCESS){HandleError(L"Ошибка работы с реестром!",SMP_ALERT_BLOCKING,L"");goto Cleanup;}
 
 	MessageBox(0,L"Операция выполнена!",L"Успех",MB_OK|MB_ICONINFORMATION);
 
@@ -182,12 +196,12 @@ LONG lRes;
  lRes=RegOpenKeyW(HKEY_CLASSES_ROOT,buf,&hKey);
  if(lRes==ERROR_SUCCESS){
    lRes=RegQueryValueEx(hKey,NULL,NULL,NULL,(LPBYTE)type_name,&size);
-   if(lRes!=ERROR_SUCCESS){MessageBox(0,L"Ошибка работы с реестром!",0,0);goto Cleanup;}
+   if(lRes!=ERROR_SUCCESS){HandleError(L"Ошибка работы с реестром!",SMP_ALERT_BLOCKING,L"");goto Cleanup;}
    }
  else
  {
 	StringCchPrintf(txt,400,L"Ошибка доступа к реестру: RegOpenKey вернул 0x%04x",lRes);
-	MessageBoxW(0,txt,L"Ошибка",MB_OK|MB_ICONERROR);
+	HandleError(txt,SMP_ALERT_BLOCKING,L"");
 	goto Cleanup;
  }
 	RegCloseKey(hKey);hKey=NULL;
@@ -210,11 +224,11 @@ LONG lRes;
 	lstrcpy(key_name,type_name);
 	lstrcat(key_name,L"\\shell");
 	lRes=RegCreateKeyW(HKEY_CLASSES_ROOT,key_name,&hKey);
-	if(lRes!=ERROR_SUCCESS){MessageBox(0,L"Ошибка работы с реестром!",0,0);goto Cleanup;}
+	if(lRes!=ERROR_SUCCESS){HandleError(L"Ошибка работы с реестром!",SMP_ALERT_BLOCKING,L"");goto Cleanup;}
 
 	lstrcpy(buf,L"open");        
 	lRes=RegSetValueExW(hKey,NULL,0,REG_SZ,(BYTE*)buf,wcslen(buf)*2+1);
-	if(lRes!=ERROR_SUCCESS){MessageBox(0,L"Ошибка работы с реестром!",0,0);goto Cleanup;}
+	if(lRes!=ERROR_SUCCESS){HandleError(L"Ошибка работы с реестром!",SMP_ALERT_BLOCKING,L"");goto Cleanup;}
 	
 	MessageBox(0,L"Операция выполнена!",L"Успех",MB_OK|MB_ICONINFORMATION);
 

@@ -111,7 +111,8 @@ if(PlayerState==PLAYING||PlayerState==PAUSED)Stop();
        (DWORD)(LPVOID) &mciOpenParms))
     {
         // Failed to open device. Don't close it; just return error.
-		MessageBox(0,L"Не удалось открыть устройство AudioCD",0,MB_OK);return dwReturn;
+		HandleError(L"Не удалось открыть устройство AudioCD",SMP_ALERT_BLOCKING,L"");
+		return dwReturn;
 	       
     }
 	// The device opened successfully; get the device ID.
@@ -121,7 +122,9 @@ if(PlayerState==PLAYING||PlayerState==PAUSED)Stop();
 	IsPlayingCDA=true;
 	mciSetParms.dwTimeFormat=MCI_FORMAT_TMSF;
 	dwReturn=mciSendCommand( DeviceID,MCI_SET, MCI_SET_TIME_FORMAT, (DWORD)&mciSetParms);
-	if(dwReturn!=0)MessageBox(0,L"Невозможно установить формат времени",0,0);
+
+	if(dwReturn!=0)HandleError(L"Невозможно установить формат времени",SMP_ALERT_BLOCKING,L"");
+
     // Begin playback. The window procedure function for the parent 
     // window will be notified with an MM_MCINOTIFY message when 
     // playback is complete. At this time, the window procedure closes 
@@ -139,7 +142,7 @@ sec=sec-min*60;
         (DWORD)(LPVOID) &mciPlayParms))
     {
         Close();
-		MessageBox(0,L"Ошибка воспроизведения AudioCD",0,MB_OK);
+		HandleError(L"Ошибка воспроизведения AudioCD",SMP_ALERT_BLOCKING,L"");
 		PlayerState=FILE_NOT_LOADED;
 		IsPlayingCDA=false;
         return (dwReturn);
@@ -770,6 +773,8 @@ hr = pGraph->RenderFile(filename, NULL);
 if(FAILED(hr)){
 	HandlePlayError(hr,filename);
 	Close();
+	WPARAM wParam=MAKEWPARAM(ID_NEXTTRACK,0);
+	PostMessage(hWnd,WM_COMMAND,wParam,0);
 	return;
 }
 
@@ -794,9 +799,12 @@ else {
 
 hr = pControl->Run();
 if(FAILED(hr)){
-	ShowError(hr,PLAY_ERROR);
+	HandlePlayError(hr,filename);
 	Close();
-	return;}
+	WPARAM wParam=MAKEWPARAM(ID_NEXTTRACK,0);
+	PostMessage(hWnd,WM_COMMAND,wParam,0);
+	return;
+}
 
 PlayerState=PLAYING;
 pAudio->put_Volume(Volume);
@@ -812,8 +820,9 @@ DWORD dwReturn;
 	DWORD len,min,sec;
 
 	if(PlayerState==FILE_NOT_LOADED){
-		MessageBox(hWnd,L"Файл не загружен",NULL,MB_OK|MB_ICONERROR);
-		return ;}
+		HandleError(L"Файл не загружен",SMP_ALERT_BLOCKING,L"");
+		return;
+	}
 	
     // Begin playback. The window procedure function for the parent 
     // window will be notified with an MM_MCINOTIFY message when 
@@ -843,22 +852,26 @@ return;
 void Play(){
 HRESULT hr;
 DWORD dwReturn;
-    MCI_PLAY_PARMS mciPlayParms;
+MCI_PLAY_PARMS mciPlayParms;
 DWORD len,min,sec;
 
 	if(PlayerState==FILE_NOT_LOADED){
-		MessageBox(hWnd,L"Файл не загружен",NULL,MB_OK|MB_ICONERROR);
-		return ;}
+		HandleError(L"Файл не загружен",SMP_ALERT_BLOCKING,L"");
+		return;
+	}
+
 	if(IsPlayingCDA==true){
 		PlayCDAFrom(MCI_MAKE_TMSF(TrackNumber,0,0,0));
 		return;
 	}
 hr = pControl->Run();
 if(FAILED(hr)){
-	ShowError(hr,PLAY_ERROR);
+	HandlePlayError(hr,L"");
 	Close();
-	PlayerState=FILE_NOT_LOADED;
-	return;}
+	WPARAM wParam=MAKEWPARAM(ID_NEXTTRACK,0);
+	PostMessage(hWnd,WM_COMMAND,wParam,0);
+	return;
+}
 
 PlayerState=PLAYING;
 
