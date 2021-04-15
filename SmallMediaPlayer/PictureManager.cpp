@@ -26,7 +26,7 @@ TCHAR* arrCoverMasks[]={
 	L"*.bmp",
 	L"*.png"};
 
-TCHAR* arrPatternMasks[]={		
+TCHAR* arrPatternMasks[]={
 	L"*.jpg",
 	L"*.jpeg",
 	L"*.png"
@@ -216,24 +216,24 @@ lstrcpy(out,buf);
 }
 
 void GetPattern(TCHAR* out){
-TCHAR path[MAX_PATH]=L"";
-TCHAR windir[MAX_PATH];
-TCHAR dir[MAX_PATH];
-BOOL res;int i;
+    TCHAR path[MAX_PATH]=L"";
+    TCHAR windir[MAX_PATH]=L"";
+    TCHAR dir[MAX_PATH]=L"";
+    BOOL res;
+	int i;
 
-GetWindowsDirectory(windir,sizeof(windir));
+    GetWindowsDirectory(windir,MAX_PATH);
+    lstrcat(windir,L"\\");
 
-lstrcat(windir,L"\\");
+    lstrcpy(dir,windir);
+    lstrcat(dir,L"Web\\Wallpaper\\Windows\\");
 
-lstrcpy(dir,windir);
+    for(i=0;i<COUNT_PATTERN_MASKS;i++){
+        res=FindPicture(dir,arrPatternMasks[i],path);
+        if(res==TRUE)goto end;
+	}
+	
+    if(res==FALSE)return;
 
-
-for(i=0;i<COUNT_PATTERN_MASKS;i++){
-res=FindPicture(dir,arrPatternMasks[i],path);
-if(res==TRUE)goto end;}
-
-
-if(res==FALSE)return;
-end:
-lstrcpy(out,path);
+end:lstrcpy(out,path);
 }
