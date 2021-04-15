@@ -27,10 +27,9 @@ TCHAR* arrCoverMasks[]={
 	L"*.png"};
 
 TCHAR* arrPatternMasks[]={		
-	L"*Ночной ковыль*.bmp",
-	L"Сиреневый пух.bmp",
-	L"Японский мотив.bmp",
-	L"На рыбалку.bmp",
+	L"*.jpg",
+	L"*.jpeg",
+	L"*.png"
 };
 
 
