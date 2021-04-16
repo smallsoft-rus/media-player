@@ -3,12 +3,16 @@
  * License: BSD 2.0 */
 #include "errors.h"
 
+extern void GetDataDir(WCHAR* dir,int maxcount); //SMPSettings.cpp
+
 const int ERRORWINDOW_WIDTH = 400;
 const int ERRORWINDOW_HEIGHT = 200;
 
 //module state
 HWND hErrorWnd = NULL; //window to print errors
 HWND hEdit = NULL; //edit control in error window
+WCHAR strLogFile[MAX_PATH]=L"";
+BOOL fLogFileInitialized=FALSE;
 
 void CreateErrorWindow();
 
@@ -44,8 +48,67 @@ void AddErrorMessage(const WCHAR* mes) {
 	SetWindowTextW(hEdit, buf);	
 }
 
+void WriteUtf8String(HANDLE hFile, const WCHAR* str){
+	int c=0;
+	char utf8_string[1024]="";
+	DWORD dwCount=0;
+	c=WideCharToMultiByte(CP_UTF8,0,str,-1,utf8_string,sizeof(utf8_string),NULL,NULL);
+	c--;//null terminator
+	if(c<0)return;
+    WriteFile(hFile,utf8_string,c,&dwCount,NULL);
+	WriteFile(hFile,"\r\n",2,&dwCount,NULL);
+}
+
 void HandleError(const WCHAR* message,SMP_ALERTTYPE alerttype, const WCHAR* info){ //export
 
+    if(fLogFileInitialized==FALSE){
+        //construct log file path
+        GetDataDir(strLogFile,MAX_PATH);
+        StringCchCat(strLogFile,MAX_PATH,L"error.log");
+        fLogFileInitialized=TRUE;
+    }
+
+    //write error to log file
+    HANDLE hFile=CreateFile(
+        strLogFile,GENERIC_WRITE,FILE_SHARE_READ|FILE_SHARE_WRITE,NULL,OPEN_ALWAYS,FILE_ATTRIBUTE_NORMAL,NULL
+    );
+
+    if(hFile!=INVALID_HANDLE_VALUE){
+        DWORD dwRes=SetFilePointer(hFile,0,0,FILE_END);
+        if(dwRes==INVALID_SET_FILE_POINTER )MessageBox(0,L"INVALID_SET_FILE_POINTER",0,0);
+
+        //time
+        SYSTEMTIME st={0};
+        GetLocalTime(&st);
+        char time_str[1024]="";
+
+        StringCchPrintfA(
+			time_str,sizeof(time_str),"%4d.%02d.%02d %2d:%02d",
+			(int)st.wYear,(int)st.wMonth,(int)st.wDay,(int)st.wHour,(int)st.wMinute
+        );
+
+        DWORD dwCount=0;
+        WriteFile(hFile,time_str,lstrlenA(time_str),&dwCount,NULL);
+        WriteFile(hFile,"\r\n",2,&dwCount,NULL);
+
+        //message
+        WriteUtf8String(hFile,message);
+        BOOL write_info=FALSE;
+
+        //extra info
+        if(info!=NULL){
+			if(lstrlenW(info)>0)write_info=TRUE;
+        }
+
+        if(write_info!=FALSE){
+			WriteUtf8String(hFile,info);
+        }
+
+        WriteFile(hFile,"\r\n",2,&dwCount,NULL);
+        CloseHandle(hFile);
+    }
+
+    //show error
 	switch(alerttype){
 	case SMP_ALERT_BLOCKING:
 		MessageBoxW(NULL,message,NULL,MB_OK|MB_ICONERROR);

@@ -1346,10 +1346,7 @@ if(IsPlayingVideo==true)return 0;
 		if(Settings.fLoadDefaultPls==true){
 			TCHAR buf[MAX_PATH];
 
-			HRESULT result = SHGetFolderPath(NULL, CSIDL_PERSONAL, NULL, SHGFP_TYPE_CURRENT, buf);
-			if(result!=S_OK)GetFileDirectory(ProgramFileName,buf);
-			else StringCchCat(buf,MAX_PATH,L"\\Small Media Player\\");
-
+			GetDataDir(buf,MAX_PATH);
 			StringCchCat(buf,MAX_PATH,L"default.lst");
 			SaveTextPlaylist(buf);
 		}
@@ -1702,11 +1699,9 @@ if(Settings.fLoadWallpaper==true){
 }
 InvalidateRect(hMainWnd,NULL,TRUE);
 if(Settings.fLoadDefaultPls==true){
-	TCHAR buf[MAX_PATH];
+    TCHAR buf[MAX_PATH]=L"";
 
-	HRESULT result = SHGetFolderPath(NULL, CSIDL_PERSONAL, NULL, SHGFP_TYPE_CURRENT, buf);
-	if(result!=S_OK)GetFileDirectory(ProgramFileName,buf);
-	else StringCchCat(buf,MAX_PATH,L"\\Small Media Player\\");
+    GetDataDir(buf,MAX_PATH);
 
 StringCchCat(buf,MAX_PATH,L"default.lst");
 	LoadTextPlaylist(buf);}

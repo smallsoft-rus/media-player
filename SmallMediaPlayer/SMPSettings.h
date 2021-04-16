@@ -25,5 +25,6 @@ void SaveLastPosition();
 void WriteSettings();
 void LoadSettings();
 BOOL CALLBACK SettingsDlgProc(HWND hDlg,UINT uMsg,WPARAM wParam,LPARAM lParam);
+void GetDataDir(WCHAR* dir,int maxcount);
 
 #endif

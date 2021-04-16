@@ -28,6 +28,17 @@ SMPSETTINGS Settings =
 	100 //volume
 };
 
+void GetDataDir(WCHAR* dir,int maxcount){ //export
+	TCHAR fname[MAX_PATH]=L"";
+
+	//get documents dir
+	HRESULT result = SHGetFolderPath(NULL, CSIDL_PERSONAL, NULL, SHGFP_TYPE_CURRENT, fname);
+	if(result!=S_OK)GetFileDirectory(ProgramFileName,fname);
+	else StringCchCat(fname,MAX_PATH,L"\\Small Media Player\\");
+	CreateDirectory(fname,NULL);
+	StringCchCopyW(dir,maxcount,fname);
+}
+
 void LoadSettings()
 {
     HANDLE hFile;
@@ -35,13 +46,8 @@ void LoadSettings()
     SMPSETTINGS t;
     TCHAR fname[MAX_PATH]=L"";
     BOOL res;
-	
-    HRESULT result = SHGetFolderPath(NULL, CSIDL_PERSONAL, NULL, SHGFP_TYPE_CURRENT, fname);
 
-	if(result!=S_OK)GetFileDirectory(ProgramFileName,fname);
-	else StringCchCat(fname,MAX_PATH,L"\\Small Media Player\\");
-
-	CreateDirectory(fname,NULL);
+	GetDataDir(fname,MAX_PATH);
 	StringCchCat(fname,MAX_PATH,L"smpdata.bin");
 
     hFile=CreateFile(fname,GENERIC_READ,0,NULL,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,NULL);
@@ -61,11 +67,7 @@ void WriteSettings()
     TCHAR fname[MAX_PATH]=L"";
     BOOL res;
 
-    HRESULT result = SHGetFolderPath(NULL, CSIDL_PERSONAL, NULL, SHGFP_TYPE_CURRENT, fname);
-
-	if(result!=S_OK)GetFileDirectory(ProgramFileName,fname);
-	else StringCchCat(fname,MAX_PATH,L"\\Small Media Player\\");
-
+	GetDataDir(fname,MAX_PATH);
     StringCchCat(fname,MAX_PATH,L"smpdata.bin");
 
     hFile=CreateFile(fname,GENERIC_WRITE,0,NULL,CREATE_ALWAYS,FILE_ATTRIBUTE_NORMAL,NULL);
