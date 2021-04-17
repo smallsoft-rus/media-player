@@ -2,11 +2,15 @@
  * Copyright (c) 2021,  MSDN.WhiteKnight (https://github.com/smallsoft-rus/media-player) 
  * License: BSD 2.0 */
 #include "errors.h"
+#include <DbgHelp.h>
+
+#pragma comment(lib, "Dbghelp.lib")
 
 extern void GetDataDir(WCHAR* dir,int maxcount); //SMPSettings.cpp
 
 const int ERRORWINDOW_WIDTH = 400;
 const int ERRORWINDOW_HEIGHT = 200;
+const int MaxNameLen = 512;
 
 //module state
 HWND hErrorWnd = NULL; //window to print errors
@@ -49,14 +53,179 @@ void AddErrorMessage(const WCHAR* mes) {
 }
 
 void WriteUtf8String(HANDLE hFile, const WCHAR* str){
-	int c=0;
-	char utf8_string[1024]="";
-	DWORD dwCount=0;
-	c=WideCharToMultiByte(CP_UTF8,0,str,-1,utf8_string,sizeof(utf8_string),NULL,NULL);
-	c--;//null terminator
-	if(c<0)return;
+    int c=0;
+    char* utf8_string=NULL;
+    DWORD dwCount=0;
+
+    //get buffer size
+    c=WideCharToMultiByte(CP_UTF8,0,str,-1,NULL,0,NULL,NULL);
+
+    if(c<=1)return;
+
+    //allocate buffer
+    utf8_string=(char*)LocalAlloc(LMEM_ZEROINIT,c);
+    if(utf8_string==NULL)return;
+
+    //convert to UTF-8
+    c=WideCharToMultiByte(CP_UTF8,0,str,-1,utf8_string,c,NULL,NULL);
+    c--;//null terminator
+    
     WriteFile(hFile,utf8_string,c,&dwCount,NULL);
-	WriteFile(hFile,"\r\n",2,&dwCount,NULL);
+    WriteFile(hFile,"\r\n",2,&dwCount,NULL);
+    LocalFree(utf8_string);
+}
+
+//Gets filename from full path
+WCHAR* FileNameFromPathW(WCHAR* path){
+
+    int i;WCHAR* p;
+
+    size_t len = lstrlenW(path);
+    if(len<=3)return path;
+
+    i = len - 2;
+    p = path;
+
+    while(TRUE){
+        if(path[i] == '\\' || path[i] == '/') {p = &(path[i+1]);break;}
+        i--;
+        if(i<0)break;
+    }
+
+    return p;
+}
+
+//Gets filename from full path (ANSI)
+char* FileNameFromPathA(char* path){
+
+    int i;char* p;
+
+    size_t len = lstrlenA(path);
+    if(len<=3)return path;
+
+    i = len - 2;
+    p = path;
+
+    while(TRUE){
+        if(path[i] == '\\' || path[i] == '/') {p = &(path[i+1]);break;}
+        i--;
+        if(i<0)break;
+    }
+
+    return p;
+}
+
+//Prints stack trace based on context record
+void PrintStackA( CONTEXT* ctx , char* dest, size_t cch) 
+{
+    //from https://github.com/MSDN-WhiteKnight/ErrLib/blob/master/ErrLib/ErrLib.cpp
+    BOOL    result = FALSE;
+    HANDLE  process= NULL;
+    HANDLE  thread= NULL;
+    HMODULE hModule= NULL;
+
+    STACKFRAME64        stack;
+    ULONG               frame=0;
+    DWORD64             displacement=0;
+    IMAGEHLP_LINE64 *line = NULL;
+    DWORD disp = 0;
+
+    char buffer[sizeof(SYMBOL_INFOW) + MAX_SYM_NAME * sizeof(WCHAR)]={0};
+    char name[MaxNameLen]={0};
+    char module[MaxNameLen]={0};
+    char* module_short = NULL;
+    char strbuf[MAX_SYM_NAME*3]={0};
+    PSYMBOL_INFO pSymbol = (PSYMBOL_INFO)buffer;
+
+    StringCchCopyA(dest,cch,"");
+    memset( &stack, 0, sizeof( STACKFRAME64 ) );
+
+    process                = GetCurrentProcess();
+    thread                 = GetCurrentThread();
+    displacement           = 0;
+#if !defined(_M_AMD64)
+    stack.AddrPC.Offset    = (*ctx).Eip;
+    stack.AddrPC.Mode      = AddrModeFlat;
+    stack.AddrStack.Offset = (*ctx).Esp;
+    stack.AddrStack.Mode   = AddrModeFlat;
+    stack.AddrFrame.Offset = (*ctx).Ebp;
+    stack.AddrFrame.Mode   = AddrModeFlat;
+#endif
+
+    for( frame = 0; ; frame++ )
+    {
+        //get next call from stack
+        result = StackWalk64
+        (
+#if defined(_M_AMD64)
+            IMAGE_FILE_MACHINE_AMD64
+#else
+            IMAGE_FILE_MACHINE_I386
+#endif
+            ,
+            process,
+            thread,
+            &stack,
+            ctx,
+            NULL,
+            SymFunctionTableAccess64,
+            SymGetModuleBase64,
+            NULL
+        );
+
+        if( !result ) break;
+
+        //get symbol name for address
+        ZeroMemory(buffer,sizeof(buffer));
+        pSymbol->SizeOfStruct = sizeof(SYMBOL_INFO);
+        pSymbol->MaxNameLen = MAX_SYM_NAME;
+        result = SymFromAddr(process, ( ULONG64 )stack.AddrPC.Offset, &displacement, pSymbol);
+        if(result == FALSE){ //name not available, output address instead
+               StringCchPrintfA(pSymbol->Name,MAX_SYM_NAME,"0x%llx",(DWORD64)stack.AddrPC.Offset);
+        }
+
+        line = (IMAGEHLP_LINE64 *)LocalAlloc(LMEM_ZEROINIT, sizeof(IMAGEHLP_LINE64));
+        ZeroMemory(line,sizeof(IMAGEHLP_LINE64));
+        line->SizeOfStruct = sizeof(IMAGEHLP_LINE64);
+
+        //get module name
+        hModule = NULL;
+        lstrcpyA(module,"");
+        module_short=&(module[0]);
+
+        GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, 
+                (LPCTSTR)(stack.AddrPC.Offset), &hModule);
+
+        if(hModule != NULL){
+                GetModuleFileNameA(hModule,module,MaxNameLen);
+                module_short = FileNameFromPathA(module);
+        }
+
+        //try to get line
+        if (SymGetLineFromAddr64(process, stack.AddrPC.Offset, &disp, line))
+        {
+            char* shortname="";
+            shortname=FileNameFromPathA(line->FileName);
+
+            StringCchPrintfA(strbuf,sizeof(strbuf)/sizeof(WCHAR),
+                                "  in %s!%s + 0x%02llx (%s: %lu)\n", module_short,pSymbol->Name, 
+                                displacement,shortname, line->LineNumber
+                                );
+
+            StringCchCatA(dest,cch,strbuf);
+        }
+        else{
+            //failed to get line, output address instead
+            StringCchPrintfA(strbuf,sizeof(strbuf)/sizeof(WCHAR),
+                                "  in %s!%s + 0x%02llx (address: 0x%llx)\n", module_short,pSymbol->Name, 
+                                displacement,(DWORD64)(stack.AddrPC.Offset - pSymbol->ModBase));
+            StringCchCatA(dest,cch,strbuf);
+        }
+        
+        LocalFree(line);
+        line = NULL;
+        if(frame > 9999)break;
+    }//end for
 }
 
 void HandleError(const WCHAR* message,SMP_ALERTTYPE alerttype, const WCHAR* info){ //export
@@ -65,6 +234,12 @@ void HandleError(const WCHAR* message,SMP_ALERTTYPE alerttype, const WCHAR* info
         //construct log file path
         GetDataDir(strLogFile,MAX_PATH);
         StringCchCat(strLogFile,MAX_PATH,L"error.log");
+
+#ifdef DEBUG
+        //initialize symbol handler
+        SymInitialize( GetCurrentProcess(), NULL, TRUE );
+#endif
+
         fLogFileInitialized=TRUE;
     }
 
@@ -101,8 +276,18 @@ void HandleError(const WCHAR* message,SMP_ALERTTYPE alerttype, const WCHAR* info
         }
 
         if(write_info!=FALSE){
-			WriteUtf8String(hFile,info);
+            WriteUtf8String(hFile,info);
+            WriteFile(hFile,"\r\n",2,&dwCount,NULL);
         }
+
+#ifdef DEBUG
+        //stack trace
+        char stack[2048]="";
+        CONTEXT ctx={0};
+        RtlCaptureContext(&ctx);
+        PrintStackA(&ctx,stack,2048);
+        WriteFile(hFile,stack,lstrlenA(stack),&dwCount,NULL);
+#endif
 
         WriteFile(hFile,"\r\n",2,&dwCount,NULL);
         CloseHandle(hFile);
