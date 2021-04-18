@@ -1528,7 +1528,7 @@ ic.dwSize=sizeof(ic);
 ic.dwICC=ICC_WIN95_CLASSES;
 InitCommonControlsEx(&ic);
 GdiplusStartup(&gdip_code, new GdiplusStartupInput(),NULL);
-
+InitErrorHandler();
 
 GetModuleFileName(NULL,ProgramFileName,sizeof(ProgramFileName));
 LoadSettings();

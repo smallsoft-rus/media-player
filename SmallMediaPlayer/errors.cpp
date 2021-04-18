@@ -11,6 +11,8 @@ extern void GetDataDir(WCHAR* dir,int maxcount); //SMPSettings.cpp
 const int ERRORWINDOW_WIDTH = 400;
 const int ERRORWINDOW_HEIGHT = 200;
 const int MaxNameLen = 512;
+const int MaxMessageLen = 1024;
+const int MaxStackLen = 2048;
 
 //module state
 HWND hErrorWnd = NULL; //window to print errors
@@ -228,20 +230,17 @@ void PrintStackA( CONTEXT* ctx , char* dest, size_t cch)
     }//end for
 }
 
-void HandleError(const WCHAR* message,SMP_ALERTTYPE alerttype, const WCHAR* info){ //export
+void HandleError(
+    const WCHAR* message,SMP_ALERTTYPE alerttype, const WCHAR* info
+    ){ //export
+    HandleError(message,alerttype,info,NULL);
+}
 
-    if(fLogFileInitialized==FALSE){
-        //construct log file path
-        GetDataDir(strLogFile,MAX_PATH);
-        StringCchCat(strLogFile,MAX_PATH,L"error.log");
+void HandleError(
+    const WCHAR* message,SMP_ALERTTYPE alerttype, const WCHAR* info, CONTEXT* pContext
+    ){ //export
 
-#ifdef DEBUG
-        //initialize symbol handler
-        SymInitialize( GetCurrentProcess(), NULL, TRUE );
-#endif
-
-        fLogFileInitialized=TRUE;
-    }
+    InitErrorHandler();
 
     //write error to log file
     HANDLE hFile=CreateFile(
@@ -282,10 +281,19 @@ void HandleError(const WCHAR* message,SMP_ALERTTYPE alerttype, const WCHAR* info
 
 #ifdef DEBUG
         //stack trace
-        char stack[2048]="";
+        char stack[MaxStackLen]="";
+        CONTEXT* p;
         CONTEXT ctx={0};
-        RtlCaptureContext(&ctx);
-        PrintStackA(&ctx,stack,2048);
+
+        if(pContext!=NULL){
+            p=pContext;
+        }
+        else {
+            RtlCaptureContext(&ctx);
+            p=&ctx;
+        }
+        
+        PrintStackA(p,stack,MaxStackLen);
         WriteFile(hFile,stack,lstrlenA(stack),&dwCount,NULL);
 #endif
 
@@ -322,6 +330,43 @@ void HandlePlayError(HRESULT hr, const WCHAR* file){ //export
 	StringCchCatW(output,output_len,file);
 	
 	HandleError(output,SMP_ALERT_NONBLOCKING,L"");
+}
+
+//called on unhandled exception
+LONG WINAPI MyUnhandledExceptionFilter( struct _EXCEPTION_POINTERS *ExceptionInfo){
+
+    WCHAR mes[MaxMessageLen]={0};
+
+    //Ignore Ctrl+C
+    if(ExceptionInfo->ExceptionRecord->ExceptionCode == STATUS_CONTROL_C_EXIT) {
+        return EXCEPTION_CONTINUE_SEARCH;
+    }
+
+    //show and log error
+    StringCchPrintfW(mes,MaxMessageLen,L"Exception 0x%x",ExceptionInfo->ExceptionRecord->ExceptionCode);
+    CONTEXT* pContext= ExceptionInfo->ContextRecord;
+    HandleError(mes,SMP_ALERT_BLOCKING,L"",pContext);
+
+    return EXCEPTION_CONTINUE_SEARCH;
+}
+
+void InitErrorHandler(){ //export
+
+    if(fLogFileInitialized!=FALSE)return;
+
+    //construct log file path
+    GetDataDir(strLogFile,MAX_PATH);
+    StringCchCat(strLogFile,MAX_PATH,L"error.log");
+
+#ifdef DEBUG
+    //initialize symbol handler
+    SymInitialize( GetCurrentProcess(), NULL, TRUE );
+#endif
+    
+    //set global unhandled exception filter which will be called without debugger's precense
+    SetUnhandledExceptionFilter(&MyUnhandledExceptionFilter);
+
+    fLogFileInitialized=TRUE;
 }
 
 void CreateErrorWindow() {
