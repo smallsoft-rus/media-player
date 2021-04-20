@@ -4,6 +4,7 @@
 #include "player.h"
 #include "PlayListEditor.h"
 #include "errors.h"
+#include <math.h>
 
 extern SMPSETTINGS Settings;
 extern TCHAR* GetShortName(TCHAR* fullname);
@@ -18,6 +19,7 @@ DWORD DeviceID=0;
 UINT TrackNumber=0;
 DWORD pos;
 long Volume=0;
+long VolumeX=0;
 bool IsPlayingVideo=false;
 
 bool fShowNextImage=false;
@@ -1058,28 +1060,29 @@ if(PlayerState==PLAYING)Play();
 }
 
 int GetVolume()
-{
-	long x;	
-	x=Volume;
-	if(x<-5000)x=-5000;
-	if(x>0)x=0;
-return (((x+5000)*100)/5000.0f);
+{	
+    return VolumeX;
 }
 
-void SetVolume(long vol)
+void SetVolume(long x)
 {
-	long x;
-	
-x=((vol)/100.0f)*(5000)-5000;
-if(x<-5000)x=-5000;
-if(x>0)x=0;
-Volume=x;
+    if(x<0)x=0;
+    if(x>100)x=100;
+    long y;
 
-if(PlayerState==FILE_NOT_LOADED)return;
-if(pAudio==NULL)return;
-if(IsPlayingCDA!=false){return;}
-pAudio->put_Volume(x);
+    //audio-tapered control
+    if(x==0) y=-10000;
+    else y=(long)floor(2173.91f * log((float)x) - 10000);
 
+    if(y<-10000)y=-10000;
+    if(y>0)y=0;
+    VolumeX=x;
+    Volume=y;
+
+    if(PlayerState==FILE_NOT_LOADED)return;
+    if(pAudio==NULL)return;
+    if(IsPlayingCDA!=false){return;}
+    pAudio->put_Volume(y);
 }
 
 bool SetVideoWindow(HWND hParent){
