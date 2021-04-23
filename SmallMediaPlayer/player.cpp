@@ -734,7 +734,13 @@ if(FAILED(hr)){ShowError(hr,SYSTEM_ERROR);Close();return;}
 //handle URL
 if(IsURL(filename)!=FALSE){
 hr = pGraph->RenderFile(filename, NULL);
-if(FAILED(hr)){ShowError(hr,PLAY_ERROR);Close();return;}
+
+if(FAILED(hr)){
+    HandlePlayError(hr,filename);
+    Close();
+    return;
+}
+
 goto play;
 }
 
