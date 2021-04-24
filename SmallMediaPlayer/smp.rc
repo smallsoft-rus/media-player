@@ -67,7 +67,6 @@ IDR_MENU1 MENU
         MENUITEM SEPARATOR
         MENUITEM "Настройки", ID_SETTINGS
         MENUITEM "Выход", ID_EXIT
-        MENUITEM SEPARATOR
     }
     POPUP "Вид"
     {
@@ -110,8 +109,9 @@ IDR_MENU1 MENU
         MENUITEM "Ассоциации файлов..", IDC_INTEGR
         MENUITEM SEPARATOR
         MENUITEM "Домашняя страница", ID_HOMEPAGE
+        MENUITEM "Исходный код", ID_SOURCEREPO
         MENUITEM "Обратная связь", ID_FEEDBACK
-        MENUITEM "О программе..\tF1", ID_ABOUT
+        MENUITEM "О программе\tF1", ID_ABOUT
     }
 }
 

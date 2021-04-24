@@ -1267,8 +1267,13 @@ case ID_PROP_SPLITTER:
 	break;
 case ID_HOMEPAGE:
 	ShellExecute(NULL, L"open", L"http://smallsoft2.blogspot.ru/",L"",L"",SW_SHOW);break;
+
+case ID_SOURCEREPO:
+    ShellExecute(NULL, L"open", L"https://github.com/smallsoft-rus/media-player/",L"",L"",SW_SHOW);break;
+    break;
+
 case ID_FEEDBACK:
-	ShellExecute(NULL, L"open", L"mailto:vadim--111@yandex.ru",L"",L"",SW_SHOW);break;
+	ShellExecute(NULL, L"open", L"https://github.com/smallsoft-rus/media-player/issues/",L"",L"",SW_SHOW);break;
 case ID_MODE_NORMAL:CheckMenuRadioItem(GetMenu(hMainWnd),ID_MODE_NORMAL,ID_MODE_RANDOM,ID_MODE_NORMAL,MF_BYCOMMAND);
 	CurrMode=NORMAL;break;
 case ID_MODE_REPEATLIST:CheckMenuRadioItem(GetMenu(hMainWnd),ID_MODE_NORMAL,ID_MODE_RANDOM,ID_MODE_REPEATLIST,MF_BYCOMMAND);
@@ -1294,10 +1299,12 @@ break;
 case ID_MINIMIZE:SwitchTrayIcon();break;
 case ID_ABOUT:
 	MessageBox(hMainWnd,TEXT("\
-Small Media Player v2.0\n\
+Small Media Player v2.1\n\
+Лицензия: BSD 2.0\n\
 Разработчик: SmallSoft\n\
 E-Mail: vadim--111@yandex.ru\n\
 Сайт: http://smallsoft2.blogspot.ru/\n\
+Репозиторий: https://github.com/smallsoft-rus/media-player\n\
 "),
 TEXT("О программе"),MB_OK|MB_ICONINFORMATION);break;
 case ID_EXIT:SendMessage(hMainWnd,WM_CLOSE,0,0);break;

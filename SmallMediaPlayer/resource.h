@@ -71,3 +71,4 @@
 #define ID_COPY                                 40041
 #define ID_PLAYPAUSE                            40042
 #define ID_VOLUMEUP                             40043
+#define ID_SOURCEREPO                           40044

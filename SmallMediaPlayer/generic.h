@@ -15,7 +15,7 @@ enum PLAYER_STATE
 typedef enum {NORMAL,REPEAT_LIST,REPEAT_FILE,RANDOM} PLAYBACK_MODE;
 
 const int SMPVER_MAJOR = 2;
-const int SMPVER_MINOR = 0;
+const int SMPVER_MINOR = 1;
 
 typedef struct 
 {
