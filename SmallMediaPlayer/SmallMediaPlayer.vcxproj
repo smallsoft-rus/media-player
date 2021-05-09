@@ -87,6 +87,7 @@
     <ClCompile Include="PlayListEditor.cpp" />
     <ClCompile Include="RegistryModule.cpp" />
     <ClCompile Include="SMPSettings.cpp" />
+    <ClCompile Include="tags.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DirectShowStuff.h" />
@@ -99,6 +100,7 @@
     <ClInclude Include="resource.h" />
     <ClInclude Include="ScrollbarControl.h" />
     <ClInclude Include="SMPSettings.h" />
+    <ClInclude Include="tags.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="smp.rc" />
