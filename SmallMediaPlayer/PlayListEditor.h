@@ -12,18 +12,10 @@
 #include <commctrl.h>
 #define STRSAFE_NO_DEPRECATE
 #include <Strsafe.h>
+#include "tags.h"
 
 #define COUNT_EXTENSIONS 18
 #define COUNT_IMAGE_EXTENSIONS (sizeof(ImageExtensions)/sizeof(ImageExtensions[0]))
-
-typedef struct {
-	char sig[3];
-	char title[30];
-char artist[30];
-char album[30];
-char year[4];
-char comment[30];
-BYTE genre;}MP3TAG_V1;
 
 typedef struct {
 	BYTE type;
@@ -102,10 +94,6 @@ typedef struct {
 	BYTE length[3];
 }FLAC_BLOCK_HEADER;
 
-
-
-
-
 #define ID32F_SYNC 0x80
 #define ID32F_EXTHEADER 0x40
 #define ID32_SIGNATURE "ID3"
@@ -143,20 +131,7 @@ typedef union {
 	char b[2];
 }WORD_UNION;
 
-typedef enum {TAG_NO=0,TAG_ID3V1,TAG_ID3V2,TAG_APE,TAG_FLAC}TAG_TYPE;
 
-
-typedef struct{
-	WCHAR title[512];
-	WCHAR album[512];
-	WCHAR artist[512];
-	WCHAR year[10];
-	WCHAR comments[1024];
-	WCHAR composer[512];
-	WCHAR URL[512];
-	DWORD length;
-	TAG_TYPE type;
-}TAGS_GENERIC;
 
 typedef struct{
 	TCHAR ext[10];
@@ -173,6 +148,8 @@ extern void StopTimer();
 extern void GetFileExtension(TCHAR* fname,TCHAR* ext);
 extern void GetFileExtensionA(char* fname,char* ext);
 extern void GetFileDirectory(wchar_t* path,wchar_t* out);
+extern BOOL ReadTagsV1(TCHAR* file,TAGS_GENERIC* out);
+extern BOOL ReadTagsV1A(char* file,TAGS_GENERIC* out);
 
 //EXTERN VARS
 extern ScrollbarControl Progress;
@@ -202,8 +179,6 @@ void GetCurrTrackShortName(TCHAR* str);
 void AddDirectory(wchar_t* dir,wchar_t* ext);
 void DoDirectoryAdd(TCHAR* dir,HWND hlbt);
 void Playlist_AddDirectory(TCHAR* dir);
-BOOL ReadTagsV1(TCHAR* file,TAGS_GENERIC* out);
-BOOL ReadTagsV1A(char* file,TAGS_GENERIC* out);
 int GetPlaylistSelectedElement();
 BOOL IsPlaylistItemSelected(int n);
 void SetPlaylistHighlight(int i);
