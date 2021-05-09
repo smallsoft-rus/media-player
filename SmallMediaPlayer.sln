@@ -3,6 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Express 2012 for Windows Desktop
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SmallMediaPlayer", "SmallMediaPlayer\SmallMediaPlayer.vcxproj", "{BC55783B-BD4F-4314-B27A-C590FFBE46A9}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SmallMediaPlayer_Tests", "SmallMediaPlayer_Tests\SmallMediaPlayer_Tests.vcxproj", "{8F232F91-69E3-44DB-A066-B9821EB7EF17}"
+	ProjectSection(ProjectDependencies) = postProject
+		{BC55783B-BD4F-4314-B27A-C590FFBE46A9} = {BC55783B-BD4F-4314-B27A-C590FFBE46A9}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -13,6 +18,10 @@ Global
 		{BC55783B-BD4F-4314-B27A-C590FFBE46A9}.Debug|Win32.Build.0 = Debug|Win32
 		{BC55783B-BD4F-4314-B27A-C590FFBE46A9}.Release|Win32.ActiveCfg = Release|Win32
 		{BC55783B-BD4F-4314-B27A-C590FFBE46A9}.Release|Win32.Build.0 = Release|Win32
+		{8F232F91-69E3-44DB-A066-B9821EB7EF17}.Debug|Win32.ActiveCfg = Debug|Win32
+		{8F232F91-69E3-44DB-A066-B9821EB7EF17}.Debug|Win32.Build.0 = Debug|Win32
+		{8F232F91-69E3-44DB-A066-B9821EB7EF17}.Release|Win32.ActiveCfg = Release|Win32
+		{8F232F91-69E3-44DB-A066-B9821EB7EF17}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
