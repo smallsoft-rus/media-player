@@ -47,9 +47,6 @@
     <ClInclude Include="DirectShowStuff.h">
       <Filter>Заголовочные файлы</Filter>
     </ClInclude>
-    <ClInclude Include="generic.h">
-      <Filter>Заголовочные файлы</Filter>
-    </ClInclude>
     <ClInclude Include="PictureManager.h">
       <Filter>Заголовочные файлы</Filter>
     </ClInclude>
@@ -75,6 +72,9 @@
       <Filter>Заголовочные файлы</Filter>
     </ClInclude>
     <ClInclude Include="tags.h">
+      <Filter>Заголовочные файлы</Filter>
+    </ClInclude>
+    <ClInclude Include="common.h">
       <Filter>Заголовочные файлы</Filter>
     </ClInclude>
   </ItemGroup>

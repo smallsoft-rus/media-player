@@ -1,15 +1,16 @@
 /* Small Media Player 
  * Copyright (c) 2021,  MSDN.WhiteKnight (https://github.com/smallsoft-rus/media-player) 
  * License: BSD 2.0 */
-#ifndef GENERIC_H
-#define GENERIC_H
+#ifndef COMMON_H
+#define COMMON_H
+#include <windows.h>
 
 enum PLAYER_STATE
 {
-	FILE_NOT_LOADED,
-	STOPPED,
-	PAUSED,
-	PLAYING
+    FILE_NOT_LOADED,
+    STOPPED,
+    PAUSED,
+    PLAYING
 };
 
 typedef enum {NORMAL,REPEAT_LIST,REPEAT_FILE,RANDOM} PLAYBACK_MODE;
@@ -29,7 +30,7 @@ typedef struct
 	bool fRememberPosition;
 	bool fLoadWallpaper;
 	bool fLoadDefWallpaper;
-	TCHAR WallpaperFilePath[MAX_PATH];
+	WCHAR WallpaperFilePath[MAX_PATH];
 	DWORD ImageDelay;
 	//remembered window state
 	int WndX;
@@ -51,27 +52,26 @@ typedef enum {STREAM_UNKNOWN=0,STREAM_AVI,STREAM_MPEG1,STREAM_MPEG1VCD,STREAM_MP
 STREAM_QUICKTIME,STREAM_WAVE,STREAM_MIDI,STREAM_ASF}SMP_STREAM;
 
 typedef struct {
-	DWORD dwVideoCodec;
-	int width;
-	int height;
-	int BitsPerPixel;
-	int FramesPerSecond;
-	SMP_VIDEOTYPE VideoType;
-	RECT rcSource;
+    DWORD dwVideoCodec;
+    int width;
+    int height;
+    int BitsPerPixel;
+    int FramesPerSecond;
+    SMP_VIDEOTYPE VideoType;
+    RECT rcSource;
 }SMP_VIDEOINFO;
 
 typedef struct {
-BYTE chans;
-int BitsPerSample;
-int nFreq;
-int BitsPerSecond;
-WORD wFormatTag;
-
+    BYTE chans;
+    int BitsPerSample;
+    int nFreq;
+    int BitsPerSecond;
+    WORD wFormatTag;
 }SMP_AUDIOINFO;
 
 typedef union{
-WORD word;
-char chars[4];
+    WORD word;
+    char chars[4];
 }FOURCC_EXTRACTOR;
 
 #define VIDEO_YUV (0x56595559)

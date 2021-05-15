@@ -10,7 +10,6 @@
 
 #include "player.h"
 #include "PlaylistEditor.h"
-#include "generic.h"
 #include "PictureManager.h"
 
 //extern

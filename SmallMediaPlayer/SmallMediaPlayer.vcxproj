@@ -92,7 +92,7 @@
   <ItemGroup>
     <ClInclude Include="DirectShowStuff.h" />
     <ClInclude Include="errors.h" />
-    <ClInclude Include="generic.h" />
+    <ClInclude Include="common.h" />
     <ClInclude Include="PictureManager.h" />
     <ClInclude Include="player.h" />
     <ClInclude Include="PlayListEditor.h" />

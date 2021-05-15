@@ -11,7 +11,7 @@
 
 #include "DirectShowStuff.h"
 #include <DvdMedia.h>
-#include "generic.h"
+#include "common.h"
 
 #define TIME_KOEFF 10000
 
