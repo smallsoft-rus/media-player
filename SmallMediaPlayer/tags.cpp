@@ -60,6 +60,25 @@ typedef struct {
 	BYTE length[3];
 }FLAC_BLOCK_HEADER;
 
+#define APE_SIGNATURE ("APETAGEX")
+#define APEF_HEADER 0xE0000000
+#define APEF_BINARY 0x00000002
+#define APEF_URL 0x00000004
+
+typedef struct {
+char sig[8];
+char ver[4];
+DWORD size;
+DWORD item_count;
+DWORD flags;
+BYTE reserved[8];
+}APE_HEADER;
+
+typedef struct {
+	ULONG len;
+	DWORD flags;
+}APE_ITEM;
+
 //ID3v1 tags reading implementation
 
 BOOL ReadTagsV1(TCHAR* file,TAGS_GENERIC* out){
@@ -488,6 +507,110 @@ for(i=0;i<n;i++){
 }
 CloseHandle(hFile);
 out->type=TAG_FLAC;
+return TRUE;
+}
+
+//APE tags reading implementation
+
+void ReadApeItems(HANDLE hFile,APE_HEADER* ph,TAGS_GENERIC* out){
+DWORD dwCount;
+
+APE_ITEM item;
+char key[256];
+char value[512];
+int i,j;
+for(i=0;i<(int)ph->item_count;i++){
+	ReadFile(hFile,&item,sizeof(APE_ITEM),&dwCount,NULL);
+	j=0;
+	while(1){//read key
+	ReadFile(hFile,&(key[j]),1,&dwCount,NULL);
+	if(key[j]==0)break;
+	j++;
+	if(j>=256)break;
+	}
+	//read value
+	if(item.len>=511)item.len=510;
+	ReadFile(hFile,value,item.len,&dwCount,NULL);
+	value[item.len]=0;
+	//what we have:
+	
+	if(lstrcmpiA(key,"Title")==0){
+		MultiByteToWideChar(CP_UTF8,0,value,512,out->title,512);
+		continue;
+	}
+	if(lstrcmpiA(key,"Artist")==0){
+		MultiByteToWideChar(CP_UTF8,0,value,512,out->artist,512);
+		continue;
+	}
+	if(lstrcmpiA(key,"Album")==0){
+		MultiByteToWideChar(CP_UTF8,0,value,512,out->album,512);
+		continue;
+	}
+	if(lstrcmpiA(key,"Composer")==0){
+		MultiByteToWideChar(CP_UTF8,0,value,512,out->composer,512);
+		continue;
+	}
+	if(lstrcmpiA(key,"Comment")==0){
+		MultiByteToWideChar(CP_UTF8,0,value,512,out->comments,512);
+		continue;
+	}
+	
+	if(lstrcmpiA(key,"Year")==0){
+		MultiByteToWideChar(CP_UTF8,0,value,10,out->year,10);
+		continue;
+	}
+	if(lstrcmpiA(key,"Related")==0){
+		MultiByteToWideChar(CP_UTF8,0,value,512,out->URL,512);
+		continue;
+	}
+
+}
+}
+
+//Read APE tags (utf8 file path)
+BOOL ReadApeTagsA(char* file,TAGS_GENERIC* out){
+    TCHAR fname[MAX_PATH]=L"";
+    if(MultiByteToWideChar(CP_UTF8,0,file,MAX_PATH,fname,MAX_PATH)!=0){
+        return ReadApeTags(fname,out);
+    }
+    else return FALSE;
+}
+
+//Read APE tags (utf16 file path)
+BOOL ReadApeTags(WCHAR* file,TAGS_GENERIC* out){
+HANDLE hFile;
+DWORD dwCount;
+BOOL res;
+APE_HEADER header;
+
+hFile=CreateFile(file,GENERIC_READ,FILE_SHARE_READ,NULL,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,NULL);
+if(hFile==INVALID_HANDLE_VALUE)return FALSE;
+SetFilePointer(hFile,-(int)sizeof(APE_HEADER),NULL,FILE_END);
+res=ReadFile(hFile,&header,sizeof(APE_HEADER),&dwCount,NULL);
+if(res==FALSE){CloseHandle(hFile);return FALSE;}
+if(dwCount!=sizeof(APE_HEADER)){CloseHandle(hFile);return FALSE;}
+if((header.sig[0]=='A'&&header.sig[1]=='P'&&header.sig[2]=='E'&&
+header.sig[3]=='T'&&header.sig[4]=='A'&&header.sig[5]=='G'&&header.sig[6]=='E'&&
+header.sig[7]=='X')==false){goto Read_from_begin;}
+SetFilePointer(hFile,-(int)header.size,NULL,FILE_END);
+ReadApeItems(hFile,&header,out);
+CloseHandle(hFile);
+out->type=TAG_APE;
+return TRUE;
+	//end read tags(end)
+Read_from_begin:
+
+SetFilePointer(hFile,0,NULL,FILE_BEGIN);
+res=ReadFile(hFile,&header,sizeof(APE_HEADER),&dwCount,NULL);
+if(res==FALSE){CloseHandle(hFile);return FALSE;}
+if(dwCount!=sizeof(APE_HEADER)){CloseHandle(hFile);return FALSE;}
+if((header.sig[0]=='A'&&header.sig[1]=='P'&&header.sig[2]=='E'&&
+header.sig[3]=='T'&&header.sig[4]=='A'&&header.sig[5]=='G'&&header.sig[6]=='E'&&
+header.sig[7]=='X')==false){CloseHandle(hFile);return FALSE;}
+ReadApeItems(hFile,&header,out);
+
+CloseHandle(hFile);
+out->type=TAG_APE;
 return TRUE;
 }
 

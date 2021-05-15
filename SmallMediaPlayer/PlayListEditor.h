@@ -32,25 +32,6 @@ typedef struct {
 	BYTE end;
 }VORBIS_ID;
 
-#define APE_SIGNATURE ("APETAGEX")
-#define APEF_HEADER 0xE0000000
-#define APEF_BINARY 0x00000002
-#define APEF_URL 0x00000004
-
-typedef struct {
-char sig[8];
-char ver[4];
-DWORD size;
-DWORD item_count;
-DWORD flags;
-BYTE reserved[8];
-}APE_HEADER;
-
-typedef struct {
-	ULONG len;
-	DWORD flags;
-}APE_ITEM;
-
 typedef struct{
 	TCHAR ext[10];
 	int iIcon;
