@@ -82,6 +82,7 @@
     <ClCompile Include="DirectShowStuff.cpp" />
     <ClCompile Include="errors.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="ui.cpp" />
     <ClCompile Include="PictureManager.cpp" />
     <ClCompile Include="player.cpp" />
     <ClCompile Include="PlayListEditor.cpp" />
