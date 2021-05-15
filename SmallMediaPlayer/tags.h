@@ -20,8 +20,42 @@ typedef struct{
     TAG_TYPE type;
 }TAGS_GENERIC;
 
+typedef struct{
+
+    UINT byte1:7;
+    UINT dummy1:1;
+
+    UINT byte2:7;
+    UINT dummy2:1;
+
+    UINT byte3:7;
+    UINT dummy3:1;
+
+    UINT byte4:7;
+    UINT dummy4:1;
+}BIT_FIELDS;
+
+typedef struct{
+
+    UINT byte1:7;
+    UINT byte2:7;
+    UINT byte3:7;
+    UINT byte4:7;
+    UINT dummy:4;
+
+}BIT_FIELDS_EXTRACTOR;
+
+typedef union{
+    BYTE bytes[4];
+    DWORD dword;
+    BIT_FIELDS bf;
+    BIT_FIELDS_EXTRACTOR bfe;
+}DWORD_UNION;
+
 // Exported functions
 BOOL ReadTagsV1(TCHAR* file,TAGS_GENERIC* out);
 BOOL ReadTagsV1A(char* file,TAGS_GENERIC* out);
+BOOL ReadTagsv2(WCHAR* fname,TAGS_GENERIC* out);
+BOOL ReadTagsv2A(char* file,TAGS_GENERIC* out);
 
 #endif

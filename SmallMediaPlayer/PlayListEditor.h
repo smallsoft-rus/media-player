@@ -57,81 +57,10 @@ typedef struct {
 #define FLAC_VORBISCOMMENT 0x04
 #define FLAC_VORBISCOMMENT2 0x84
 
-typedef struct{
-	
-	UINT byte1:7;
-	UINT dummy1:1;
-	
-	UINT byte2:7;
-	UINT dummy2:1;
-	
-	UINT byte3:7;
-	UINT dummy3:1;
-	
-	UINT byte4:7;
-	UINT dummy4:1;
-}BIT_FIELDS;
-
-typedef struct{
-	
-	UINT byte1:7;	
-	UINT byte2:7;	
-	UINT byte3:7;	
-	UINT byte4:7;
-	UINT dummy:4;
-	
-}BIT_FIELDS_EXTRACTOR;
-
-typedef union{
-	BYTE bytes[4];
-	DWORD dword;
-	BIT_FIELDS bf;
-	BIT_FIELDS_EXTRACTOR bfe;
-}DWORD_UNION;
-
 typedef struct {
 	BYTE type;
 	BYTE length[3];
 }FLAC_BLOCK_HEADER;
-
-#define ID32F_SYNC 0x80
-#define ID32F_EXTHEADER 0x40
-#define ID32_SIGNATURE "ID3"
-#define ID32_SYNC_MASK 0xE0
-
-typedef struct {
-BYTE sig[3];
-BYTE ver[2];
-BYTE flags;
-BYTE size[4];
-}ID32_HEADER;
-
-typedef struct {
-	DWORD size;
-	WORD flags;
-	BYTE padding[4];
-}ID32_EXTHEADER;
-
-typedef struct {
-	BYTE ID[4];
-	DWORD size;
-	BYTE flags[2];
-}ID32_FRAME_HEADER;
-
-#define ID32_FRAME_COMPRESSED 0x0080
-#define ID32_FRAME_ENCRYPTED 0x0040
-#define ID32_ENCODING_ISO 0x00
-#define ID32_ENCODING_UNICODE 1
-#define UNICODE_BOM_DIRECT 0xFFFE
-#define UNICODE_BOM_REVERSE 0xFEFF
-
-
-typedef union {
-	WORD w;
-	char b[2];
-}WORD_UNION;
-
-
 
 typedef struct{
 	TCHAR ext[10];
@@ -192,7 +121,6 @@ BOOL ReadApeTags(TCHAR* file,TAGS_GENERIC* out);
 BOOL ReadApeTagsA(char* file,TAGS_GENERIC* out);
 BOOL ReadFlacTags(TCHAR* file,TAGS_GENERIC* out);
 BOOL ReadFlacTagsA(char* file,TAGS_GENERIC* out);
-BOOL ReadTagsv2(TCHAR* fname,TAGS_GENERIC* out);
 void InsertPlaylistElement(WCHAR* fname,UINT pos);
 void Playlist_Paste();void Playlist_Cut();void Playlist_Copy();
 void Playlist_SelectAll();

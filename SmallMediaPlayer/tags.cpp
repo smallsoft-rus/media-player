@@ -2,6 +2,7 @@
  * Copyright (c) 2021,  MSDN.WhiteKnight (https://github.com/smallsoft-rus/media-player) 
  * License: BSD 2.0 */
 #include "tags.h"
+#include <strsafe.h>
 
 typedef struct {
     char sig[3];
@@ -12,6 +13,44 @@ typedef struct {
     char comment[30];
     BYTE genre;
 } MP3TAG_V1;
+
+typedef union {
+	WORD w;
+	char b[2];
+}WORD_UNION;
+
+#define ID32F_SYNC 0x80
+#define ID32F_EXTHEADER 0x40
+#define ID32_SIGNATURE "ID3"
+#define ID32_SYNC_MASK 0xE0
+
+typedef struct {
+    BYTE sig[3];
+    BYTE ver[2];
+    BYTE flags;
+    BYTE size[4];
+}ID32_HEADER;
+
+typedef struct {
+    DWORD size;
+    WORD flags;
+    BYTE padding[4];
+}ID32_EXTHEADER;
+
+typedef struct {
+    BYTE ID[4];
+    DWORD size;
+    BYTE flags[2];
+}ID32_FRAME_HEADER;
+
+#define ID32_FRAME_COMPRESSED 0x0080
+#define ID32_FRAME_ENCRYPTED 0x0040
+#define ID32_ENCODING_ISO 0x00
+#define ID32_ENCODING_UNICODE 1
+#define UNICODE_BOM_DIRECT 0xFFFE
+#define UNICODE_BOM_REVERSE 0xFEFF
+
+//ID3v1 tags reading implementation
 
 BOOL ReadTagsV1(TCHAR* file,TAGS_GENERIC* out){
 
@@ -69,4 +108,261 @@ BOOL ReadTagsV1A(char* file,TAGS_GENERIC* out){
         return FALSE;
     else 
         return ReadTagsV1(filename,out);
+}
+
+void ReverseWCHAR(WCHAR* c){
+	WORD_UNION extractor={0};
+	WORD_UNION packer={0};
+	extractor.w=(WORD)*c;
+	packer.b[0]=extractor.b[1];
+	packer.b[1]=extractor.b[0];
+	*c=(WCHAR)packer.w;
+}
+
+//ID3v2 tags reading implementation
+
+//read ID3v2 tags (UTF8 file path)
+BOOL ReadTagsv2A(char* file,TAGS_GENERIC* out){
+    TCHAR fname[MAX_PATH]=L"";
+    if(MultiByteToWideChar(CP_UTF8,0,file,MAX_PATH,fname,MAX_PATH)!=0){
+        return ReadTagsv2(fname,out);
+    }
+    else {
+        return FALSE;
+    }
+}
+
+//read ID3v2 tags (UTF16 file path)
+BOOL ReadTagsv2(WCHAR* fname,TAGS_GENERIC* out){
+HANDLE hFile=0;
+DWORD dwCount=0;
+BOOL res=0;
+BOOL unsync=FALSE;
+ID32_HEADER header={0};
+DWORD_UNION extractor={0};
+DWORD_UNION packer={0};
+ID32_EXTHEADER* pextheader=0;
+ID32_FRAME_HEADER fh={0};
+char* pSourceTags=NULL;DWORD SourceSize=0;
+char* pOutputTags=NULL;DWORD OutputRealSize=0;
+char buf[1024]="";
+TCHAR wbuf[1024]=L"";
+WORD BOM=0;
+
+DWORD i=0,j=0;
+
+memset(&extractor,0,sizeof(DWORD));memset(&packer,0,sizeof(DWORD));
+memset(out,0,sizeof(TAGS_GENERIC));
+
+hFile=CreateFile(fname,GENERIC_READ,FILE_SHARE_READ,NULL,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,0);
+if(hFile==INVALID_HANDLE_VALUE)return FALSE;
+res=ReadFile(hFile,&header,sizeof(ID32_HEADER),&dwCount,NULL);
+if(res==FALSE){CloseHandle(hFile);return FALSE;}
+if((header.sig[0]=='I'&&header.sig[1]=='D'&&header.sig[2]=='3')==FALSE)
+{CloseHandle(hFile);return FALSE;}
+if(header.ver[0]>0x03){CloseHandle(hFile);return FALSE;}
+extractor.bytes[0]=header.size[0];
+extractor.bytes[1]=header.size[1];
+extractor.bytes[2]=header.size[2];
+extractor.bytes[3]=header.size[3];
+
+packer.bfe.byte1=extractor.bf.byte4;packer.bfe.byte2=extractor.bf.byte3;
+packer.bfe.byte3=extractor.bf.byte2;packer.bfe.byte4=extractor.bf.byte1;
+packer.bfe.dummy=0;
+
+SourceSize=packer.dword;
+
+pSourceTags=(char*)HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,SourceSize);
+if(pSourceTags==NULL){CloseHandle(hFile);return FALSE;}
+ReadFile(hFile,pSourceTags,SourceSize,&dwCount,NULL);
+pOutputTags=(char*)HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,SourceSize);
+if(pOutputTags==NULL){
+	CloseHandle(hFile);
+	HeapFree(GetProcessHeap(),0,pSourceTags);
+		return FALSE;}
+
+j=0;
+for(i=0;i<=SourceSize-3;i++){
+	if((header.flags&ID32F_SYNC)>0){
+		if(pSourceTags[i]==0xFF&&pSourceTags[i+1]==0&&((pSourceTags[i+2]&ID32_SYNC_MASK)>0)){
+		pOutputTags[j]=pSourceTags[i];pOutputTags[j+1]=pSourceTags[i+2];
+		i+=2;j+=2;continue;
+		}
+		if(pSourceTags[i]==0xFF&&pSourceTags[i+1]==0&&pSourceTags[i+2]==0){
+			pOutputTags[j]=(char)0xFF;pOutputTags[j+1]=0;
+			i+=2;j+=2;continue;
+		}
+
+	}
+	pOutputTags[j]=pSourceTags[i];j++;
+
+}
+pOutputTags[j]=pSourceTags[i];j++;i++;
+pOutputTags[j]=pSourceTags[i];j++;i++;
+
+OutputRealSize=j;
+
+HeapFree(GetProcessHeap(),0,pSourceTags);pSourceTags=0;
+i=0;
+if((header.flags&ID32F_EXTHEADER)!=0){
+pextheader=(ID32_EXTHEADER*)&(pOutputTags[i]);
+extractor.dword=pextheader->size;
+packer.bytes[0]=extractor.bytes[3];packer.bytes[1]=extractor.bytes[2];
+packer.bytes[2]=extractor.bytes[1];packer.bytes[3]=extractor.bytes[0];
+if(packer.dword>=20)packer.dword=10;
+i+=(4+packer.dword);
+}
+
+while(1){//read frames
+
+if(i>=OutputRealSize)break;
+memcpy(&fh,&(pOutputTags[i]),sizeof(ID32_FRAME_HEADER));
+StringCchCopyNA(buf,1024,(char*)fh.ID,4);
+//fprintf(f,"Frame:%s\n",fh.ID);
+if(lstrcmpA((char*)fh.ID,"")==0)break;
+extractor.dword=fh.size;
+packer.bytes[0]=extractor.bytes[3];
+packer.bytes[1]=extractor.bytes[2];
+packer.bytes[2]=extractor.bytes[1];
+packer.bytes[3]=extractor.bytes[0];
+if(i+packer.dword>OutputRealSize+1)break;
+i+=10;
+
+
+if(strncmp((char*)fh.ID,"TALB",4)==0){
+	if(pOutputTags[i]==ID32_ENCODING_ISO){
+	i++;
+	MultiByteToWideChar(CP_ACP,0,&(pOutputTags[i]),packer.dword-1,out->album,512);
+	i+=packer.dword-1;continue;
+	}
+	else{
+	i++;
+	memcpy(&BOM,&(pOutputTags[i]),2);i+=2;
+	if(BOM==UNICODE_BOM_DIRECT){
+		for(j=i;j<i+packer.dword-3;j+=2){
+			ReverseWCHAR((WCHAR*)&(pOutputTags[j]));
+		}
+	}
+	StringCbCopyN(out->album,sizeof(out->album),
+		(WCHAR*)&(pOutputTags[i]),packer.dword-3);
+	i+=packer.dword-3;
+	continue;
+	}
+}
+
+if(strncmp((char*)fh.ID,"TCOM",4)==0){
+	if(pOutputTags[i]==ID32_ENCODING_ISO){
+	i++;
+	MultiByteToWideChar(CP_ACP,0,&(pOutputTags[i]),packer.dword-1,out->composer,512);
+	i+=packer.dword-1;continue;
+	}
+	else{
+	i++;
+	memcpy(&BOM,&(pOutputTags[i]),2);i+=2;
+	if(BOM==UNICODE_BOM_DIRECT){
+		for(j=i;j<i+packer.dword-3;j+=2){
+			ReverseWCHAR((WCHAR*)&(pOutputTags[j]));
+		}
+	}
+	StringCbCopyN(out->composer,sizeof(out->composer),
+		(WCHAR*)&(pOutputTags[i]),packer.dword-3);
+	i+=packer.dword-3;
+	continue;
+	}
+}
+if(strncmp((char*)fh.ID,"TYER",4)==0){
+	if(pOutputTags[i]==ID32_ENCODING_ISO){
+	i++;
+	MultiByteToWideChar(CP_ACP,0,&(pOutputTags[i]),packer.dword-1,out->year,10);
+	i+=packer.dword-1;continue;
+	}
+	else{
+	i++;
+	memcpy(&BOM,&(pOutputTags[i]),2);i+=2;
+	if(BOM==UNICODE_BOM_DIRECT){
+		for(j=i;j<i+packer.dword-3;j+=2){
+			ReverseWCHAR((WCHAR*)&(pOutputTags[j]));
+		}
+	}
+	StringCbCopyN(out->year,sizeof(out->year),
+		(WCHAR*)&(pOutputTags[i]),packer.dword-3);
+	i+=packer.dword-3;
+	continue;
+	}
+}
+if(strncmp((char*)fh.ID,"TPE1",4)==0){
+	if(pOutputTags[i]==ID32_ENCODING_ISO){
+	i++;
+	MultiByteToWideChar(CP_ACP,0,&(pOutputTags[i]),packer.dword-1,out->artist,512);
+	i+=packer.dword-1;continue;
+	}
+	else{
+	i++;
+	memcpy(&BOM,&(pOutputTags[i]),2);i+=2;
+	if(BOM==UNICODE_BOM_DIRECT){
+		for(j=i;j<i+packer.dword-3;j+=2){
+			ReverseWCHAR((WCHAR*)&(pOutputTags[j]));
+		}
+	}
+	StringCbCopyN(out->artist,sizeof(out->artist),
+		(WCHAR*)&(pOutputTags[i]),packer.dword-3);
+	i+=packer.dword-3;
+	continue;
+	}
+}
+if(strncmp((char*)fh.ID,"TIT2",4)==0){
+	if(pOutputTags[i]==ID32_ENCODING_ISO){
+	i++;
+	MultiByteToWideChar(CP_ACP,0,&(pOutputTags[i]),packer.dword-1,out->title,512);
+	i+=packer.dword-1;continue;
+	}
+	else{
+	i++;
+	memcpy(&BOM,&(pOutputTags[i]),2);i+=2;
+	if(BOM==UNICODE_BOM_DIRECT){
+		for(j=i;j<i+packer.dword-3;j+=2){
+			ReverseWCHAR((WCHAR*)&(pOutputTags[j]));
+		}
+	}
+	StringCbCopyN(out->title,sizeof(out->title),
+		(WCHAR*)&(pOutputTags[i]),packer.dword-3);
+	i+=packer.dword-3;
+	continue;
+	}
+}
+if(strncmp((char*)fh.ID,"TLEN",4)==0){
+	if(pOutputTags[i]==ID32_ENCODING_ISO){
+	i++;
+	StringCchCopyNA(buf,1024,&(pOutputTags[i]),packer.dword-1);
+	out->length=0;
+	sscanf(buf,"%u",&(out->length));
+	i+=packer.dword-1;continue;
+	}
+	i+=packer.dword;continue;
+}
+
+
+if(strncmp((char*)fh.ID,"COMM",4)==0){
+	if(pOutputTags[i]==ID32_ENCODING_ISO){
+	i+=4;
+	memset(buf,0,sizeof(buf));
+	if((packer.dword-4)>1023){memcpy(buf,&(pOutputTags[i]),1023);buf[1023]=0;}
+	else{memcpy(buf,&(pOutputTags[i]),packer.dword-4);buf[packer.dword-4]=0;}
+	for(j=0;j<1023;j++){
+		if(buf[j]==0){buf[j]='\n';break;}
+		}
+	MultiByteToWideChar(CP_ACP,0,buf,1024,out->comments,1024);
+	i+=packer.dword-4;continue;
+	}
+	i+=packer.dword;continue;
+}
+
+i+=packer.dword;
+}
+
+HeapFree(GetProcessHeap(),0,pOutputTags);
+CloseHandle(hFile);
+out->type=TAG_ID3V2;
+
+return TRUE;
 }
