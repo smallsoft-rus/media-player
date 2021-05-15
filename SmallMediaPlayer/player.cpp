@@ -2,12 +2,12 @@
  * Copyright (c) 2021,  MSDN.WhiteKnight (https://github.com/smallsoft-rus/media-player) 
  * License: BSD 2.0 */
 #include "player.h"
-#include "PlayListEditor.h"
+#include "tags.h"
+#include "resource.h"
 #include "errors.h"
 #include <math.h>
 
 extern SMPSETTINGS Settings;
-extern TCHAR* GetShortName(TCHAR* fullname);
 extern TAGS_GENERIC OpenedFileTags;
 extern bool fOpenedFileTags;
 

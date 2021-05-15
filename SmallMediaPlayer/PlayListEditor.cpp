@@ -45,27 +45,7 @@ TCHAR* ImageExtensions[]={
     const char strPlaylistHeader[]="#~Small Media Player playlist (https://github.com/smallsoft-rus/media-player)\r\n";
     const char strEncoding[]="#~ENCODING: UTF8\r\n";
 
-TCHAR* GetShortName(TCHAR* fullname){
-TCHAR* p;
-int i;
-p=fullname;
-for(i=0;i<MAX_PATH-1;i++){
-	if(fullname[i]==0)break;
-	if(fullname[i]==L'\\'||fullname[i]==L'/'){p=&(fullname[i+1]);}
-}
-return p;
-}
 
-char* GetShortNameA(char* fullname){
-char* p;
-int i;
-p=fullname;
-for(i=0;i<MAX_PATH-1;i++){
-	if(fullname[i]==0)break;
-	if(fullname[i]=='\\'||fullname[i]=='/'){p=&(fullname[i+1]);}
-}
-return p;
-}
 
 BOOL GetPlaylistElement(int n,TCHAR* out){
 BOOL res;

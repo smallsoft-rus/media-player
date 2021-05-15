@@ -6,7 +6,6 @@
 #include <windows.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include "resource.h"
 #include "player.h"
 #include "ScrollbarControl.h"
 #include <commctrl.h>

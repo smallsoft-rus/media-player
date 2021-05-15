@@ -131,5 +131,26 @@ BOOL inline IsCursorShown(){
 
 }
 
+inline WCHAR* GetShortName(WCHAR* fullname){
+    WCHAR* p;
+    int i;
+    p=fullname;
+    for(i=0;i<MAX_PATH-1;i++){
+        if(fullname[i]==0)break;
+        if(fullname[i]==L'\\'||fullname[i]==L'/'){p=&(fullname[i+1]);}
+    }
+    return p;
+}
+
+inline char* GetShortNameA(char* fullname){
+    char* p;
+    int i;
+    p=fullname;
+    for(i=0;i<MAX_PATH-1;i++){
+        if(fullname[i]==0)break;
+        if(fullname[i]=='\\'||fullname[i]=='/'){p=&(fullname[i+1]);}
+    }
+    return p;
+}
 
 #endif
