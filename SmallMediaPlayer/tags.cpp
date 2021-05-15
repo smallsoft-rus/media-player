@@ -50,6 +50,16 @@ typedef struct {
 #define UNICODE_BOM_DIRECT 0xFFFE
 #define UNICODE_BOM_REVERSE 0xFEFF
 
+#define FLAC_SIGNATURE "fLaC"
+#define FLAC_LASTBLOCK 0x80
+#define FLAC_VORBISCOMMENT 0x04
+#define FLAC_VORBISCOMMENT2 0x84
+
+typedef struct {
+	BYTE type;
+	BYTE length[3];
+}FLAC_BLOCK_HEADER;
+
 //ID3v1 tags reading implementation
 
 BOOL ReadTagsV1(TCHAR* file,TAGS_GENERIC* out){
@@ -366,3 +376,118 @@ out->type=TAG_ID3V2;
 
 return TRUE;
 }
+
+//FLAC Vorbis comment reading implementation
+
+//Read FLAC Vorbis comment tags (utf8 file path)
+BOOL ReadFlacTagsA(char* file,TAGS_GENERIC* out){
+    TCHAR fname[MAX_PATH]=L"";
+    if(MultiByteToWideChar(CP_UTF8,0,file,MAX_PATH,fname,MAX_PATH)!=0){
+        return ReadFlacTags(fname,out);
+    }
+    else return FALSE;
+}
+
+//Read FLAC Vorbis comment tags (utf16 file path)
+BOOL ReadFlacTags(WCHAR* file,TAGS_GENERIC* out){
+HANDLE hFile;
+DWORD dwCount;
+BOOL res;
+char buf[1024]="";
+char name[1024]="";
+char value[1024]="";
+FLAC_BLOCK_HEADER header={0};
+char sig[5]="";
+int i,j;
+ULONG c,n;
+DWORD_UNION length={0};
+
+hFile=CreateFile(file,GENERIC_READ,FILE_SHARE_READ,NULL,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,NULL);
+
+if(hFile==INVALID_HANDLE_VALUE){
+	return FALSE;
+}
+
+i=0;
+while(1){
+res=ReadFile(hFile,sig,4,&dwCount,NULL);
+SetFilePointer(hFile,i,NULL,FILE_BEGIN);
+res=ReadFile(hFile,sig,4,&dwCount,NULL);
+if(res==FALSE){CloseHandle(hFile);return FALSE;}
+if(dwCount!=4){CloseHandle(hFile);return FALSE;}
+if(lstrcmpA(sig,FLAC_SIGNATURE)==0)break;
+i++;
+if(i>=99999999){CloseHandle(hFile);return FALSE;}
+}
+
+res=ReadFile(hFile,&header,sizeof(header),&dwCount,NULL);
+if(res==FALSE){CloseHandle(hFile);return FALSE;}
+length.bytes[2]=header.length[0];
+length.bytes[1]=header.length[1];
+length.bytes[0]=header.length[2];
+SetFilePointer(hFile,(LONG)length.dword,NULL,FILE_CURRENT);
+
+while(1){
+res=ReadFile(hFile,&header,sizeof(header),&dwCount,NULL);
+if(res==FALSE){CloseHandle(hFile);return FALSE;}
+if(dwCount!=sizeof(header)){CloseHandle(hFile);return FALSE;}
+length.dword=0;
+length.bytes[2]=header.length[0];
+length.bytes[1]=header.length[1];
+length.bytes[0]=header.length[2];
+
+if(header.type==FLAC_VORBISCOMMENT||header.type==FLAC_VORBISCOMMENT2){break;}
+SetFilePointer(hFile,length.dword,NULL,FILE_CURRENT);
+}
+ReadFile(hFile,&n,sizeof(n),&dwCount,NULL);
+SetFilePointer(hFile,n,NULL,FILE_CURRENT);
+ReadFile(hFile,&n,sizeof(n),&dwCount,NULL);
+
+for(i=0;i<n;i++){
+	ReadFile(hFile,&c,sizeof(c),&dwCount,NULL);
+	ReadFile(hFile,buf,c,&dwCount,NULL);
+	buf[c]=0;
+	j=0;
+	StringCchCopyA(name,1024,"");
+	while(1){
+	if(buf[j]=='=')break;
+	if(j>=1024)break;
+	name[j]=buf[j];
+	j++;
+	}
+	name[j]=0;
+	
+	if(j>=1024)continue;
+	StringCchCopyA(value,1024,&(buf[j+1]));
+	
+	if(lstrcmpiA(name,"title")==0){
+		MultiByteToWideChar(CP_UTF8,0,value,1024,out->title,512);
+		continue;
+	}
+	if(lstrcmpiA(name,"artist")==0){
+		MultiByteToWideChar(CP_UTF8,0,value,1024,out->artist,512);
+		continue;
+	}
+	if(lstrcmpiA(name,"album")==0){
+		MultiByteToWideChar(CP_UTF8,0,value,1024,out->album,512);
+		continue;
+	}
+	if(lstrcmpiA(name,"date")==0){
+		MultiByteToWideChar(CP_UTF8,0,value,10,out->year,10);
+		continue;
+	}
+	if(lstrcmpiA(name,"description")==0){
+		MultiByteToWideChar(CP_UTF8,0,value,1024,out->comments,1024);
+		continue;
+	}
+	if(lstrcmpiA(name,"contact")==0){
+		MultiByteToWideChar(CP_UTF8,0,value,1024,out->URL,512);
+		continue;
+	}
+
+}
+CloseHandle(hFile);
+out->type=TAG_FLAC;
+return TRUE;
+}
+

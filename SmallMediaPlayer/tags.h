@@ -57,5 +57,7 @@ BOOL ReadTagsV1(TCHAR* file,TAGS_GENERIC* out);
 BOOL ReadTagsV1A(char* file,TAGS_GENERIC* out);
 BOOL ReadTagsv2(WCHAR* fname,TAGS_GENERIC* out);
 BOOL ReadTagsv2A(char* file,TAGS_GENERIC* out);
+BOOL ReadFlacTags(WCHAR* file,TAGS_GENERIC* out);
+BOOL ReadFlacTagsA(char* file,TAGS_GENERIC* out);
 
 #endif

@@ -52,16 +52,6 @@ typedef struct {
 	DWORD flags;
 }APE_ITEM;
 
-#define FLAC_SIGNATURE "fLaC"
-#define FLAC_LASTBLOCK 0x80
-#define FLAC_VORBISCOMMENT 0x04
-#define FLAC_VORBISCOMMENT2 0x84
-
-typedef struct {
-	BYTE type;
-	BYTE length[3];
-}FLAC_BLOCK_HEADER;
-
 typedef struct{
 	TCHAR ext[10];
 	int iIcon;
@@ -119,8 +109,6 @@ void ReadPlaylistTags(char* str);
 int FindTrack(TCHAR* fname);
 BOOL ReadApeTags(TCHAR* file,TAGS_GENERIC* out);
 BOOL ReadApeTagsA(char* file,TAGS_GENERIC* out);
-BOOL ReadFlacTags(TCHAR* file,TAGS_GENERIC* out);
-BOOL ReadFlacTagsA(char* file,TAGS_GENERIC* out);
 void InsertPlaylistElement(WCHAR* fname,UINT pos);
 void Playlist_Paste();void Playlist_Cut();void Playlist_Copy();
 void Playlist_SelectAll();
