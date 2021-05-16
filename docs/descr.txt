@@ -1,4 +1,6 @@
-https://yadi.sk/d/ejKcTOcS3N7s3L [73 kb]
+https://disk.yandex.ru/d/2-1VgRBJJ1xmAw [76 kb]
+http://vadim--111.narod.ru/player/SmallMediaPlayer.zip [44 kb]
+https://github.com/smallsoft-rus/smallsoft-rus.github.io/raw/main/SmallMediaPlayer.zip
 
 Легкий проигрыватель мультимедиа файлов для Windows без встроенных кодеков. Обладает простым интерфейсом, не требует установки.
 Основные возможности:
@@ -18,9 +20,7 @@ https://yadi.sk/d/ejKcTOcS3N7s3L [73 kb]
 Для запуска требуется Visual C++ 2012 Redistributable (x86).
 
 Screens:
-https://yadi.sk/i/75dPp7PF3N3tnE
-https://yadi.sk/i/WAADUGhz3N3tmg
-
-https://imgur.com/a/AUkvQ
-https://i.imgur.com/dsxtCMm.png
-https://i.imgur.com/6y7tSFM.png
+https://raw.githubusercontent.com/smallsoft-rus/media-player/main/docs/images/1.png
+https://raw.githubusercontent.com/smallsoft-rus/media-player/main/docs/images/2.png
+https://raw.githubusercontent.com/smallsoft-rus/media-player/main/docs/images/3.png
+https://raw.githubusercontent.com/smallsoft-rus/media-player/main/docs/images/4.png

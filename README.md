@@ -1,5 +1,7 @@
 # Small Media Player
 
+[![GitHub release (latest by date)](https://img.shields.io/github/v/release/smallsoft-rus/media-player)](https://github.com/smallsoft-rus/media-player/releases)
+
 Лицензия: [BSD 2.0](LICENSE)
 
 Легкий проигрыватель мультимедиа файлов для Windows без встроенных кодеков. Основные особенности программы:
@@ -24,4 +26,6 @@
 
 Поддерживаемые ОС: Windows XP, Vista, 7, 8, 10
 
-Для запуска требуется Visual C++ 2012 Redistributable (x86).
+Для запуска требуется [Visual C++ 2012 Redistributable](https://www.microsoft.com/en-us/download/details.aspx?id=30679) (x86).
+
+[Руководство пользователя](docs/user-manual.md)
