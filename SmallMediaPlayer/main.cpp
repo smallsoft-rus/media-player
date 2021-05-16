@@ -13,11 +13,15 @@
 extern void InitApplication();
 extern void RunMessageLoop();
 extern void UnloadApplication();
+extern void EnsureSingleInstance();
+extern void ShowUI();
 
 // Entry point
 void New_WinMain(void){
 
+    EnsureSingleInstance();
     InitApplication();
+    ShowUI();
     RunMessageLoop();
     UnloadApplication();
 

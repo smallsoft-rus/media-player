@@ -1477,6 +1477,28 @@ hDC=BeginPaint(hWnd,&ps);
 	default: return DefWindowProc(hWnd,uMsg,wParam,lParam);}
 return 0;}
 
+// Check for running instance and, if one exists, pass command line and exit
+void EnsureSingleInstance(){
+    WCHAR* cmd;
+    HANDLE hDestPipe;
+    DWORD dwCount;
+    //CHECK IF PROGRAM ALREADY RAN
+    hMutex=CreateMutexW(NULL,TRUE,L"SmallMediaPlayer");
+
+    if (GetLastError()==ERROR_ALREADY_EXISTS){
+        //program already run
+        hDestPipe=CreateFileW(L"\\\\.\\pipe\\SmallMediaPlayer",
+        GENERIC_WRITE,0, NULL, OPEN_EXISTING,
+          FILE_ATTRIBUTE_NORMAL, NULL);
+        cmd=GetCommandLineW();
+        WriteFile(hDestPipe,cmd,2*wcslen(cmd)+1,
+        &dwCount, NULL);
+        CloseHandle(hDestPipe);
+        CloseHandle(hMutex);
+        ExitProcess(0);
+    }
+}
+
 // Initializes Small Media Player, loads settings and shows UI
 void InitApplication(){
 wchar_t wclass_name[]=L"MyClass";
@@ -1495,7 +1517,7 @@ TCHAR buf[256]=L"";
 
 INITCOMMONCONTROLSEX ic;
 LVCOLUMN col={0};
-HANDLE hDestPipe;
+
 HMENU hm=NULL;
 
 OSVERSIONINFO osver={0};
@@ -1508,20 +1530,6 @@ else {
 	if(osver.dwMajorVersion<=5)exStyle=0; //WinXP
 	else exStyle=WS_EX_COMPOSITED;//new systems
 }
-
-//CHECK IF PROGRAM ALREADY RAN
-hMutex=CreateMutexW(NULL,TRUE,L"SmallMediaPlayer");
-if (GetLastError()==ERROR_ALREADY_EXISTS){
-//program already run
-hDestPipe=CreateFileW(L"\\\\.\\pipe\\SmallMediaPlayer",
-GENERIC_WRITE,0, NULL, OPEN_EXISTING,
-  FILE_ATTRIBUTE_NORMAL, NULL);
-  cmd=GetCommandLineW();
-WriteFile(hDestPipe,cmd,2*wcslen(cmd)+1,
-&dwCount, NULL);
-CloseHandle(hDestPipe);
-CloseHandle(hMutex);
-ExitProcess(0);}
 
 CoInitialize(NULL);
 srand(GetTickCount());
@@ -1613,10 +1621,7 @@ wc.hIcon=hSMPIcon;
 		MessageBox(NULL,L"Fail to create window",L"Error",MB_ICONEXCLAMATION|MB_OK);
 		ExitProcess( -1);
 	}
-				
-	if(Settings.WndMaximized != false)ShowWindow(hMainWnd,SW_MAXIMIZE);
-	else ShowWindow(hMainWnd,SW_SHOWNORMAL);
-	
+
 	//playlist window
 	hMainDlg=CreateDialog(GetModuleHandle(NULL),MAKEINTRESOURCE(IDD_MAIN),hMainWnd,MainDlgProc);
 
@@ -1673,7 +1678,7 @@ hVideoWindow=CreateWindow(L"VIDEOWINDOW",L"Окно видео",WS_OVERLAPPEDWIN
 hCoverWnd=CreateWindowEx(exStyle,L"COVERWINDOW",L"Обложка",WS_CHILD|WS_BORDER|WS_CLIPSIBLINGS,CW_USEDEFAULT,0,
 		200,250,hMainWnd,NULL,GetModuleHandle(NULL),NULL);
 
-UpdateView();
+
 hVolume=GetDlgItem(hPlaybackDlg,IDC_VOLUME);
 SendMessage(hVolume,TBM_SETRANGE,TRUE,(LPARAM)MAKELONG(0,100));
 CheckMenuRadioItem(GetMenu(hMainWnd),ID_MODE_NORMAL,ID_MODE_RANDOM,ID_MODE_NORMAL,MF_BYCOMMAND);
@@ -1698,7 +1703,7 @@ if(Settings.fLoadWallpaper==true){
 		LoadPattern(buf);}
 	else{LoadPattern(Settings.WallpaperFilePath);}
 }
-InvalidateRect(hMainWnd,NULL,TRUE);
+
 if(Settings.fLoadDefaultPls==true){
     TCHAR buf[MAX_PATH]=L"";
 
@@ -1708,8 +1713,16 @@ StringCchCat(buf,MAX_PATH,L"default.lst");
 	LoadTextPlaylist(buf);}
 if(Settings.fRememberPosition==true)RestoreLastPosition();
 
-UpdateGUI();
 ProcessCommandLine(cmd);
+}
+
+void ShowUI(){
+    if(Settings.WndMaximized != false)ShowWindow(hMainWnd,SW_MAXIMIZE);
+	else ShowWindow(hMainWnd,SW_SHOWNORMAL);
+
+    UpdateView();
+    InvalidateRect(hMainWnd,NULL,TRUE);
+    UpdateGUI();
 }
 
 void RunMessageLoop(){
