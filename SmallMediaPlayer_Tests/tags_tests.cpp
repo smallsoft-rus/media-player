@@ -22,9 +22,10 @@ namespace SmallMediaPlayer_Tests
             BOOL res = ReadTagsV1(Noise_MP3,&data);
             Assert::IsTrue(res!=FALSE);
             Assert::AreEqual((DWORD)TAG_ID3V1,(DWORD)data.type);
-            Assert::AreEqual(L"Шум моря",data.title);
+            Assert::AreEqual(L"Sea noise",data.title);
             Assert::AreEqual(L"Gregory",data.artist);
             Assert::AreEqual(L"",data.album);
+            Assert::AreEqual(L"2007",data.year);
         }
 
         TEST_METHOD(Test_ID3V2)
