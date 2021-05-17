@@ -201,6 +201,12 @@ packer.bfe.dummy=0;
 
 SourceSize=packer.dword;
 
+if(SourceSize<=3){
+    //tags are empty or too small to contain useful data
+    CloseHandle(hFile);
+    return FALSE;
+}
+
 pSourceTags=(char*)HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,SourceSize);
 if(pSourceTags==NULL){CloseHandle(hFile);return FALSE;}
 ReadFile(hFile,pSourceTags,SourceSize,&dwCount,NULL);

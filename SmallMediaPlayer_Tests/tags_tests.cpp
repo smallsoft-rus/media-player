@@ -9,6 +9,7 @@ using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 WCHAR Noise_MP3[]=L"..\\SmallMediaPlayer_Tests\\data\\noise.mp3";
 WCHAR Robin_MP3[]=L"..\\SmallMediaPlayer_Tests\\data\\robin.mp3";
 WCHAR Crow_FLAC[]=L"..\\SmallMediaPlayer_Tests\\data\\crow.flac";
+WCHAR Horse_MP3[]=L"..\\SmallMediaPlayer_Tests\\data\\horse.mp3";
 
 namespace SmallMediaPlayer_Tests
 {		
@@ -37,6 +38,16 @@ namespace SmallMediaPlayer_Tests
             Assert::AreEqual(L"1673",data.title);
             Assert::AreEqual(L"",data.artist);
             Assert::AreEqual(L"",data.album);
+        }
+
+        TEST_METHOD(Test_ID3V2_EmptyTags)
+        {            
+            TAGS_GENERIC data = {0};
+            BOOL res = ReadTagsv2(Horse_MP3,&data);
+            Assert::IsTrue(res==FALSE);            
+            Assert::AreEqual(L"",data.title);
+            Assert::AreEqual(L"",data.artist);
+            Assert::AreEqual(L"",data.album);            
         }
 
         TEST_METHOD(Test_FlacVorbisComment)
