@@ -1293,7 +1293,7 @@ break;
 case ID_MINIMIZE:SwitchTrayIcon();break;
 case ID_ABOUT:
 	MessageBox(hMainWnd,TEXT("\
-Small Media Player v2.1\n\
+Small Media Player v2.2\n\
 Лицензия: BSD 2.0\n\
 Разработчик: SmallSoft\n\
 E-Mail: vadim--111@yandex.ru\n\
