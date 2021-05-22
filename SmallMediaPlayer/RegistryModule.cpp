@@ -6,6 +6,10 @@
 
 WCHAR ProgramFileName[256]=L"";
 
+void Init_ProgramFileName(){
+    GetModuleFileName(NULL,ProgramFileName,sizeof(ProgramFileName));
+}
+
 BOOL RegisterFolderAssociation(){
 	HKEY hKey;
 	LONG lRes;

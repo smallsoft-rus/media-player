@@ -15,12 +15,22 @@ extern void RunMessageLoop();
 extern void UnloadApplication();
 extern void EnsureSingleInstance();
 extern void ShowUI();
+extern void InitPlayerState();
+
+//imported from SMPSettings.cpp
+extern void LoadSettings();
+
+//imported from RegistryModule.cpp
+extern void Init_ProgramFileName();
 
 // Entry point
 void New_WinMain(void){
 
     EnsureSingleInstance();
+    Init_ProgramFileName();
+    LoadSettings();
     InitApplication();
+    InitPlayerState();
     ShowUI();
     RunMessageLoop();
     UnloadApplication();

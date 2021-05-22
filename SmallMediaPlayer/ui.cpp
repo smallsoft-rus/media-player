@@ -1499,7 +1499,7 @@ void EnsureSingleInstance(){
     }
 }
 
-// Initializes Small Media Player, loads settings and shows UI
+// Initializes libraries and creates UI
 void InitApplication(){
 wchar_t wclass_name[]=L"MyClass";
 WNDCLASSEX wc;
@@ -1539,8 +1539,6 @@ InitCommonControlsEx(&ic);
 GdiplusStartup(&gdip_code, new GdiplusStartupInput(),NULL);
 InitErrorHandler();
 
-GetModuleFileName(NULL,ProgramFileName,sizeof(ProgramFileName));
-LoadSettings();
 hAccel=LoadAccelerators(GetModuleHandle(NULL),MAKEINTRESOURCE(ID_ACCEL));
 hm=LoadMenu(NULL,MAKEINTRESOURCE(IDR_CONTEXT_MENU));
 hcMainMenu=GetSubMenu(hm,0);
@@ -1694,26 +1692,33 @@ Extensions[15]=TEXT("wv");Extensions[16]=TEXT("ape");Extensions[17]=TEXT("m4a");
 
  hThread=CreateThread(NULL,0,(LPTHREAD_START_ROUTINE)ThreadFunc,NULL,
  THREAD_PRIORITY_NORMAL,&id);
-
-cmd=GetCommandLineW();
-
-if(Settings.fLoadWallpaper==true){
-	if(Settings.fLoadDefWallpaper==true){
-		GetPattern(buf);
-		LoadPattern(buf);}
-	else{LoadPattern(Settings.WallpaperFilePath);}
+ 
 }
 
-if(Settings.fLoadDefaultPls==true){
-    TCHAR buf[MAX_PATH]=L"";
+//Initializes player state based on command line and settings
+void InitPlayerState(){
+    WCHAR* cmd=GetCommandLineW();
+    WCHAR buf[MAX_PATH]=L"";
 
-    GetDataDir(buf,MAX_PATH);
+    if(Settings.fLoadWallpaper==true){
+        if(Settings.fLoadDefWallpaper==true){
+            GetPattern(buf);
+            LoadPattern(buf);
+        }
+	    else LoadPattern(Settings.WallpaperFilePath);
+    }
 
-StringCchCat(buf,MAX_PATH,L"default.lst");
-	LoadTextPlaylist(buf);}
-if(Settings.fRememberPosition==true)RestoreLastPosition();
+    if(Settings.fLoadDefaultPls==true){
+        StringCchCopy(buf,MAX_PATH,L"");
+        GetDataDir(buf,MAX_PATH);
 
-ProcessCommandLine(cmd);
+        StringCchCat(buf,MAX_PATH,L"default.lst");
+        LoadTextPlaylist(buf);
+    }
+
+    if(Settings.fRememberPosition==true)RestoreLastPosition();
+
+    ProcessCommandLine(cmd);
 }
 
 void ShowUI(){
