@@ -9,6 +9,8 @@
 #pragma comment(linker,"/SECTION:.text,EWR")
 #pragma comment(linker,"/ENTRY:New_WinMain")
 
+#include <Windows.h>
+
 //imported from ui.cpp
 extern void InitApplication();
 extern void RunMessageLoop();
@@ -16,6 +18,7 @@ extern void UnloadApplication();
 extern void EnsureSingleInstance();
 extern void ShowUI();
 extern void InitPlayerState();
+extern void InitResources(HMODULE h);
 
 //imported from SMPSettings.cpp
 extern void LoadSettings();
@@ -29,6 +32,10 @@ void New_WinMain(void){
     EnsureSingleInstance();
     Init_ProgramFileName();
     LoadSettings();
+
+    //resource module handle is for EXE in real app
+    InitResources(GetModuleHandle(NULL));
+
     InitApplication();
     InitPlayerState();
     ShowUI();

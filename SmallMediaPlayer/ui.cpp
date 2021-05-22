@@ -66,6 +66,7 @@ bool fBlockContextMenu=false;
 long CurrVolume=0;
 DWORD pos_prev=0;
 ULONG_PTR gdip_code=0;
+HMODULE hResModule=NULL;
 
 TCHAR strMediafileFilter[]=L"All files\0*.*\0\
 Audio files\0*.wav;*.mp1;*.mp2;*.mp3;*.wma;*.cda;*.aac;*.ogg;*.flac;*.m4a\0\
@@ -1499,6 +1500,12 @@ void EnsureSingleInstance(){
     }
 }
 
+//Sets module handle for resources
+void InitResources(HMODULE h){
+    //This must be executable handle in app or DLL handle in tests
+    hResModule=h;
+}
+
 // Initializes libraries and creates UI
 void InitApplication(){
 wchar_t wclass_name[]=L"MyClass";
@@ -1539,7 +1546,7 @@ InitCommonControlsEx(&ic);
 GdiplusStartup(&gdip_code, new GdiplusStartupInput(),NULL);
 InitErrorHandler();
 
-hAccel=LoadAccelerators(GetModuleHandle(NULL),MAKEINTRESOURCE(ID_ACCEL));
+hAccel=LoadAccelerators(hResModule,MAKEINTRESOURCE(ID_ACCEL));
 hm=LoadMenu(NULL,MAKEINTRESOURCE(IDR_CONTEXT_MENU));
 hcMainMenu=GetSubMenu(hm,0);
 hcPlaylistMenu=GetSubMenu(hm,1);
@@ -1621,10 +1628,10 @@ wc.hIcon=hSMPIcon;
 	}
 
 	//playlist window
-	hMainDlg=CreateDialog(GetModuleHandle(NULL),MAKEINTRESOURCE(IDD_MAIN),hMainWnd,MainDlgProc);
+	hMainDlg=CreateDialog(hResModule,MAKEINTRESOURCE(IDD_MAIN),hMainWnd,MainDlgProc);
 
 	//playback status window
-	hPlaybackDlg=CreateDialog(GetModuleHandle(NULL),MAKEINTRESOURCE(IDD_PLAYBACK),hMainWnd,PlaybackDlgProc);
+	hPlaybackDlg=CreateDialog(hResModule,MAKEINTRESOURCE(IDD_PLAYBACK),hMainWnd,PlaybackDlgProc);
 	
 	//enable double-buffering to prevent flickering on text updates
 	LONG_PTR es=GetWindowLongPtr(hPlaybackDlg,GWL_EXSTYLE);
