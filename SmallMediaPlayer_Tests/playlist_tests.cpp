@@ -30,7 +30,7 @@ void TestsMain(){
 }
 
 namespace SmallMediaPlayer_Tests
-{		
+{
     TEST_CLASS(PlaylistTests)
     {
     public:
@@ -46,10 +46,50 @@ namespace SmallMediaPlayer_Tests
 
             WCHAR buf[MAX_PATH]=L"";
             BOOL res=GetPlaylistElement(0,buf);
+            ClearPlaylist();
             
             Assert::IsTrue(res!=FALSE);
             Assert::AreEqual(L"c:\\test.mp3",buf,true);
         }
 
+        TEST_METHOD(Test_ClearPlaylist)
+        {
+            AddPlaylistElement(L"c:\\music\\test.mp3");
+            AddPlaylistElement(L"c:\\music\\test2.mp3");
+            AddPlaylistElement(L"c:\\music\\test3.mp3");
+            UINT count_before = CountTracks;
+            ClearPlaylist();
+            UINT count_after = CountTracks;
+            
+            Assert::AreEqual((UINT)3,count_before);
+            Assert::AreEqual((UINT)0,count_after);
+
+            WCHAR buf[MAX_PATH]=L"";
+            BOOL res=GetPlaylistElement(0,buf);
+            Assert::IsTrue(res==FALSE);
+        }
+
+        TEST_METHOD(Test_DeletePlaylistElement)
+        {
+            AddPlaylistElement(L"c:\\music\\test.mp3");
+            AddPlaylistElement(L"c:\\music\\test2.mp3");
+            AddPlaylistElement(L"c:\\music\\test3.mp3");
+            UINT count_before = CountTracks;
+            DeletePlaylistElement(1);
+            UINT count_after = CountTracks;
+            
+            Assert::AreEqual((UINT)3,count_before);
+            Assert::AreEqual((UINT)2,count_after);
+
+            WCHAR buf[MAX_PATH]=L"";
+            BOOL res=GetPlaylistElement(0,buf);
+            Assert::IsTrue(res!=FALSE);
+            Assert::AreEqual(L"c:\\music\\test.mp3",buf,true);
+            res=GetPlaylistElement(1,buf);
+            Assert::IsTrue(res!=FALSE);
+            Assert::AreEqual(L"c:\\music\\test3.mp3",buf,true);
+
+            ClearPlaylist();
+        }
     };
 }
