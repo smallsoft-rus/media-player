@@ -6,8 +6,6 @@
 
 //imported from ui.obj
 extern void InitApplication();
-extern void RunMessageLoop();
-extern void UnloadApplication();
 extern void InitResources(HMODULE h);
 
 //imported from RegistryModule.obj
@@ -15,32 +13,20 @@ extern void Init_ProgramFileName();
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
-DWORD TestsThreadStart_ThreadID=0;
-
-DWORD WINAPI TestsThreadStart(LPVOID lpThreadParameter){
-
-    //background thread that processes windows messages so we can test 
-    //things that depend on UI
-
-    RunMessageLoop();
-    UnloadApplication();
-    return 0;
-}
+bool TestsMain_Initialized=false;
 
 //Entry point for test app instance
 void TestsMain(){
+
+    if(TestsMain_Initialized)return;
 
     //partial initialization
     Init_ProgramFileName();
     //tests must fetch resource from DLL instead of EXE
     InitResources(GetModuleHandle(L"SmallMediaPlayer_Tests.dll"));
     InitApplication();
-
-    //run background thread with message loop    
-    HANDLE hThread=CreateThread(NULL,0,(LPTHREAD_START_ROUTINE)TestsThreadStart,NULL,
-        THREAD_PRIORITY_NORMAL,&TestsThreadStart_ThreadID
-        );
     
+    TestsMain_Initialized=true;
 }
 
 namespace SmallMediaPlayer_Tests
@@ -50,12 +36,8 @@ namespace SmallMediaPlayer_Tests
     public:
 
         PlaylistTests(){
-            //run test application instance
+            //init test application instance
             TestsMain();
-        }
-
-        ~PlaylistTests(){
-            PostThreadMessage(TestsThreadStart_ThreadID,WM_QUIT,0,0);
         }
 	
         TEST_METHOD(Test_AddPlaylistElement)
