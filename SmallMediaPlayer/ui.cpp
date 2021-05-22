@@ -1502,7 +1502,7 @@ void EnsureSingleInstance(){
 
 //Sets module handle for resources
 void InitResources(HMODULE h){
-    //This nust be executable handle in app or DLL handle in tests
+    //This must be executable handle in app or DLL handle in tests
     hResModule=h;
 }
 

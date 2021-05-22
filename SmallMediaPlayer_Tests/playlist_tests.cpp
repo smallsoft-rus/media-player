@@ -22,7 +22,7 @@ void TestsMain(){
 
     //partial initialization
     Init_ProgramFileName();
-    //tests must fetch resource from DLL instead of EXE
+    //tests must fetch resources from DLL instead of EXE
     InitResources(GetModuleHandle(L"SmallMediaPlayer_Tests.dll"));
     InitApplication();
     
