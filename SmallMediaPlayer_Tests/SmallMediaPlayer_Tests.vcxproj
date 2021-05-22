@@ -20,7 +20,7 @@
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset Condition="'$(VisualStudioVersion)'=='11.0'">v110</PlatformToolset>
-    <PlatformToolset Condition="'$(VisualStudioVersion)'>'14.0'">v142</PlatformToolset>
+    <PlatformToolset Condition="'$(VisualStudioVersion)'&gt;'14.0'">v142</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
     <UseOfMfc>false</UseOfMfc>
   </PropertyGroup>
@@ -28,7 +28,7 @@
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset Condition="'$(VisualStudioVersion)'=='11.0'">v110</PlatformToolset>
-    <PlatformToolset Condition="'$(VisualStudioVersion)'>'14.0'">v142</PlatformToolset>
+    <PlatformToolset Condition="'$(VisualStudioVersion)'&gt;'14.0'">v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
     <UseOfMfc>false</UseOfMfc>
@@ -62,7 +62,7 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(VCInstallDir)UnitTest\lib;$(SolutionDir)\SmallMediaPlayer\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>tags.obj;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>winmm.lib;strmiids.lib;quartz.lib;comctl32.lib;gdiplus.lib;tags.obj;DirectShowStuff.obj;errors.obj;PictureManager.obj;player.obj;PlayListEditor.obj;RegistryModule.obj;SMPSettings.obj;ui.obj;smp.res;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -82,10 +82,11 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalLibraryDirectories>$(VCInstallDir)UnitTest\lib;$(SolutionDir)\SmallMediaPlayer\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>tags.obj;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>winmm.lib;strmiids.lib;quartz.lib;comctl32.lib;gdiplus.lib;tags.obj;DirectShowStuff.obj;errors.obj;PictureManager.obj;player.obj;PlayListEditor.obj;RegistryModule.obj;SMPSettings.obj;ui.obj;smp.res;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="playlist_tests.cpp" />
     <ClCompile Include="tags_tests.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
