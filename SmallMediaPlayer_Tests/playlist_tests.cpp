@@ -113,5 +113,31 @@ namespace SmallMediaPlayer_Tests
 
             ClearPlaylist();
         }
+
+        TEST_METHOD(Test_Playlist_SaveLoad)
+        {
+            AddPlaylistElement(L"c:\\music\\test.mp3");
+            AddPlaylistElement(L"c:\\music\\test2.mp3");
+            AddPlaylistElement(L"c:\\music\\test3.mp3");
+
+            WCHAR filepath[]=L"file.m3u";
+            SaveTextPlaylist(filepath);
+            ClearPlaylist();
+            LoadTextPlaylist(filepath);
+
+            WCHAR buf[MAX_PATH]=L"";
+            BOOL res=GetPlaylistElement(0,buf);
+            Assert::IsTrue(res!=FALSE);
+            Assert::AreEqual(L"c:\\music\\test.mp3",buf,true);
+            res=GetPlaylistElement(1,buf);
+            Assert::IsTrue(res!=FALSE);
+            Assert::AreEqual(L"c:\\music\\test2.mp3",buf,true);
+            res=GetPlaylistElement(2,buf);
+            Assert::IsTrue(res!=FALSE);
+            Assert::AreEqual(L"c:\\music\\test3.mp3",buf,true);
+
+            ClearPlaylist();
+            DeleteFileW(filepath);
+        }
     };
 }
