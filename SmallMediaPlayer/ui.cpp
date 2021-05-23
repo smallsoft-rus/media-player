@@ -1697,13 +1697,15 @@ Extensions[9]=TEXT("ogg");Extensions[10]=TEXT("cda");Extensions[11]=TEXT("aac");
 Extensions[12]=TEXT("mkv");Extensions[13]=TEXT("flac");Extensions[14]=TEXT("mov");
 Extensions[15]=TEXT("wv");Extensions[16]=TEXT("ape");Extensions[17]=TEXT("m4a");
 
- hThread=CreateThread(NULL,0,(LPTHREAD_START_ROUTINE)ThreadFunc,NULL,
- THREAD_PRIORITY_NORMAL,&id);
- 
 }
 
 //Initializes player state based on command line and settings
 void InitPlayerState(){
+
+    DWORD id=0;
+    hThread=CreateThread(NULL,0,(LPTHREAD_START_ROUTINE)ThreadFunc,NULL,
+        THREAD_PRIORITY_NORMAL,&id);
+
     WCHAR* cmd=GetCommandLineW();
     WCHAR buf[MAX_PATH]=L"";
 
