@@ -91,5 +91,27 @@ namespace SmallMediaPlayer_Tests
 
             ClearPlaylist();
         }
+
+        TEST_METHOD(Test_AddDirectory)
+        {
+            Playlist_AddDirectory(L"..\\SmallMediaPlayer_Tests\\data\\");
+            Assert::AreEqual((UINT)4,CountTracks);
+
+            WCHAR buf[MAX_PATH]=L"";
+            BOOL res=GetPlaylistElement(0,buf);
+            Assert::IsTrue(res!=FALSE);
+            Assert::AreEqual(L"..\\SmallMediaPlayer_Tests\\data\\crow.flac",buf,true);
+            res=GetPlaylistElement(1,buf);
+            Assert::IsTrue(res!=FALSE);
+            Assert::AreEqual(L"..\\SmallMediaPlayer_Tests\\data\\horse.mp3",buf,true);
+            res=GetPlaylistElement(2,buf);
+            Assert::IsTrue(res!=FALSE);
+            Assert::AreEqual(L"..\\SmallMediaPlayer_Tests\\data\\noise.mp3",buf,true);
+            res=GetPlaylistElement(3,buf);
+            Assert::IsTrue(res!=FALSE);
+            Assert::AreEqual(L"..\\SmallMediaPlayer_Tests\\data\\robin.mp3",buf,true);
+
+            ClearPlaylist();
+        }
     };
 }
