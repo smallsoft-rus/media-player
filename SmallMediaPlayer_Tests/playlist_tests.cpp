@@ -3,6 +3,8 @@
  * License: BSD 2.0 */
 #include "CppUnitTest.h"
 #include "PlayListEditor.h"
+#include <vector>
+#include <string>
 
 //imported from ui.obj
 extern void InitApplication();
@@ -138,6 +140,38 @@ namespace SmallMediaPlayer_Tests
 
             ClearPlaylist();
             DeleteFileW(filepath);
+        }
+
+        TEST_METHOD(Test_SaveTextPlaylist)
+        {
+            AddPlaylistElement(L"c:\\music\\file1.mp3");
+            AddPlaylistElement(L"c:\\music\\file2.mp3");
+            AddPlaylistElement(L"c:\\music\\file3.mp3");
+
+            WCHAR filepath[]=L"playlist.m3u";
+            SaveTextPlaylist(filepath);
+            ClearPlaylist();
+
+            FILE* f = _wfopen(filepath,L"rt");
+            WCHAR buf[500]=L"";
+            WCHAR* p=NULL;
+            std::vector<std::wstring> vect;
+
+            while(1){
+                p=fgetws(buf,500,f);
+                if(p==NULL)break;
+                vect.push_back(std::wstring(buf));
+            }
+            fclose(f);
+            DeleteFileW(filepath);
+            
+            Assert::AreEqual(std::wstring(L"#~ENCODING: UTF8\n"),vect.at(1));
+            Assert::AreEqual(std::wstring(L"#TAGS~file1.mp3~ ~ ~ \n"),vect.at(2));
+            Assert::AreEqual(std::wstring(L"c:\\music\\file1.mp3\n"),vect.at(3));
+            Assert::AreEqual(std::wstring(L"#TAGS~file2.mp3~ ~ ~ \n"),vect.at(4));
+            Assert::AreEqual(std::wstring(L"c:\\music\\file2.mp3\n"),vect.at(5));
+            Assert::AreEqual(std::wstring(L"#TAGS~file3.mp3~ ~ ~ \n"),vect.at(6));
+            Assert::AreEqual(std::wstring(L"c:\\music\\file3.mp3\n"),vect.at(7));
         }
     };
 }
