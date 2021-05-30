@@ -173,5 +173,26 @@ namespace SmallMediaPlayer_Tests
             Assert::AreEqual(std::wstring(L"#TAGS~file3.mp3~ ~ ~ \n"),vect.at(6));
             Assert::AreEqual(std::wstring(L"c:\\music\\file3.mp3\n"),vect.at(7));
         }
+
+        TEST_METHOD(Test_LoadTextPlaylist)
+        {
+            WCHAR filepath[]=L"..\\SmallMediaPlayer_Tests\\data\\playlist.m3u";
+            ClearPlaylist();
+            LoadTextPlaylist(filepath);
+
+            Assert::AreEqual((UINT)3,CountTracks);
+            WCHAR buf[MAX_PATH]=L"";
+            BOOL res=GetPlaylistElement(0,buf);
+            Assert::IsTrue(res!=FALSE);
+            Assert::AreEqual(L"c:\\music\\file1.mp3",buf,true);
+            res=GetPlaylistElement(1,buf);
+            Assert::IsTrue(res!=FALSE);
+            Assert::AreEqual(L"c:\\music\\file2.mp3",buf,true);
+            res=GetPlaylistElement(2,buf);
+            Assert::IsTrue(res!=FALSE);
+            Assert::AreEqual(L"c:\\music\\file3.mp3",buf,true);
+
+            ClearPlaylist();
+        }
     };
 }
