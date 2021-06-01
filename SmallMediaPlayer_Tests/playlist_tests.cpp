@@ -201,6 +201,7 @@ namespace SmallMediaPlayer_Tests
 
         TEST_METHOD(Test_PlayTrackByNumber)
         {
+            Logger::WriteMessage(L"Hi\n");
             ClearPlaylist();
             AddPlaylistElement(L"..\\SmallMediaPlayer_Tests\\data\\robin.mp3");
             PlayTrackByNumber(0);
@@ -210,7 +211,7 @@ namespace SmallMediaPlayer_Tests
 
             WCHAR buf[10000]=L"";
             GetMultimediaInfo(buf,10000);
-            Logger::WriteMessage(buf);
+            wprintf(L"GetMultimediaInfo: %s\n",buf);
 
             DWORD len = GetLength();
             Assert::AreEqual((DWORD)2636,len); //ms
