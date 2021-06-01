@@ -6,6 +6,7 @@
 #include "resource.h"
 #include "errors.h"
 #include <math.h>
+#include <exception>
 
 extern SMPSETTINGS Settings;
 extern TAGS_GENERIC OpenedFileTags;
@@ -782,7 +783,7 @@ if(FAILED(hr)){
 	HandlePlayError(hr,filename);
 	Close();
 	WPARAM wParam=MAKEWPARAM(ID_NEXTTRACK,0);
-	PostMessage(hWnd,WM_COMMAND,wParam,0);
+    PostMessage(hWnd,WM_COMMAND,wParam,0);throw std::exception();
 	return;
 }
 
@@ -960,7 +961,10 @@ DWORD GetLength(){
 	DWORD dwRes;
 	DWORD len;
 
-	if(PlayerState==FILE_NOT_LOADED)return 0;
+    if(PlayerState==FILE_NOT_LOADED){
+        throw std::exception("PlayerState==FILE_NOT_LOADED");
+        return 0;
+    }
 	if(fShowNextImage==true)return Settings.ImageDelay;
 
 if(IsPlayingCDA==true){	
@@ -976,7 +980,8 @@ return len*(DWORD)1000;
 }
 	hRes=pSeek->GetDuration(&dur);
 	if(FAILED(hRes)){
-		return 0;
+        throw std::exception("GetDuration failed");
+		//return 0;
 	}
 return dur/TIME_KOEFF;
 }
