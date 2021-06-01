@@ -980,6 +980,7 @@ return len*(DWORD)1000;
 }
 	hRes=pSeek->GetDuration(&dur);
 	if(FAILED(hRes)){
+        wprintf(L"GetDuration failed with hresult=0x%x",(UINT)hRes);
         throw std::exception("GetDuration failed");
 		//return 0;
 	}
