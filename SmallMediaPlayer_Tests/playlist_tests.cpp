@@ -14,6 +14,9 @@ extern void InitResources(HMODULE h);
 //imported from RegistryModule.obj
 extern void Init_ProgramFileName();
 
+//***
+extern void GetMultimediaInfo(TCHAR* text,int len);
+
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
 bool TestsMain_Initialized=false;
@@ -204,6 +207,11 @@ namespace SmallMediaPlayer_Tests
             Assert::AreEqual((int)PLAYING,(int)PlayerState);
             Pause();            
             Assert::AreEqual((int)PAUSED,(int)PlayerState);
+
+            WCHAR buf[10000]=L"";
+            GetMultimediaInfo(buf,10000);
+            Logger::WriteMessage(buf);
+
             DWORD len = GetLength();
             Assert::AreEqual((DWORD)2636,len); //ms
             Stop();
