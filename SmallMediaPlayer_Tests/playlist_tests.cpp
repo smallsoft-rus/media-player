@@ -14,9 +14,6 @@ extern void InitResources(HMODULE h);
 //imported from RegistryModule.obj
 extern void Init_ProgramFileName();
 
-//***
-extern void GetMultimediaInfo(TCHAR* text,int len);
-
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
 bool TestsMain_Initialized=false;
