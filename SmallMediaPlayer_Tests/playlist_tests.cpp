@@ -196,7 +196,7 @@ namespace SmallMediaPlayer_Tests
             ClearPlaylist();
         }
 
-	BEGIN_TEST_METHOD_ATTRIBUTE(Test_PlayTrackByNumber)
+        BEGIN_TEST_METHOD_ATTRIBUTE(Test_PlayTrackByNumber)
         TEST_OWNER(L"GUI")
         END_TEST_METHOD_ATTRIBUTE()
 	    
