@@ -6,7 +6,6 @@
 #include "resource.h"
 #include "errors.h"
 #include <math.h>
-#include <exception>
 
 extern SMPSETTINGS Settings;
 extern TAGS_GENERIC OpenedFileTags;
@@ -783,7 +782,7 @@ if(FAILED(hr)){
 	HandlePlayError(hr,filename);
 	Close();
 	WPARAM wParam=MAKEWPARAM(ID_NEXTTRACK,0);
-    PostMessage(hWnd,WM_COMMAND,wParam,0);throw std::exception();
+	PostMessage(hWnd,WM_COMMAND,wParam,0);
 	return;
 }
 
@@ -819,7 +818,6 @@ PlayerState=PLAYING;
 pAudio->put_Volume(Volume);
 
 pEvent->SetNotifyWindow((LONG_PTR)hWnd,MM_MCINOTIFY,0L);
-wprintf(L"PlayFile success"); 
 }
 
 void PlayCDAFrom(DWORD pos){  //pos in TMSF
@@ -961,7 +959,7 @@ DWORD GetLength(){
 	DWORD dwRes;
 	DWORD len;
 
-    if(PlayerState==FILE_NOT_LOADED){return 0;}
+	if(PlayerState==FILE_NOT_LOADED)return 0;
 	if(fShowNextImage==true)return Settings.ImageDelay;
 
 if(IsPlayingCDA==true){	
@@ -977,7 +975,6 @@ return len*(DWORD)1000;
 }
 	hRes=pSeek->GetDuration(&dur);
 	if(FAILED(hRes)){
-        wprintf(L"GetDuration failed with hresult=0x%x",(UINT)hRes);        
 		return 0;
 	}
 return dur/TIME_KOEFF;
