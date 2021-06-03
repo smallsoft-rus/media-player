@@ -199,9 +199,12 @@ namespace SmallMediaPlayer_Tests
             ClearPlaylist();
         }
 
+	BEGIN_TEST_METHOD_ATTRIBUTE(Test_PlayTrackByNumber)
+        TEST_OWNER(L"GUI")
+        END_TEST_METHOD_ATTRIBUTE()
+	    
         TEST_METHOD(Test_PlayTrackByNumber)
         {
-            Logger::WriteMessage(L"Hi\n");
             ClearPlaylist();
             AddPlaylistElement(L"..\\SmallMediaPlayer_Tests\\data\\robin.mp3");
             PlayTrackByNumber(0);
@@ -209,12 +212,9 @@ namespace SmallMediaPlayer_Tests
             Pause();            
             Assert::AreEqual((int)PAUSED,(int)PlayerState);
 
-            WCHAR buf[10000]=L"";
-            GetMultimediaInfo(buf,10000);
-            wprintf(L"GetMultimediaInfo: %s\n",buf);
-
             DWORD len = GetLength();
             Assert::AreEqual((DWORD)2636,len); //ms
+
             Stop();
             ClearPlaylist();
         }
