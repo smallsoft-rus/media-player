@@ -818,6 +818,7 @@ PlayerState=PLAYING;
 pAudio->put_Volume(Volume);
 
 pEvent->SetNotifyWindow((LONG_PTR)hWnd,MM_MCINOTIFY,0L);
+
 }
 
 void PlayCDAFrom(DWORD pos){  //pos in TMSF
