@@ -2,7 +2,11 @@
  * Copyright (c) 2021,  MSDN.WhiteKnight (https://github.com/smallsoft-rus/media-player) 
  * License: BSD 2.0 */
 #define UNICODE
+#include <stdint.h>
 #include "DirectShowStuff.h"
+
+void LogMessage(const WCHAR* message, BOOL fTime); //from errors.cpp
+
 IBaseFilter* FindFilter(TCHAR* FilterName){
 	HRESULT hr; 
 // Create the System Device Enumerator.
@@ -312,4 +316,75 @@ IBaseFilter* FindFileSource(IGraphBuilder* pGraph)
 
     pEnum->Release();
     return NULL;
+}
+
+//prints all filters in graph to log file
+void LogAllFilters(IGraphBuilder* pGraph) 
+{
+    IEnumFilters *pEnum = NULL;
+    IBaseFilter *pFilter=NULL;
+    FILTER_INFO finfo={0};
+    ULONG cFetched;
+    WCHAR buf[500]=L"";
+    HMODULE hModule = NULL;
+    WCHAR module[MAX_PATH]={0};
+
+    HRESULT hr = pGraph->EnumFilters(&pEnum);
+
+    if (FAILED(hr)) {
+        LogMessage(L"Failed to enumerate filters",TRUE);
+        return;
+    }
+
+    LogMessage(L"*** FILTERS: ***",FALSE);
+
+    while(pEnum->Next(1, &pFilter, &cFetched) == S_OK)
+    {
+        //name
+		hr=pFilter->QueryFilterInfo(&finfo);
+
+		if(FAILED(hr)){
+			pFilter->Release();
+            LogMessage(L"Failed to query filter info",TRUE);
+			continue;
+        }
+
+        LogMessage(finfo.achName,FALSE);
+        if(finfo.pGraph!=NULL)finfo.pGraph->Release();
+
+        //vendor
+        LPWSTR pVendor=NULL;
+        hr=pFilter->QueryVendorInfo(&pVendor);
+
+        if(SUCCEEDED(hr) && pVendor!=NULL){
+            StringCchCopy(buf,500,L"Vendor: ");
+            StringCchCat(buf,500,pVendor);
+            LogMessage(buf,FALSE);
+            CoTaskMemFree(pVendor);
+        }
+
+        //get QueryInterface function address (first in vtable)
+        uintptr_t* p = (uintptr_t*)(pFilter);
+        uintptr_t addr = *p;
+
+        //get module from function address
+        hModule = NULL;
+        
+        GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, 
+             (LPCTSTR)(addr), &hModule
+        );
+
+        if(hModule != NULL){
+             memset(module,0,sizeof(module));
+             GetModuleFileName(hModule,module,MAX_PATH);
+             StringCchCopy(buf,500,L"Module: ");
+              StringCchCat(buf,500,module);
+             LogMessage(buf,FALSE);
+        }
+
+		pFilter->Release();
+    }
+
+    LogMessage(L"***************",FALSE);
+    pEnum->Release();
 }

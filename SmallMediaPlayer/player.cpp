@@ -702,6 +702,7 @@ int i;
 
 bool res;
 BOOL success=FALSE;
+bool autobuild=false;
 
 
 if(PlayerState!=FILE_NOT_LOADED){Close();}
@@ -786,9 +787,20 @@ if(FAILED(hr)){
 	return;
 }
 
+autobuild=true;
+
 play:
 SearchFilters();
 PlayerState=STOPPED;
+
+#ifdef DEBUG
+    LogMessage(L"PlayFile",TRUE);
+    LogMessage(filename,FALSE);
+
+    if(autobuild) LogMessage(L"Codecs selected automatically",FALSE);
+
+    LogAllFilters(pGraph);
+#endif
 
 pSeek->SetTimeFormat(&tf);
 
@@ -976,6 +988,10 @@ return len*(DWORD)1000;
 }
 	hRes=pSeek->GetDuration(&dur);
 	if(FAILED(hRes)){
+#ifdef DEBUG
+        LogMessage(L"IMediaSeeking::GetDuration failed",FALSE);
+        HandleMediaError(hRes);
+#endif
 		return 0;
 	}
 return dur/TIME_KOEFF;

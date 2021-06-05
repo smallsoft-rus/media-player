@@ -313,6 +313,44 @@ void HandleError(
 	}
 }
 
+//writes message into log file, but does not show UI or write stack trace
+void LogMessage(
+    const WCHAR* message, BOOL fTime
+    ){ //export
+
+    InitErrorHandler();
+
+    //write error to log file
+    HANDLE hFile=CreateFile(
+        strLogFile,GENERIC_WRITE,FILE_SHARE_READ|FILE_SHARE_WRITE,NULL,OPEN_ALWAYS,FILE_ATTRIBUTE_NORMAL,NULL
+    );
+
+    if(hFile!=INVALID_HANDLE_VALUE){
+        DWORD dwRes=SetFilePointer(hFile,0,0,FILE_END);
+        DWORD dwCount=0;
+        
+        //time
+        if(fTime!=FALSE){
+            SYSTEMTIME st={0};
+            GetLocalTime(&st);
+            char time_str[1024]="";
+
+            StringCchPrintfA(
+			    time_str,sizeof(time_str),"%4d.%02d.%02d %2d:%02d",
+			    (int)st.wYear,(int)st.wMonth,(int)st.wDay,(int)st.wHour,(int)st.wMinute
+            );
+            
+            WriteFile(hFile,"\r\n",2,&dwCount,NULL);
+            WriteFile(hFile,time_str,lstrlenA(time_str),&dwCount,NULL);
+            WriteFile(hFile,"\r\n",2,&dwCount,NULL);
+        }
+
+        //message
+        WriteUtf8String(hFile,message);
+        CloseHandle(hFile);
+    }
+}
+
 void HandlePlayError(HRESULT hr, const WCHAR* file){ //export
 	WCHAR buf[100]=L"";
 	WCHAR mes[MAX_ERROR_TEXT_LEN]=L"";
@@ -330,6 +368,23 @@ void HandlePlayError(HRESULT hr, const WCHAR* file){ //export
 	StringCchCatW(output,output_len,file);
 	
 	HandleError(output,SMP_ALERT_NONBLOCKING,L"");
+}
+
+void HandleMediaError(HRESULT hr){ //export
+	WCHAR buf[100]=L"";
+	WCHAR mes[MAX_ERROR_TEXT_LEN]=L"";
+	const int output_len=1000;
+	WCHAR output[output_len]=L"";
+
+	//get directshow error message
+	AMGetErrorTextW(hr,mes,sizeof(mes));
+
+	StringCchCopyW(output,output_len,L"Ошибка DirectShow ");
+	StringCchPrintfW(buf,100,L"0x%x: ",(UINT)hr);
+	StringCchCatW(output,output_len,buf);
+	StringCchCatW(output,output_len,mes);	
+	
+	HandleError(output,SMP_ALERT_SILENT,L"");
 }
 
 //called on unhandled exception

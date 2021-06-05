@@ -18,5 +18,7 @@ void InitErrorHandler();
 void HandleError(const WCHAR* message,SMP_ALERTTYPE alerttype, const WCHAR* info);
 void HandleError(const WCHAR* message,SMP_ALERTTYPE alerttype, const WCHAR* info, CONTEXT* pContext);
 void HandlePlayError(HRESULT hr, const WCHAR* file);
+void HandleMediaError(HRESULT hr);
+void LogMessage(const WCHAR* message, BOOL fTime);
 
 #endif

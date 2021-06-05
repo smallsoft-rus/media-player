@@ -63,5 +63,6 @@ IBaseFilter* FindFileSource(IGraphBuilder* pGraph);
 IBaseFilter* GetDownstreamFilter(IPin* PinOut);
 IPin* GetOutputPin(    IBaseFilter *pFilter )  ;
 BOOL GetSubType(IPin* pin,GUID* pGuid);
+void LogAllFilters(IGraphBuilder* pGraph);
 
 #endif
