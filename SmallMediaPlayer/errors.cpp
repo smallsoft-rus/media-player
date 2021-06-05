@@ -1,4 +1,4 @@
-/* Small Media Player 
+п»ї/* Small Media Player 
  * Copyright (c) 2021,  MSDN.WhiteKnight (https://github.com/smallsoft-rus/media-player) 
  * License: BSD 2.0 */
 #include "errors.h"
@@ -360,7 +360,7 @@ void HandlePlayError(HRESULT hr, const WCHAR* file){ //export
 	//get directshow error message
 	AMGetErrorTextW(hr,mes,sizeof(mes));
 
-	StringCchCopyW(output,output_len,L"Ошибка воспроизведения ");
+	StringCchCopyW(output,output_len,L"РћС€РёР±РєР° РІРѕСЃРїСЂРѕРёР·РІРµРґРµРЅРёСЏ ");
 	StringCchPrintfW(buf,100,L"0x%x: ",(UINT)hr);
 	StringCchCatW(output,output_len,buf);
 	StringCchCatW(output,output_len,mes);
@@ -379,7 +379,7 @@ void HandleMediaError(HRESULT hr){ //export
 	//get directshow error message
 	AMGetErrorTextW(hr,mes,sizeof(mes));
 
-	StringCchCopyW(output,output_len,L"Ошибка DirectShow ");
+	StringCchCopyW(output,output_len,L"РћС€РёР±РєР° DirectShow ");
 	StringCchPrintfW(buf,100,L"0x%x: ",(UINT)hr);
 	StringCchCatW(output,output_len,buf);
 	StringCchCatW(output,output_len,mes);	
@@ -460,7 +460,7 @@ void CreateErrorWindow() {
 
 	//create window
 	hErrorWnd = CreateWindowEx(
-		0, wclass_name, L"Ошибки", WS_VISIBLE|WS_CAPTION|WS_SYSMENU, 100, 100,
+		0, wclass_name, L"РћС€РёР±РєРё", WS_VISIBLE|WS_CAPTION|WS_SYSMENU, 100, 100,
 		ERRORWINDOW_WIDTH, ERRORWINDOW_HEIGHT, NULL, NULL, GetModuleHandle(NULL), NULL
 	);
 
