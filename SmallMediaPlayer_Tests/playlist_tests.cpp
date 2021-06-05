@@ -1,10 +1,11 @@
 /* Small Media Player tests 
  * Copyright (c) 2021,  MSDN.WhiteKnight (https://github.com/smallsoft-rus/media-player) 
  * License: BSD 2.0 */
-#include "CppUnitTest.h"
-#include "PlayListEditor.h"
 #include <vector>
 #include <string>
+#include "CppUnitTest.h"
+#include "PlayListEditor.h"
+#include "player.h"
 
 //imported from ui.obj
 extern void InitApplication();
@@ -192,6 +193,26 @@ namespace SmallMediaPlayer_Tests
             Assert::IsTrue(res!=FALSE);
             Assert::AreEqual(L"c:\\music\\file3.mp3",buf,true);
 
+            ClearPlaylist();
+        }
+
+        BEGIN_TEST_METHOD_ATTRIBUTE(Test_PlayTrackByNumber)
+        TEST_OWNER(L"GUI")
+        END_TEST_METHOD_ATTRIBUTE()
+	    
+        TEST_METHOD(Test_PlayTrackByNumber)
+        {
+            ClearPlaylist();
+            AddPlaylistElement(L"..\\SmallMediaPlayer_Tests\\data\\robin.mp3");
+            PlayTrackByNumber(0);
+            Assert::AreEqual((int)PLAYING,(int)PlayerState);
+            Pause();            
+            Assert::AreEqual((int)PAUSED,(int)PlayerState);
+
+            DWORD len = GetLength();
+            Assert::AreEqual((DWORD)2636,len); //ms
+
+            Stop();
             ClearPlaylist();
         }
     };
