@@ -20,14 +20,14 @@
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset Condition="'$(VisualStudioVersion)'=='11.0'">v110</PlatformToolset>
-    <PlatformToolset Condition="'$(VisualStudioVersion)'>'14.0'">v142</PlatformToolset>
+    <PlatformToolset Condition="'$(VisualStudioVersion)'&gt;'14.0'">v142</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset Condition="'$(VisualStudioVersion)'=='11.0'">v110_xp</PlatformToolset>
-    <PlatformToolset Condition="'$(VisualStudioVersion)'>'14.0'">v141_xp</PlatformToolset>
+    <PlatformToolset Condition="'$(VisualStudioVersion)'&gt;'14.0'">v141_xp</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
@@ -58,8 +58,8 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies Condition="'$(VisualStudioVersion)'=='11.0'">winmm.lib;strmiids.lib;quartz.lib;comctl32.lib;gdiplus.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalDependencies Condition="'$(VisualStudioVersion)'>'14.0'">winmm.lib;strmiids.lib;quartz.lib;comctl32.lib;gdiplus.lib;vcruntimed.lib;ucrtd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies Condition="'$(VisualStudioVersion)'=='11.0'">winmm.lib;strmiids.lib;quartz.lib;comctl32.lib;gdiplus.lib;Version.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies Condition="'$(VisualStudioVersion)'&gt;'14.0'">winmm.lib;strmiids.lib;quartz.lib;comctl32.lib;gdiplus.lib;Version.lib;vcruntimed.lib;ucrtd.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -79,7 +79,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalDependencies Condition="'$(VisualStudioVersion)'=='11.0'">winmm.lib;strmiids.lib;quartz.lib;comctl32.lib;gdiplus.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalDependencies Condition="'$(VisualStudioVersion)'>'14.0'">winmm.lib;strmiids.lib;quartz.lib;comctl32.lib;gdiplus.lib;vcruntime.lib;ucrt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies Condition="'$(VisualStudioVersion)'&gt;'14.0'">winmm.lib;strmiids.lib;quartz.lib;comctl32.lib;gdiplus.lib;vcruntime.lib;ucrt.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

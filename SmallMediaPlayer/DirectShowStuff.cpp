@@ -318,6 +318,100 @@ IBaseFilter* FindFileSource(IGraphBuilder* pGraph)
     return NULL;
 }
 
+#ifdef DEBUG
+
+typedef struct LANGANDCODEPAGE {
+      WORD wLanguage;
+      WORD wCodePage;
+} STRUCT_LANGANDCODEPAGE;
+
+WCHAR* GetVersionEntry(void* lpData,STRUCT_LANGANDCODEPAGE *lpTranslate, UINT cbTranslate,const WCHAR* name){
+
+    HRESULT hr;
+    WCHAR SubBlock[50]=L"";
+    LPVOID lpBuffer=NULL;
+    UINT dwBytes=0;
+    BOOL res=FALSE;
+
+    //get version info string in the first language available
+    for(int i=0; i < (cbTranslate/sizeof(struct LANGANDCODEPAGE)); i++ )
+    {
+      hr = StringCchPrintfW(SubBlock, 50,
+            TEXT("\\StringFileInfo\\%04x%04x\\%s"),
+            lpTranslate[i].wLanguage,
+            lpTranslate[i].wCodePage,
+            name);
+
+  	  if (FAILED(hr)) continue;
+      
+      lpBuffer=NULL;
+  	  res=VerQueryValueW(lpData, 
+                SubBlock, 
+                &lpBuffer, 
+                &dwBytes);
+
+      if(res==FALSE)continue;
+      if(lpBuffer==NULL)continue;
+
+      WCHAR* pStr=(WCHAR*)lpBuffer;
+      return pStr;
+  	}
+
+    return NULL;
+}
+
+void LogFileVersionInfo(const WCHAR* file){
+    DWORD unused=0;
+    DWORD size=GetFileVersionInfoSizeW(file,&unused);
+    if(size==0)return;
+
+    void* lpData=LocalAlloc(LMEM_ZEROINIT,size);
+    if(lpData==NULL)return;
+
+    BOOL res = GetFileVersionInfoW(file,0,size,lpData);
+    if(res==FALSE){LocalFree(lpData);return;}
+
+    STRUCT_LANGANDCODEPAGE *lpTranslate=NULL;
+    UINT cbTranslate=0;
+    HRESULT hr;
+    WCHAR SubBlock[50]=L"";
+    LPVOID lpBuffer=NULL;
+    UINT dwBytes=0;
+    WCHAR buf[500]=L"";
+
+    res=VerQueryValueW(lpData, TEXT("\\VarFileInfo\\Translation"),
+              (LPVOID*)&lpTranslate,
+              &cbTranslate);
+
+    if(res==FALSE){LocalFree(lpData);return;}
+
+    WCHAR* pName=GetVersionEntry(lpData,lpTranslate,cbTranslate,L"ProductName");
+
+    if(pName!=NULL){
+        StringCchCopy(buf,500,L"Product name: ");
+        StringCchCat(buf,500,pName);
+        LogMessage(buf,FALSE);
+    }
+    
+    WCHAR* pFileVersion=GetVersionEntry(lpData,lpTranslate,cbTranslate,L"FileVersion");
+
+    if(pFileVersion!=NULL){
+        StringCchCopy(buf,500,L"File version: ");
+        StringCchCat(buf,500,pFileVersion);
+        LogMessage(buf,FALSE);
+    }        
+    
+    WCHAR* pProductVersion=GetVersionEntry(lpData,lpTranslate,cbTranslate,L"ProductVersion");
+
+    if(pProductVersion!=NULL){
+        StringCchCopy(buf,500,L"Product version: ");
+        StringCchCat(buf,500,pProductVersion);
+        LogMessage(buf,FALSE);
+    }
+
+    LocalFree(lpData);
+}
+
 //prints all filters in graph to log file
 void LogAllFilters(IGraphBuilder* pGraph) 
 {
@@ -341,15 +435,17 @@ void LogAllFilters(IGraphBuilder* pGraph)
     while(pEnum->Next(1, &pFilter, &cFetched) == S_OK)
     {
         //name
-		hr=pFilter->QueryFilterInfo(&finfo);
+        hr=pFilter->QueryFilterInfo(&finfo);
 
-		if(FAILED(hr)){
-			pFilter->Release();
+        if(FAILED(hr)){
+            pFilter->Release();
             LogMessage(L"Failed to query filter info",TRUE);
-			continue;
+            continue;
         }
 
-        LogMessage(finfo.achName,FALSE);
+        StringCchCopy(buf,500,L"  ");
+        StringCchCat(buf,500,finfo.achName);
+        LogMessage(buf,FALSE);
         if(finfo.pGraph!=NULL)finfo.pGraph->Release();
 
         //vendor
@@ -375,16 +471,21 @@ void LogAllFilters(IGraphBuilder* pGraph)
         );
 
         if(hModule != NULL){
+             //module name
              memset(module,0,sizeof(module));
              GetModuleFileName(hModule,module,MAX_PATH);
              StringCchCopy(buf,500,L"Module: ");
-              StringCchCat(buf,500,module);
+             StringCchCat(buf,500,module);
              LogMessage(buf,FALSE);
+
+             //module version info
+             LogFileVersionInfo(module);
         }
 
-		pFilter->Release();
+        pFilter->Release();
     }
 
     LogMessage(L"***************",FALSE);
     pEnum->Release();
 }
+#endif

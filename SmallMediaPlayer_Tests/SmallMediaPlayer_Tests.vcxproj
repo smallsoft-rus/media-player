@@ -62,7 +62,7 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(VCInstallDir)UnitTest\lib;$(SolutionDir)\SmallMediaPlayer\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>winmm.lib;strmiids.lib;quartz.lib;comctl32.lib;gdiplus.lib;tags.obj;DirectShowStuff.obj;errors.obj;PictureManager.obj;player.obj;PlayListEditor.obj;RegistryModule.obj;SMPSettings.obj;ui.obj;smp.res;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>winmm.lib;strmiids.lib;quartz.lib;comctl32.lib;gdiplus.lib;Version.lib;tags.obj;DirectShowStuff.obj;errors.obj;PictureManager.obj;player.obj;PlayListEditor.obj;RegistryModule.obj;SMPSettings.obj;ui.obj;smp.res;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

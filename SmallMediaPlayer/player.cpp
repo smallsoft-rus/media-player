@@ -445,7 +445,83 @@ return INFORES_BOTH;
 
 }
 
+void GetMultimediaInfoString(WCHAR* text,size_t size){
+WORD wRes=0;
+SMP_AUDIOINFO ai={0};
+SMP_VIDEOINFO vi={0};
+FOURCC_EXTRACTOR* fcc=NULL;
+TCHAR buf[MAX_PATH];
+SMP_STREAM stream=STREAM_UNKNOWN;
 
+wRes=GetMultimediaInfo(&ai,&vi,&stream);
+StringCchCopy(text,size,L"\n==ВХОДНОЙ ПОТОК:==\n");
+StringCchCat(text,size,L"Формат: ");
+switch(stream){
+case STREAM_AVI:StringCchCat(text,size,L"Audio-Video Interleaved\n");break;
+case STREAM_ASF:StringCchCat(text,size,L"Advanced Systems Format\n");break;
+case STREAM_MPEG1:StringCchCat(text,size,L"MPEG1\n");break;
+case STREAM_MPEG1VCD:StringCchCat(text,size,L"MPEG1 VideoCD\n");break;
+case STREAM_MPEG2:StringCchCat(text,size,L"MPEG2\n");break;
+case STREAM_WAVE:StringCchCat(text,size,L"Waveform Audio\n");break;
+case STREAM_QUICKTIME:StringCchCat(text,size,L"Apple(tm) Quick Time Movie\n");break;
+case STREAM_UNKNOWN:default:StringCchCat(text,size,L"[нет данных]\n");break;
+}
+StringCchCat(text,5000,L"==АУДИО:==\n");
+if(wRes==INFORES_AUDIO||wRes==INFORES_BOTH){
+	StringCchCat(text,5000,L"Формат: ");
+	switch(ai.wFormatTag){
+		case WAVE_FORMAT_PCM:StringCchCat(text,size,L"PCM Waveform Audio");break;
+		case AUDIO_DVI_ADPCM:StringCchCat(text,size,L"DVI ADPCM");break; 
+		case AUDIO_MPEG1:StringCchCat(text,size,L"MPEG1 Layer 1/2");break;
+		case 	WAVE_FORMAT_MPEGLAYER3:StringCchCat(text,size,L"MPEG1 Layer3");break;
+		case WAVE_FORMAT_DOLBY_AC3_SPDIF:
+		case AUDIO_AC3 :StringCchCat(text,size,L"DOLBY AC3");break;
+		case WAVE_FORMAT_WMAVOICE9:		case WAVE_FORMAT_WMAVOICE10:		case WAVE_FORMAT_MSAUDIO1:             
+		case WAVE_FORMAT_WMAUDIO2:		case WAVE_FORMAT_WMAUDIO3:	case  WAVE_FORMAT_WMAUDIO_LOSSLESS:        
+		case WAVE_FORMAT_WMASPDIF: StringCchCat(text,size,L"Windows Media Audio");break; 
+		case AUDIO_AAC4:case AUDIO_AAC3:case AUDIO_AAC2 :case AUDIO_AAC :
+		case AUDIO_MPEG4AAC: 
+		case  WAVE_FORMAT_MPEG_ADTS_AAC:case WAVE_FORMAT_MPEG_RAW_AAC:case WAVE_FORMAT_NOKIA_MPEG_ADTS_AAC:        
+		case WAVE_FORMAT_NOKIA_MPEG_RAW_AAC:case WAVE_FORMAT_VODAFONE_MPEG_ADTS_AAC:     
+		case WAVE_FORMAT_VODAFONE_MPEG_RAW_AAC:
+			StringCchCat(text,size,L"Advanced Audio Coding (AAC)");break; 
+		case AUDIO_FLAC:StringCchCat(text,size,L"Free Lossless Audio Codec (FLAC)");break; 
+		case AUDIO_WAVEPACK:StringCchCat(text,size,L"WavePack");break; 
+		case AUDIO_AMR:StringCchCat(text,size,L"VOICEAGE AMR");break; 
+		case AUDIO_MPEG2AAC:StringCchCat(text,size,L"MPEG2");break; 
+		default:StringCchCat(text,size,L"неизвестен");break;
+	}
+	StringCchPrintf(buf,256,L"\nКаналов: %d\nРазрешение: %d бит\nЧастота: %d Гц\n",(int)ai.chans,(int)ai.BitsPerSample,(int)ai.nFreq);
+	StringCchCat(text,size,buf);
+	StringCchPrintf(buf,256,L"Скорость: %d кбит/с\n",(int)(ai.BitsPerSecond/1000.0));StringCchCat(text,size,buf);
+}
+else{StringCchCat(text,size,L"[Нет данных]\n");}
+StringCchCat(text,size,L"==ВИДЕО:==\n");
+if(wRes==INFORES_VIDEO||wRes==INFORES_BOTH){
+fcc=(FOURCC_EXTRACTOR*)&vi.dwVideoCodec;
+StringCchCat(text,size,L"Кодек: ");
+
+if(vi.dwVideoCodec==BI_RGB){
+	switch(vi.VideoType){
+	case VIDEOTYPE_MPEG1:StringCchCat(text,size,L"MPEG1\n");break;
+	case VIDEOTYPE_MPEG2:StringCchCat(text,size,L"MPEG2\n");break;
+	case VIDEOTYPE_VIDEO:default:StringCchCat(text,size,L"RGB\n");
+	}
+}
+else{
+	StringCchPrintf(buf,256,L"%c%c%c%c\n",fcc->chars[0],fcc->chars[1],fcc->chars[2],fcc->chars[3]);
+	StringCchCat(text,size,buf);
+}
+StringCchPrintf(buf,256,L"Глубина цвета: %d бит\nКадров в секунду: %d\n",(int)vi.BitsPerPixel,(int)vi.FramesPerSecond);
+StringCchCat(text,size,buf);
+StringCchPrintf(buf,256,L"Разрешение: %d x %d \n",(int)vi.width,(int)vi.height);
+StringCchCat(text,size,buf);
+StringCchPrintf(buf,256,L"Разрешение(эфф.): %d x %d \n",(int)(vi.rcSource.right-vi.rcSource.left),(int)(vi.rcSource.bottom-vi.rcSource.top));
+StringCchCat(text,size,buf);
+}
+else{StringCchCat(text,size,L"[Нет данных]\n");}
+
+}
 
 void SearchFilters(){
 HRESULT hr;
@@ -800,6 +876,11 @@ PlayerState=STOPPED;
     if(autobuild) LogMessage(L"Codecs selected automatically",FALSE);
 
     LogAllFilters(pGraph);
+
+    WCHAR strMediaInfo[5000]=L"";
+    GetMultimediaInfoString(strMediaInfo,5000);
+    LogMessage(strMediaInfo,FALSE);
+    LogMessage(L"***************",FALSE);
 #endif
 
 pSeek->SetTimeFormat(&tf);

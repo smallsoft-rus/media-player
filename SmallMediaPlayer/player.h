@@ -12,6 +12,7 @@
 #include "DirectShowStuff.h"
 #include <DvdMedia.h>
 #include "common.h"
+#include <MMReg.h>
 
 #define TIME_KOEFF 10000
 
@@ -53,6 +54,7 @@ void SetVideoRect();
 void DisableFullScreen();
 void EnableFullScreen();
 WORD GetMultimediaInfo(SMP_AUDIOINFO* pAudioInfo,SMP_VIDEOINFO* pVideoInfo,SMP_STREAM* pStreamType);
+void GetMultimediaInfoString(WCHAR* text,size_t size);
 int GetVolume();
 
 #endif
