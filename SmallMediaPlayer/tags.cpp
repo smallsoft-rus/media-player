@@ -468,7 +468,7 @@ ReadFile(hFile,&n,sizeof(n),&dwCount,NULL);
 SetFilePointer(hFile,n,NULL,FILE_CURRENT);
 ReadFile(hFile,&n,sizeof(n),&dwCount,NULL);
 
-for(i=0;i<n;i++){
+for(i=0;i<(int)n;i++){
 	ReadFile(hFile,&c,sizeof(c),&dwCount,NULL);
 	ReadFile(hFile,buf,c,&dwCount,NULL);
 	buf[c]=0;

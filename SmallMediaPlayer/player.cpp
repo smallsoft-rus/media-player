@@ -85,12 +85,10 @@ TCHAR chr=0;
 TCHAR *p=NULL;
 DWORD len;
 DWORD min,sec;
-int i;
 UINT n=1;
 int res;
 DWORD dwReturn;
-TCHAR buf[256];
-TCHAR str[256];
+
 	MCI_OPEN_PARMS mciOpenParms={0};
 	MCI_PLAY_PARMS mciPlayParms={0};
 	MCI_SET_PARMS mciSetParms={0};
@@ -159,7 +157,6 @@ BOOL InsertSplitter(TCHAR* file,const SPLITTER_DATA* sd){
 IPin* pin1=NULL;
 IPin* pin2=NULL;
 HRESULT hr;
-BOOL res;
 IFileSourceFilter* fs=NULL;
 
 if(sd->IsSource==true){pSource=FindFilter(sd->FilterName);}
@@ -295,35 +292,38 @@ return FALSE;
 
 }
 
-BOOL pin_GetAudioInfo(IPin* pin,SMP_AUDIOINFO* pAudioInfo){
-IEnumMediaTypes * pEnum=NULL;
-AM_MEDIA_TYPE* amt=NULL;
-WAVEFORMATEX* wf=NULL;
-HRESULT hr;
-ULONG res=0;
+bool pin_GetAudioInfo(IPin* pin,SMP_AUDIOINFO* pAudioInfo){
+    IEnumMediaTypes * pEnum=NULL;
+    AM_MEDIA_TYPE* amt=NULL;
+    WAVEFORMATEX* wf=NULL;
+    HRESULT hr;
+    ULONG res=0;
 
-hr=pin->EnumMediaTypes(&pEnum);
-if(FAILED(hr))return FALSE;
-hr=pEnum->Next(1,&amt,&res);
-if(FAILED(hr)||res==0){pEnum->Release();return FALSE;}
-if(amt->formattype!=FORMAT_WaveFormatEx){pEnum->Release();return FALSE;}
-wf=(WAVEFORMATEX*)amt->pbFormat;
-pAudioInfo->chans=wf->nChannels;
-pAudioInfo->BitsPerSample=wf->wBitsPerSample;
-pAudioInfo->BitsPerSecond=wf->nAvgBytesPerSec*8;
-pAudioInfo->nFreq=wf->nSamplesPerSec;
-pAudioInfo->wFormatTag=wf->wFormatTag;
-if(amt->subtype==MEDIASUBTYPE_DOLBY_AC3){
-	pAudioInfo->wFormatTag=AUDIO_AC3;}
-if(amt->subtype==MEDIASUBTYPE_MPEG2_AUDIO){
-	pAudioInfo->wFormatTag=AUDIO_MPEG2AAC;}
-pEnum->Release();
-MyDeleteMediaType(amt);
-return TRUE;
+    hr=pin->EnumMediaTypes(&pEnum);
+    if(FAILED(hr))return false;
+    hr=pEnum->Next(1,&amt,&res);
+    if(FAILED(hr)||res==0){pEnum->Release();return false;}
+    if(amt->formattype!=FORMAT_WaveFormatEx){pEnum->Release();return false;}
+    wf=(WAVEFORMATEX*)amt->pbFormat;
+    pAudioInfo->chans=wf->nChannels;
+    pAudioInfo->BitsPerSample=wf->wBitsPerSample;
+    pAudioInfo->BitsPerSecond=wf->nAvgBytesPerSec*8;
+    pAudioInfo->nFreq=wf->nSamplesPerSec;
+    pAudioInfo->wFormatTag=wf->wFormatTag;
 
+    if(amt->subtype==MEDIASUBTYPE_DOLBY_AC3){
+	    pAudioInfo->wFormatTag=AUDIO_AC3;
+    }
+
+    if(amt->subtype==MEDIASUBTYPE_MPEG2_AUDIO){
+        pAudioInfo->wFormatTag=AUDIO_MPEG2AAC;
+    }
+    pEnum->Release();
+    MyDeleteMediaType(amt);
+    return true;
 }
 
-BOOL pin_GetVideoInfo(IPin* pin,SMP_VIDEOINFO* pVideoInfo){
+bool pin_GetVideoInfo(IPin* pin,SMP_VIDEOINFO* pVideoInfo){
 IEnumMediaTypes * pEnum=NULL;
 AM_MEDIA_TYPE* amt=NULL;
 BITMAPINFOHEADER* bi=NULL;
@@ -335,9 +335,9 @@ RECT rcSource={0};
 
 pVideoInfo->VideoType=VIDEOTYPE_VIDEO;
 hr=pin->EnumMediaTypes(&pEnum);
-if(FAILED(hr))return FALSE;
+if(FAILED(hr))return false;
 hr=pEnum->Next(1,&amt,&res);
-if(FAILED(hr)||res==0){pEnum->Release();return FALSE;}
+if(FAILED(hr)||res==0){pEnum->Release();return false;}
 if(amt->subtype==MEDIASUBTYPE_MPEG1Packet||amt->subtype==MEDIASUBTYPE_MPEG1Payload||amt->subtype==MEDIASUBTYPE_MPEG1Video){
 	pVideoInfo->VideoType=VIDEOTYPE_MPEG1;
 }
@@ -365,7 +365,7 @@ bi=(BITMAPINFOHEADER*)&(((MPEG2VIDEOINFO*)(amt->pbFormat))->hdr.bmiHeader);
 time=((MPEG2VIDEOINFO*)(amt->pbFormat))->hdr.AvgTimePerFrame;
 rcSource=((MPEG2VIDEOINFO*)(amt->pbFormat))->hdr.rcSource;
 }
-if(bi==NULL){pEnum->Release();return FALSE;}
+if(bi==NULL){pEnum->Release();return false;}
 t=time/10000000.0;
 pVideoInfo->width=bi->biWidth;
 pVideoInfo->height=bi->biHeight;
@@ -377,7 +377,7 @@ else{pVideoInfo->FramesPerSecond=0;}
 pVideoInfo->rcSource=rcSource;
 pEnum->Release();
 MyDeleteMediaType(amt);
-return TRUE;
+return true;
 
 }
 
@@ -774,8 +774,6 @@ void PlayFile(TCHAR* filename){
 HRESULT hr;
 GUID tf=TIME_FORMAT_MEDIA_TIME;
 TCHAR ext[8]=L"";
-int i;
-
 bool res;
 BOOL success=FALSE;
 bool autobuild=false;
@@ -951,32 +949,30 @@ return;
 }
 
 void Play(){
-HRESULT hr;
-DWORD dwReturn;
-MCI_PLAY_PARMS mciPlayParms;
-DWORD len,min,sec;
+    HRESULT hr;
 
-	if(PlayerState==FILE_NOT_LOADED){
-		HandleError(L"Файл не загружен",SMP_ALERT_BLOCKING,L"");
-		return;
-	}
+    if(PlayerState==FILE_NOT_LOADED){
+        HandleError(L"Файл не загружен",SMP_ALERT_BLOCKING,L"");
+        return;
+    }
 
-	if(IsPlayingCDA==true){
-		PlayCDAFrom(MCI_MAKE_TMSF(TrackNumber,0,0,0));
-		return;
-	}
-hr = pControl->Run();
-if(FAILED(hr)){
-	HandlePlayError(hr,L"");
-	Close();
-	WPARAM wParam=MAKEWPARAM(ID_NEXTTRACK,0);
-	PostMessage(hWnd,WM_COMMAND,wParam,0);
-	return;
-}
+    if(IsPlayingCDA==true){
+        PlayCDAFrom(MCI_MAKE_TMSF(TrackNumber,0,0,0));
+        return;
+    }
 
-PlayerState=PLAYING;
+    hr = pControl->Run();
 
-pEvent->SetNotifyWindow((LONG_PTR)hWnd,MM_MCINOTIFY,0L);
+    if(FAILED(hr)){
+        HandlePlayError(hr,L"");
+        Close();
+        WPARAM wParam=MAKEWPARAM(ID_NEXTTRACK,0);
+        PostMessage(hWnd,WM_COMMAND,wParam,0);
+        return;
+    }
+
+    PlayerState=PLAYING;
+    pEvent->SetNotifyWindow((LONG_PTR)hWnd,MM_MCINOTIFY,0L);
 
 }
 
@@ -1003,24 +999,21 @@ PlayerState=PAUSED;
 }
 
 void Resume(){
-HRESULT hRes;
-DWORD dwRes;
-MCI_GENERIC_PARMS p={0};
+    HRESULT hRes;
+    MCI_GENERIC_PARMS p={0};
 
-if(PlayerState!=PAUSED)return;
-if(IsPlayingCDA==true){
+    if(PlayerState!=PAUSED)return;
 
-	PlayerState=PLAYING;
-SetPosition(pos);
+    if(IsPlayingCDA==true){
+        PlayerState=PLAYING;
+        SetPosition(pos);
+        return;
+    }
+    hRes=pControl->Run();
 
-return;
-}
-hRes=pControl->Run();
-if(FAILED(hRes)){
-	
-	return;
-}
-PlayerState=PLAYING;
+    if(FAILED(hRes)){return;}
+
+    PlayerState=PLAYING;
 }
 
 void Stop(){
@@ -1189,31 +1182,24 @@ void SetVolume(long x)
 }
 
 bool SetVideoWindow(HWND hParent){
-	HRESULT hr;
-	RECT rc;
-long DestWidth;
-long DestHeight;
-long SourceHeight;
-long SourceWidth;
-double factor;
-long res;
+    HRESULT hr;
 
-	if(PlayerState==FILE_NOT_LOADED)return false;
+    if(PlayerState==FILE_NOT_LOADED)return false;
 	
-	if(pVideoWindow==NULL)return false;
+    if(pVideoWindow==NULL)return false;
 
-hr=pVideoWindow->put_WindowStyle(WS_CHILD|WS_VISIBLE);
-if(hr!=S_OK){return false;}
-hr=pVideoWindow->put_Owner((LONG_PTR)hParent);
-if(hr!=S_OK){return false;}
-hr=pVideoWindow->put_MessageDrain((LONG_PTR)hVideoWindow);
-if(hr!=S_OK){return false;}
+    hr=pVideoWindow->put_WindowStyle(WS_CHILD|WS_VISIBLE);
+    if(hr!=S_OK){return false;}
+    hr=pVideoWindow->put_Owner((LONG_PTR)hParent);
+    if(hr!=S_OK){return false;}
+    hr=pVideoWindow->put_MessageDrain((LONG_PTR)hVideoWindow);
+    if(hr!=S_OK){return false;}
 
-SetVideoRect();
-pVideoWindow->put_Visible(OATRUE);
-pVideoWindow->NotifyOwnerMessage((LONG_PTR)hParent,WM_PAINT,0,0);
+    SetVideoRect();
+    pVideoWindow->put_Visible(OATRUE);
+    pVideoWindow->NotifyOwnerMessage((LONG_PTR)hParent,WM_PAINT,0,0);
 
-return true;
+    return true;
 }
 
 void SetVideoRect(){

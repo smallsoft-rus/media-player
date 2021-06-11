@@ -112,9 +112,6 @@ void UpdateView(){
 
     int right=0,bottom=0;
     RECT rc;
-    RECT rc2;
-    RECT rc_cover;
-    POINT pt;
 
     GetClientRect(hMainWnd,&rc);//get main window size
     w_total=rc.right-rc.left;
@@ -167,14 +164,14 @@ void UpdateView(){
 
 void SaveWindowSize()
 {
-	RECT rc2;
-	/*Set window size in settings*/
-	GetWindowRect(hMainWnd,&rc2);
-	Settings.WndX=rc2.left;
-	Settings.WndY=rc2.top;
-	Settings.WndWidth=rc2.right-rc2.left;
-	Settings.WndHeight=rc2.bottom-rc2.top;
-	Settings.WndMaximized=IsZoomed(hMainWnd);
+    RECT rc2;
+    /*Set window size in settings*/
+    GetWindowRect(hMainWnd,&rc2);
+    Settings.WndX=rc2.left;
+    Settings.WndY=rc2.top;
+    Settings.WndWidth=rc2.right-rc2.left;
+    Settings.WndHeight=rc2.bottom-rc2.top;
+    Settings.WndMaximized=(IsZoomed(hMainWnd)!=FALSE);
 }
 
 
@@ -773,7 +770,7 @@ void StartPlayingPlaylist(){
 	
 	int n=0;
 	if(CurrMode==RANDOM)n=rand()%CountTracks;
-	if(n>=CountTracks)n=0;	
+	if((UINT)n>=CountTracks)n=0;
 	PlayTrackByNumber(n);
 	
 }
@@ -1435,7 +1432,6 @@ void InitResources(HMODULE h){
 void InitApplication(){
 wchar_t wclass_name[]=L"MyClass";
 WNDCLASSEX wc;
-TCHAR* cmd;
 RECT rc={0};
 int w=0;
 int h=0;
@@ -1443,8 +1439,6 @@ int h=0;
 int i=0,j=0;
 BOOL skip=FALSE;
 
-DWORD id;
-DWORD dwCount;
 TCHAR buf[256]=L"";
 
 INITCOMMONCONTROLSEX ic;

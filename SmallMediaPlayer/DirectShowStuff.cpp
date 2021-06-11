@@ -1,7 +1,6 @@
 ﻿/* Small Media Player 
  * Copyright (c) 2021,  MSDN.WhiteKnight (https://github.com/smallsoft-rus/media-player) 
  * License: BSD 2.0 */
-#define UNICODE
 #include <stdint.h>
 #include "DirectShowStuff.h"
 
@@ -334,7 +333,7 @@ WCHAR* GetVersionEntry(void* lpData,STRUCT_LANGANDCODEPAGE *lpTranslate, UINT cb
     BOOL res=FALSE;
 
     //get version info string in the first language available
-    for(int i=0; i < (cbTranslate/sizeof(struct LANGANDCODEPAGE)); i++ )
+    for(UINT i=0; i < (cbTranslate/sizeof(struct LANGANDCODEPAGE)); i++ )
     {
       hr = StringCchPrintfW(SubBlock, 50,
             TEXT("\\StringFileInfo\\%04x%04x\\%s"),
@@ -373,7 +372,6 @@ void LogFileVersionInfo(const WCHAR* file){
 
     STRUCT_LANGANDCODEPAGE *lpTranslate=NULL;
     UINT cbTranslate=0;
-    HRESULT hr;
     WCHAR SubBlock[50]=L"";
     LPVOID lpBuffer=NULL;
     UINT dwBytes=0;
