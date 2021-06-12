@@ -764,6 +764,7 @@ if(lstrcmp(ext,L"jpg")==0||lstrcmp(ext,L"JPG")==0||
         SetThreadExecutionState (ES_CONTINUOUS|ES_DISPLAY_REQUIRED|ES_SYSTEM_REQUIRED);
     }
 
+    pAudio->put_Volume(Volume);
     return TRUE;
 }
 
@@ -772,8 +773,6 @@ void PlayFile(TCHAR* filename){
     BOOL res=Player_OpenFile(filename);
     if(res==FALSE)return;
     Play();
-    pAudio->put_Volume(Volume);
-
 }
 
 void Play(){
