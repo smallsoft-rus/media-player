@@ -569,23 +569,24 @@ void ReadPlaylistTags(char* _str){
 
 char* p;
 char str[512]="";
+char* context=NULL;
 
 memset(&CurrFileTags,0,sizeof(TAGS_GENERIC));
 StringCchCopyA(str,512,_str);
-p=strtok(str,"~");
+p=strtok_s(str,"~",&context);
 if(p==NULL)return;
 if(lstrcmpA(p,"#TAGS")!=0)return;
-p=strtok(NULL,"~");
+p=strtok_s(NULL,"~",&context);
 if(p==NULL)return;
 MultiByteToWideChar(CP_UTF8,0,p,512,CurrFileTags.title,512);
 fCurrFileTags=true;
-p=strtok(NULL,"~");
+p=strtok_s(NULL,"~",&context);
 if(p==NULL)return;
 MultiByteToWideChar(CP_UTF8,0,p,512,CurrFileTags.artist,512);
-p=strtok(NULL,"~");
+p=strtok_s(NULL,"~",&context);
 if(p==NULL)return;
 MultiByteToWideChar(CP_UTF8,0,p,512,CurrFileTags.album,512);
-p=strtok(NULL,"~");
+p=strtok_s(NULL,"~",&context);
 if(p==NULL)return;
 MultiByteToWideChar(CP_UTF8,0,p,512,CurrFileTags.year,512);
 }
@@ -775,51 +776,42 @@ p++;
 }
 
 void Playlist_SelectAll(){
-	int i;
-	for(i=0;i<(int)CountTracks;i++){
-ListView_SetItemState(PlayList,i,LVIS_SELECTED,LVIS_SELECTED);
-	}
+    int i;
+    for(i=0;i<(int)CountTracks;i++){
+        ListView_SetItemState(PlayList,i,LVIS_SELECTED,LVIS_SELECTED);
+    }
 }
 
+//warning caused by Windows SDK MAKEINTRESOURCE macro 
+#pragma warning(disable:4302)
+//fills image list with icons for playlist files
 void InitImageList(){
-	SHFILEINFO si={0};
-	DWORD_PTR res;
-	TCHAR dir[MAX_PATH]=L"c:\\windows";
-	TCHAR ext[MAX_PATH]=L"c:\\x.mp3";
-	int i;
-/*GetWindowsDirectory(dir,MAX_PATH);
-res=SHGetFileInfo(dir,0,&si,sizeof(SHFILEINFO),SHGFI_ICON|SHGFI_SMALLICON);
-if(res==FALSE)hDirIcon=LoadIcon(NULL,MAKEINTRESOURCE(IDI_APPLICATION));
-else hDirIcon=si.hIcon;*/
+    SHFILEINFO si={0};
+    DWORD_PTR res;
+    TCHAR dir[MAX_PATH]=L"c:\\windows";
+    TCHAR ext[MAX_PATH]=L"c:\\x.mp3";
+    int i;
 
-ImageList=ImageList_Create(16, 16, ILC_MASK| ILC_COLOR32, COUNT_TYPE_ICONS+1, 30);
-for(i=0;i<COUNT_TYPE_ICONS;i++){
-	StringCchPrintf(ext,MAX_PATH,L"c:\\x.%s",arrTypeIcons[i].ext);
-res=SHGetFileInfo(ext,FILE_ATTRIBUTE_NORMAL,&si,sizeof(SHFILEINFO),SHGFI_USEFILEATTRIBUTES|SHGFI_ICON|SHGFI_SMALLICON);
-if(res==FALSE)arrTypeIcons[i].hIcon=LoadIcon(NULL,MAKEINTRESOURCE(IDI_APPLICATION));
-else arrTypeIcons[i].hIcon=si.hIcon;
-arrTypeIcons[i].iIcon=ImageList_AddIcon(ImageList, arrTypeIcons[i].hIcon);
-}
-//indexDirIcon=ImageList_AddIcon(ImageList, hDirIcon); 
+    ImageList=ImageList_Create(16, 16, ILC_MASK| ILC_COLOR32, COUNT_TYPE_ICONS+1, 30);
 
-ListView_SetImageList(PlayList,ImageList,LVSIL_SMALL);
+    for(i=0;i<COUNT_TYPE_ICONS;i++){
+        StringCchPrintf(ext,MAX_PATH,L"c:\\x.%s",arrTypeIcons[i].ext);
+        res=SHGetFileInfo(
+            ext,FILE_ATTRIBUTE_NORMAL,&si,sizeof(SHFILEINFO),SHGFI_USEFILEATTRIBUTES|SHGFI_ICON|SHGFI_SMALLICON
+            );
+        if(res==FALSE)arrTypeIcons[i].hIcon=LoadIcon(NULL,MAKEINTRESOURCE(IDI_APPLICATION));
+        else arrTypeIcons[i].hIcon=si.hIcon;
+        arrTypeIcons[i].iIcon=ImageList_AddIcon(ImageList, arrTypeIcons[i].hIcon);
+    }
+
+    ListView_SetImageList(PlayList,ImageList,LVSIL_SMALL);
 }
+#pragma warning(default:4302)
 
 int GetTypeIcon(TCHAR* ext){
-int i;
-for(i=0;i<COUNT_TYPE_ICONS;i++){
-if(lstrcmpi(ext,arrTypeIcons[i].ext)==0)return i;
+    int i;
+    for(i=0;i<COUNT_TYPE_ICONS;i++){
+        if(lstrcmpi(ext,arrTypeIcons[i].ext)==0)return i;
+    }
+    return 0;
 }
-return 0;
-}
-
-
-
-
-
-
-
-
-
-
-

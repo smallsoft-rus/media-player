@@ -1,6 +1,7 @@
 /* Small Media Player tests 
  * Copyright (c) 2021,  MSDN.WhiteKnight (https://github.com/smallsoft-rus/media-player) 
  * License: BSD 2.0 */
+#define _CRT_SECURE_NO_WARNINGS
 #include <vector>
 #include <string>
 #include "CppUnitTest.h"

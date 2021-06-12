@@ -41,7 +41,7 @@ IBaseFilter* pAudioRenderer=NULL;
 IBaseFilter* pVideoDecoder=NULL;
 IBaseFilter* pVideoRenderer=NULL;
 static bool fUseSplitter=false;
-GUID guidStreamSubType=GUID_NULL;
+GUID guidStreamSubType={0,0,0,{0,0,0,0,0,0,0,0}};
 
 void GetFileExtension(TCHAR* fname,TCHAR* ext){
 int i=0,c=0;
