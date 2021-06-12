@@ -25,7 +25,6 @@ extern HWND hVideoWindow;
 extern HWND hWnd;
 extern PLAYER_STATE PlayerState;
 extern IMediaEventEx   *pEvent;
-extern bool IsPlayingCDA;
 extern long Volume;
 extern bool IsPlayingVideo;
 extern bool fShowNextImage;

@@ -336,8 +336,7 @@ if(((UINT)n)>=CountTracks)return;
 		
 		
         PlayFile(str);
-		if(IsPlayingCDA==true)EnableWindow(hVolume,FALSE);
-		else EnableWindow(hVolume,TRUE);
+		EnableWindow(hVolume,TRUE);
 		UpdateLength();
 
 		//***

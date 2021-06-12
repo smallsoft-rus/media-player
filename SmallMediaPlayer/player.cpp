@@ -14,7 +14,6 @@ extern bool fOpenedFileTags;
 HWND hWnd;//for notify
 
 PLAYER_STATE PlayerState=FILE_NOT_LOADED;
-bool IsPlayingCDA=false;
 DWORD DeviceID=0;
 UINT TrackNumber=0;
 DWORD pos;
@@ -78,80 +77,6 @@ if(str[i]==L':'&&str[i+1]==L'/'&&str[i+2]==L'/')return TRUE;
 }
 return FALSE;
 }
-
-DWORD PlayCDATrack(TCHAR* fname){
-
-TCHAR chr=0;
-TCHAR *p=NULL;
-DWORD len;
-DWORD min,sec;
-UINT n=1;
-int res;
-DWORD dwReturn;
-
-	MCI_OPEN_PARMS mciOpenParms={0};
-	MCI_PLAY_PARMS mciPlayParms={0};
-	MCI_SET_PARMS mciSetParms={0};
-
-p=GetShortName(fname);
-
-	res=swscanf(p,L"Track%u.cda",&n);
-if(res!=1){swscanf(p,L"TRACK%u.CDA",&n);}
-TrackNumber=n;
-
-if(PlayerState==PLAYING||PlayerState==PAUSED)Stop();
-	if(PlayerState!=FILE_NOT_LOADED)Close();
-    // Open the device by specifying  filename.
-    // MCI will choose a device capable of playing the specified file.
-
-    mciOpenParms.lpstrElementName = fname;
-	
-	if (dwReturn = mciSendCommand(0, MCI_OPEN,
-        MCI_OPEN_ELEMENT, 
-       (DWORD)(LPVOID) &mciOpenParms))
-    {
-        // Failed to open device. Don't close it; just return error.
-		HandleError(L"Не удалось открыть устройство AudioCD",SMP_ALERT_BLOCKING,L"");
-		return dwReturn;
-	       
-    }
-	// The device opened successfully; get the device ID.
-    DeviceID = mciOpenParms.wDeviceID;
-	
-	PlayerState=STOPPED;
-	IsPlayingCDA=true;
-	mciSetParms.dwTimeFormat=MCI_FORMAT_TMSF;
-	dwReturn=mciSendCommand( DeviceID,MCI_SET, MCI_SET_TIME_FORMAT, (DWORD)&mciSetParms);
-
-	if(dwReturn!=0)HandleError(L"Невозможно установить формат времени",SMP_ALERT_BLOCKING,L"");
-
-    // Begin playback. The window procedure function for the parent 
-    // window will be notified with an MM_MCINOTIFY message when 
-    // playback is complete. At this time, the window procedure closes 
-    // the device.
-len=GetLength();
-sec=len/1000;
-min=sec/60;
-sec=sec-min*60;
-
-    mciPlayParms.dwCallback = (DWORD) hWnd;
-	mciPlayParms.dwFrom = MCI_MAKE_TMSF(n, 0, 0, 0);
-    mciPlayParms.dwTo = MCI_MAKE_TMSF(n , min, sec, 0);
-
-    if (dwReturn = mciSendCommand(DeviceID, MCI_PLAY, MCI_FROM | MCI_TO |MCI_NOTIFY, 
-        (DWORD)(LPVOID) &mciPlayParms))
-    {
-        Close();
-		HandleError(L"Ошибка воспроизведения AudioCD",SMP_ALERT_BLOCKING,L"");
-		PlayerState=FILE_NOT_LOADED;
-		IsPlayingCDA=false;
-        return (dwReturn);
-    }
-	PlayerState=PLAYING;
-
-return dwReturn;
-}
-
 
 BOOL InsertSplitter(TCHAR* file,const SPLITTER_DATA* sd){
 IPin* pin1=NULL;
@@ -728,47 +653,31 @@ if(pEnum!=NULL){pEnum->Release();}
 
 void Close(){
 
-	Stop();
+    Stop();
+
+    if(pSource!=NULL){pSource->Release();pSource=NULL;}
+    if(pSplitter!=NULL){pSplitter->Release();pSplitter=NULL;}
+    if(pAudioDecoder!=NULL){pAudioDecoder->Release();pAudioDecoder=NULL;}
+    if(pAudioRenderer!=NULL){pAudioRenderer->Release();pAudioRenderer=NULL;}
+    if(pVideoDecoder!=NULL){pVideoDecoder->Release();pVideoDecoder=NULL;}
+    if(pVideoRenderer!=NULL){pVideoRenderer->Release();pVideoRenderer=NULL;}
 	
+    if(pControl!=NULL){pControl->Release();pControl=NULL;}
+    if(pSeek!=NULL){pSeek->Release();pSeek=NULL;}
 
-	if(IsPlayingCDA==true){
-DWORD dwRes;
-MCI_GENERIC_PARMS p={0};
+    if(pEvent!=NULL){
+        pEvent->SetNotifyWindow(NULL, 0, 0);
+        pEvent->Release();
+        pEvent=NULL;
+    }
 
-if(PlayerState==FILE_NOT_LOADED)return;
-dwRes=mciSendCommand(DeviceID,MCI_CLOSE,0,(DWORD)&p);
-PlayerState=FILE_NOT_LOADED;
-IsPlayingVideo=false;
-IsPlayingCDA=false;
-DeviceID=0;
-return;
-	}
-
-	if(pSource!=NULL){pSource->Release();pSource=NULL;}
-	if(pSplitter!=NULL){pSplitter->Release();pSplitter=NULL;}
-	if(pAudioDecoder!=NULL){pAudioDecoder->Release();pAudioDecoder=NULL;}
-	if(pAudioRenderer!=NULL){pAudioRenderer->Release();pAudioRenderer=NULL;}
-	if(pVideoDecoder!=NULL){pVideoDecoder->Release();pVideoDecoder=NULL;}
-	if(pVideoRenderer!=NULL){pVideoRenderer->Release();pVideoRenderer=NULL;}
+    if(pAudio!=NULL){pAudio->Release();pAudio=NULL;}
+    if(pVideoWindow!=NULL){pVideoWindow->Release();pVideoWindow=NULL;}
+    if(pVideo!=NULL){pVideo->Release();pVideo=NULL;}
+    if(pGraph!=NULL){pGraph->Release();pGraph=NULL;}
 	
-	if(pControl!=NULL){pControl->Release();pControl=NULL;}
-	if(pSeek!=NULL){pSeek->Release();pSeek=NULL;}
-
-
-	if(pEvent!=NULL){
-		pEvent->SetNotifyWindow(NULL, 0, 0);
-		pEvent->Release();
-		pEvent=NULL;
-	}
-	if(pAudio!=NULL){pAudio->Release();pAudio=NULL;}	
-	if(pVideoWindow!=NULL){pVideoWindow->Release();pVideoWindow=NULL;}
-	if(pVideo!=NULL){pVideo->Release();pVideo=NULL;}
-	if(pGraph!=NULL){pGraph->Release();pGraph=NULL;}
-	
-	PlayerState=FILE_NOT_LOADED;
-	
+    PlayerState=FILE_NOT_LOADED;
 }
-
 
 void PlayFile(TCHAR* filename){
 HRESULT hr;
@@ -784,9 +693,6 @@ fShowNextImage=false;
 
 
 GetFileExtension(filename,ext);
-if(lstrcmp(ext,L"cda")==0){
-	PlayCDATrack(filename);
-return;}
 
 // Create the filter graph manager and query for interfaces.
 hr = CoCreateInstance(CLSID_FilterGraph, NULL, CLSCTX_INPROC_SERVER, 
@@ -912,52 +818,11 @@ pEvent->SetNotifyWindow((LONG_PTR)hWnd,MM_MCINOTIFY,0L);
  
 }
 
-void PlayCDAFrom(DWORD pos){  //pos in TMSF
-
-DWORD dwReturn;
-    MCI_PLAY_PARMS mciPlayParms;
-	DWORD len,min,sec;
-
-	if(PlayerState==FILE_NOT_LOADED){
-		HandleError(L"Файл не загружен",SMP_ALERT_BLOCKING,L"");
-		return;
-	}
-	
-    // Begin playback. The window procedure function for the parent 
-    // window will be notified with an MM_MCINOTIFY message when 
-    // playback is complete. At this time, the window procedure closes 
-    // the device.
-len=GetLength();
-sec=len/1000;
-min=sec/60;
-sec=sec-min*60;
-
-    mciPlayParms.dwCallback = (DWORD) hWnd;
-mciPlayParms.dwFrom = pos;
-    mciPlayParms.dwTo = MCI_MAKE_TMSF(TrackNumber, min, sec, 0);
-    if (dwReturn = mciSendCommand(DeviceID, MCI_PLAY,  MCI_FROM|MCI_TO |MCI_NOTIFY, 
-        (DWORD)(LPVOID) &mciPlayParms))
-    {
-        Close();
-		PlayerState=FILE_NOT_LOADED;
-		IsPlayingCDA=false;
-		return ;}
-	
-PlayerState=PLAYING;
-return;
-
-}
-
 void Play(){
     HRESULT hr;
 
     if(PlayerState==FILE_NOT_LOADED){
         HandleError(L"Файл не загружен",SMP_ALERT_BLOCKING,L"");
-        return;
-    }
-
-    if(IsPlayingCDA==true){
-        PlayCDAFrom(MCI_MAKE_TMSF(TrackNumber,0,0,0));
         return;
     }
 
@@ -978,18 +843,9 @@ void Play(){
 
 void Pause(){
 HRESULT hRes;
-DWORD dwRes;
-MCI_GENERIC_PARMS p={0};
 
 if(PlayerState!=PLAYING)return;
 
-if(IsPlayingCDA==true){
-	pos=GetPosition();
-dwRes=mciSendCommand(DeviceID,MCI_PAUSE,0,(DWORD)&p);
-
-PlayerState=PAUSED;
-return;
-}
 hRes=pControl->Pause();
 if(FAILED(hRes)){
 	
@@ -1004,11 +860,6 @@ void Resume(){
 
     if(PlayerState!=PAUSED)return;
 
-    if(IsPlayingCDA==true){
-        PlayerState=PLAYING;
-        SetPosition(pos);
-        return;
-    }
     hRes=pControl->Run();
 
     if(FAILED(hRes)){return;}
@@ -1018,14 +869,9 @@ void Resume(){
 
 void Stop(){
 HRESULT hRes;
-DWORD dwRes;
-MCI_GENERIC_PARMS p={0};
+
 if(PlayerState!=PLAYING)return;
-if(IsPlayingCDA==true){
-dwRes=mciSendCommand(DeviceID,MCI_STOP,0,(DWORD)&p);
-PlayerState=STOPPED;
-return;
-}
+
 Pause();
 hRes=pControl->Stop();
 if(FAILED(hRes)){
@@ -1042,24 +888,10 @@ DWORD GetLength(){
 	
 	HRESULT hRes;
 	LONGLONG dur={0};
-	MCI_STATUS_PARMS params={0};
-	DWORD dwRes;
-	DWORD len;
 
 	if(PlayerState==FILE_NOT_LOADED)return 0;
 	if(fShowNextImage==true)return Settings.ImageDelay;
 
-if(IsPlayingCDA==true){	
-params.dwItem=MCI_STATUS_LENGTH;
-params.dwTrack=TrackNumber;
-	dwRes=mciSendCommand(DeviceID,MCI_STATUS,MCI_STATUS_ITEM|MCI_TRACK,(DWORD)&params);
-	if(dwRes!=0){
-		return 0;
-}
-	len=MCI_MSF_MINUTE((params.dwReturn))*60+MCI_MSF_SECOND((params.dwReturn));
-return len*(DWORD)1000;
-
-}
 	hRes=pSeek->GetDuration(&dur);
 	if(FAILED(hRes)){
 #ifdef DEBUG
@@ -1075,21 +907,9 @@ DWORD GetPosition(){
 	HRESULT hRes;
 	LONGLONG pos;
 	LONGLONG stoppos;
-	MCI_STATUS_PARMS params={0};
-	DWORD dwRes;
-	DWORD pos_msec;
 
 	if(PlayerState==FILE_NOT_LOADED||PlayerState==STOPPED)return 0;
-if(IsPlayingCDA==true){	
-params.dwItem=MCI_STATUS_POSITION;
-	dwRes=mciSendCommand(DeviceID,MCI_STATUS,MCI_STATUS_ITEM,(DWORD)&params);
-	if(dwRes!=0){
-		return 0;
-}
-	pos_msec=(MCI_TMSF_MINUTE(params.dwReturn)*60+MCI_TMSF_SECOND(params.dwReturn))*1000;
-	
-return pos_msec;
-}
+
 	hRes=pSeek->GetPositions(&pos,&stoppos);
 	if(FAILED(hRes)){
 	
@@ -1101,15 +921,9 @@ return pos/TIME_KOEFF;
 void Rewind(){
 	HRESULT hRes;
 LONGLONG pos=0;
-MCI_SEEK_PARMS params={0};
-	DWORD dwRes;
+
 	if(PlayerState==FILE_NOT_LOADED)return ;
-if(IsPlayingCDA==true){
-	params.dwTo=MCI_MAKE_TMSF(TrackNumber,0,0,0);
-dwRes=mciSendCommand(DeviceID,MCI_SEEK,MCI_TO,(DWORD)&params);
-	if(dwRes!=0){		return;}
-PlayCDAFrom(MCI_MAKE_TMSF(TrackNumber,0,0,0));return;
-}
+
 hRes=pSeek->SetPositions(&pos,AM_SEEKING_AbsolutePositioning,NULL,AM_SEEKING_NoPositioning);
 	
 	if(FAILED(hRes)){
@@ -1124,25 +938,10 @@ if(PlayerState==PAUSED)PlayerState=STOPPED;
 void SetPosition(LONGLONG pos){
 	HRESULT hRes;
 DWORD dur;
-MCI_SEEK_PARMS params={0};
-UINT min;
-UINT sec;
-	DWORD dwRes;
+
 	if(PlayerState==FILE_NOT_LOADED)return ;
 	dur=GetLength();
 	if(((DWORD)pos)>dur)return;
-
-if(IsPlayingCDA==true){
-sec=pos/1000;
-min=sec/60;
-sec=sec-60*min;
-
-params.dwTo=MCI_MAKE_TMSF(TrackNumber,min,sec,0);
-	dwRes=mciSendCommand(DeviceID,MCI_SEEK,MCI_TO,(DWORD)&params);
-	if(dwRes!=0){return;}
-	PlayCDAFrom(params.dwTo);
-	return;
-}
 
 	pos*=TIME_KOEFF;
 hRes=pSeek->SetPositions(&pos,AM_SEEKING_AbsolutePositioning,NULL,AM_SEEKING_NoPositioning);
@@ -1177,7 +976,7 @@ void SetVolume(long x)
 
     if(PlayerState==FILE_NOT_LOADED)return;
     if(pAudio==NULL)return;
-    if(IsPlayingCDA!=false){return;}
+
     pAudio->put_Volume(y);
 }
 

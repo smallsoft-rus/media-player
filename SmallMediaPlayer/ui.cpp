@@ -720,26 +720,6 @@ LONG_PTR param1;
 LONG_PTR param2;
 HRESULT hr;
 
-if(IsPlayingCDA==true){
-switch (NotifyValue){
-	
-case  MCI_NOTIFY_FAILURE :MessageBeep(MB_ICONERROR);
-	
- case MCI_NOTIFY_SUCCESSFUL:
-	 
- Close();
- IsPlayingCDA=false;
- PlayNextTrack();
-
- break;
-  case   MCI_NOTIFY_ABORTED:UpdatePosition(); 
-	  
-	  break;  
-  
-  }
-return;
-}
-
 while(1){
 if(pEvent==NULL)break;
 hr=pEvent->GetEvent(&EventCode,&param1,&param2,100);
