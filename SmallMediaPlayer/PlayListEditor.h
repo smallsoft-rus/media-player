@@ -44,8 +44,6 @@ typedef struct{
 extern void UpdateLength();
 extern void RunTimer();
 extern void StopTimer();
-extern void GetFileExtension(TCHAR* fname,TCHAR* ext);
-extern void GetFileExtensionA(char* fname,char* ext);
 extern void GetFileDirectory(wchar_t* path,wchar_t* out);
 extern BOOL ReadTagsV1(TCHAR* file,TAGS_GENERIC* out);
 extern BOOL ReadTagsV1A(char* file,TAGS_GENERIC* out);

@@ -153,4 +153,55 @@ inline char* GetShortNameA(char* fullname){
     return p;
 }
 
+inline void GetFileExtension(const WCHAR* fname,WCHAR* ext){
+    int i=0,c=0;
+    const WCHAR* s=NULL;
+    c=lstrlen(fname);
+
+    for(i=c-1;i>c-8;i--){
+        if(fname[i]==L'.'||fname[i]==L'\\'||fname[i]==L'/'){
+            s=&(fname[i+1]);
+            break;
+        }
+    }
+
+    if(s==NULL){
+        lstrcpy(ext,L"");
+        return;
+    }
+
+    lstrcpy(ext,s);
+}
+
+inline void GetFileExtensionA(const char* fname,char* ext){
+    int i=0,c=0;
+    const char* s=NULL;
+    c=lstrlenA(fname);
+    for(i=c-1;i>c-8;i--){
+        if(fname[i]=='.'||fname[i]=='\\'||fname[i]=='/'){
+            s=&(fname[i+1]);
+            break;
+        }
+    }
+
+    if(s==NULL){
+        lstrcpyA(ext,"");
+        return;
+    }
+
+    lstrcpyA(ext,s);
+}
+
+inline BOOL IsURL(const WCHAR* str){
+    int i;
+    int c;
+    c=lstrlen(str)-4;
+
+    for(i=0;i<c;i++){
+        if(str[i]==0)return FALSE;
+        if(str[i]==L':'&&str[i+1]==L'/'&&str[i+2]==L'/')return TRUE;
+    }
+    return FALSE;
+}
+
 #endif

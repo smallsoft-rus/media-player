@@ -42,42 +42,6 @@ IBaseFilter* pVideoRenderer=NULL;
 static bool fUseSplitter=false;
 GUID guidStreamSubType={0,0,0,{0,0,0,0,0,0,0,0}};
 
-void GetFileExtension(TCHAR* fname,TCHAR* ext){
-int i=0,c=0;
-TCHAR* s=NULL;
-c=lstrlen(fname);
-for(i=c-1;i>c-8;i--){
-	if(fname[i]==L'.'||fname[i]==L'\\'||fname[i]==L'/'){s=&(fname[i+1]);break;}
-
-}
-if(s==NULL){lstrcpy(ext,L"");return;}
-lstrcpy(ext,s);
-}
-
-void GetFileExtensionA(char* fname,char* ext){
-int i=0,c=0;
-char* s=NULL;
-c=lstrlenA(fname);
-for(i=c-1;i>c-8;i--){
-	if(fname[i]=='.'||fname[i]=='\\'||fname[i]=='/'){s=&(fname[i+1]);break;}
-
-}
-if(s==NULL){lstrcpyA(ext,"");return;}
-lstrcpyA(ext,s);
-}
-
-BOOL IsURL(TCHAR* str){
-int i;
-int c;
-c=lstrlen(str)-4;
-for(i=0;i<c;i++){
-if(str[i]==0)return FALSE;
-if(str[i]==L':'&&str[i+1]==L'/'&&str[i+2]==L'/')return TRUE;
-
-}
-return FALSE;
-}
-
 BOOL InsertSplitter(TCHAR* file,const SPLITTER_DATA* sd){
 IPin* pin1=NULL;
 IPin* pin2=NULL;
