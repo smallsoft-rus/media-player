@@ -37,6 +37,7 @@ extern IBaseFilter* pAudioRenderer;
 extern IBaseFilter* pVideoDecoder;
 extern IBaseFilter* pVideoRenderer;
 
+BOOL Player_OpenFile(WCHAR* filename);
 void PlayFile(TCHAR* lpstrFileName);
 void Play();
 void Pause();

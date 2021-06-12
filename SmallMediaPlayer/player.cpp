@@ -643,62 +643,61 @@ void Close(){
     PlayerState=FILE_NOT_LOADED;
 }
 
-void PlayFile(TCHAR* filename){
-HRESULT hr;
-GUID tf=TIME_FORMAT_MEDIA_TIME;
-TCHAR ext[8]=L"";
-bool res;
-BOOL success=FALSE;
-bool autobuild=false;
+BOOL Player_OpenFile(WCHAR* filename){
+    HRESULT hr;
+    GUID tf=TIME_FORMAT_MEDIA_TIME;
+    TCHAR ext[8]=L"";
+    bool res;
+    BOOL success=FALSE;
+    bool autobuild=false;
 
+    if(PlayerState!=FILE_NOT_LOADED){Close();}
+    fShowNextImage=false;
 
-if(PlayerState!=FILE_NOT_LOADED){Close();}
-fShowNextImage=false;
+    GetFileExtension(filename,ext);
 
-
-GetFileExtension(filename,ext);
-
-// Create the filter graph manager and query for interfaces.
-hr = CoCreateInstance(CLSID_FilterGraph, NULL, CLSCTX_INPROC_SERVER, 
+    // Create the filter graph manager and query for interfaces.
+    hr = CoCreateInstance(CLSID_FilterGraph, NULL, CLSCTX_INPROC_SERVER, 
                         IID_IGraphBuilder, (void **)&pGraph);
 
-if(FAILED(hr)){ShowError(hr,SYSTEM_ERROR);Close();return;}
-hr = pGraph->QueryInterface(IID_IMediaControl, (void **)&pControl);
-if(FAILED(hr)){ShowError(hr,SYSTEM_ERROR);Close();return;}
-hr = pGraph->QueryInterface(IID_IMediaEventEx, (void **)&pEvent);
-if(FAILED(hr)){ShowError(hr,SYSTEM_ERROR);Close();return;}
-hr = pGraph->QueryInterface(IID_IMediaSeeking, (void **)&pSeek);
-if(FAILED(hr)){ShowError(hr,SYSTEM_ERROR);Close();return;}
-hr = pGraph->QueryInterface(IID_IBasicAudio, (void **)&pAudio);
-if(FAILED(hr)){ShowError(hr,SYSTEM_ERROR);Close();return;}
-hr = pGraph->QueryInterface(IID_IVideoWindow, (void **)&pVideoWindow);
-if(FAILED(hr)){ShowError(hr,SYSTEM_ERROR);Close();return;}
-hr = pGraph->QueryInterface(IID_IBasicVideo, (void **)&pVideo);
-if(FAILED(hr)){ShowError(hr,SYSTEM_ERROR);Close();return;}
+    if(FAILED(hr)){ShowError(hr,SYSTEM_ERROR);Close();return FALSE;}
+    hr = pGraph->QueryInterface(IID_IMediaControl, (void **)&pControl);
+    if(FAILED(hr)){ShowError(hr,SYSTEM_ERROR);Close();return FALSE;}
+    hr = pGraph->QueryInterface(IID_IMediaEventEx, (void **)&pEvent);
+    if(FAILED(hr)){ShowError(hr,SYSTEM_ERROR);Close();return FALSE;}
+    hr = pGraph->QueryInterface(IID_IMediaSeeking, (void **)&pSeek);
+    if(FAILED(hr)){ShowError(hr,SYSTEM_ERROR);Close();return FALSE;}
+    hr = pGraph->QueryInterface(IID_IBasicAudio, (void **)&pAudio);
+    if(FAILED(hr)){ShowError(hr,SYSTEM_ERROR);Close();return FALSE;}
+    hr = pGraph->QueryInterface(IID_IVideoWindow, (void **)&pVideoWindow);
+    if(FAILED(hr)){ShowError(hr,SYSTEM_ERROR);Close();return FALSE;}
+    hr = pGraph->QueryInterface(IID_IBasicVideo, (void **)&pVideo);
+    if(FAILED(hr)){ShowError(hr,SYSTEM_ERROR);Close();return FALSE;}
 
-//handle URL
-if(IsURL(filename)!=FALSE){
-hr = pGraph->RenderFile(filename, NULL);
+    //handle URL
+    if(IsURL(filename)!=FALSE){
+        hr = pGraph->RenderFile(filename, NULL);
 
-if(FAILED(hr)){
-    HandlePlayError(hr,filename);
-    Close();
-    return;
-}
+        if(FAILED(hr)){
+            HandlePlayError(hr,filename);
+            Close();
+            return FALSE;
+        }
 
-goto play;
-}
+        goto play;
+    }
 
-//Try dynamic build filter graph
-if(lstrcmp(ext,L"mp3")==0||lstrcmp(ext,L"MP3")==0||lstrcmp(ext,L"Mp3")==0){
-	success=BuildGraph(MT_AUDIO,filename);
-	if(success!=FALSE)goto play;
-	
-}
-if(lstrcmp(ext,L"avi")==0||lstrcmp(ext,L"AVI")==0){
-	success=BuildGraph(MT_AVI,filename);
-	if(success!=FALSE)goto play;
-		}
+    //Try dynamic build filter graph
+    if(lstrcmp(ext,L"mp3")==0||lstrcmp(ext,L"MP3")==0||lstrcmp(ext,L"Mp3")==0){
+        success=BuildGraph(MT_AUDIO,filename);
+        if(success!=FALSE)goto play;
+    }
+
+    if(lstrcmp(ext,L"avi")==0||lstrcmp(ext,L"AVI")==0){
+        success=BuildGraph(MT_AVI,filename);
+        if(success!=FALSE)goto play;
+    }
+
 if(lstrcmp(ext,L"mpg")==0||lstrcmp(ext,L"MPG")==0||lstrcmp(ext,L"MPEG")==0||lstrcmp(ext,L"mpeg")==0){
 	success=BuildGraph(MT_MPEG,filename);
 	if(success!=FALSE)goto play;
@@ -719,26 +718,25 @@ if(lstrcmp(ext,L"jpg")==0||lstrcmp(ext,L"JPG")==0||
 	   
 	}
 
+    //try auto build
+    hr = pGraph->RenderFile(filename, NULL);
 
-//try auto build
-hr = pGraph->RenderFile(filename, NULL);
+    if(FAILED(hr)){
+        HandlePlayError(hr,filename);
+        Close();
+        WPARAM wParam=MAKEWPARAM(ID_NEXTTRACK,0);
+        PostMessage(hWnd,WM_COMMAND,wParam,0);
+        return FALSE;
+    }
 
-if(FAILED(hr)){
-	HandlePlayError(hr,filename);
-	Close();
-	WPARAM wParam=MAKEWPARAM(ID_NEXTTRACK,0);
-	PostMessage(hWnd,WM_COMMAND,wParam,0);
-	return;
-}
+    autobuild=true;
 
-autobuild=true;
-
-play:
-SearchFilters();
-PlayerState=STOPPED;
+    play:
+    SearchFilters();
+    PlayerState=STOPPED;
 
 #ifdef DEBUG
-    LogMessage(L"PlayFile",TRUE);
+    LogMessage(L"OpenFile",TRUE);
     LogMessage(filename,FALSE);
 
     if(autobuild) LogMessage(L"Codecs selected automatically",FALSE);
@@ -751,35 +749,31 @@ PlayerState=STOPPED;
     LogMessage(L"***************",FALSE);
 #endif
 
-pSeek->SetTimeFormat(&tf);
+    pSeek->SetTimeFormat(&tf);
+    res=SetVideoWindow(hVideoWindow);
 
-res=SetVideoWindow(hVideoWindow);
-if(res==false){
-	DisableFullScreen();	
-	IsPlayingVideo=false;
-	ShowWindow(hVideoWindow,SW_HIDE);
-	SetThreadExecutionState (ES_CONTINUOUS|ES_SYSTEM_REQUIRED);
-}
-else {
-	IsPlayingVideo=true;
-	ShowWindow(hVideoWindow,SW_SHOW);
-	SetThreadExecutionState (ES_CONTINUOUS|ES_DISPLAY_REQUIRED|ES_SYSTEM_REQUIRED);
-}
+    if(res==false){
+        DisableFullScreen();
+        IsPlayingVideo=false;
+        ShowWindow(hVideoWindow,SW_HIDE);
+        SetThreadExecutionState (ES_CONTINUOUS|ES_SYSTEM_REQUIRED);
+    }
+    else {
+        IsPlayingVideo=true;
+        ShowWindow(hVideoWindow,SW_SHOW);
+        SetThreadExecutionState (ES_CONTINUOUS|ES_DISPLAY_REQUIRED|ES_SYSTEM_REQUIRED);
+    }
 
-hr = pControl->Run();
-if(FAILED(hr)){
-	HandlePlayError(hr,filename);
-	Close();
-	WPARAM wParam=MAKEWPARAM(ID_NEXTTRACK,0);
-	PostMessage(hWnd,WM_COMMAND,wParam,0);
-	return;
+    return TRUE;
 }
 
-PlayerState=PLAYING;
-pAudio->put_Volume(Volume);
+void PlayFile(TCHAR* filename){
 
-pEvent->SetNotifyWindow((LONG_PTR)hWnd,MM_MCINOTIFY,0L);
- 
+    BOOL res=Player_OpenFile(filename);
+    if(res==FALSE)return;
+    Play();
+    pAudio->put_Volume(Volume);
+
 }
 
 void Play(){
