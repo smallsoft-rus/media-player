@@ -1425,17 +1425,7 @@ INITCOMMONCONTROLSEX ic;
 LVCOLUMN col={0};
 
 HMENU hm=NULL;
-
-OSVERSIONINFO osver={0};
-osver.dwOSVersionInfoSize=sizeof(OSVERSIONINFO);
-DWORD exStyle;
-
-//determine OS version, to avoid WinXP visual bugs
-if(GetVersionEx(&osver)==FALSE){exStyle=0;}
-else {
-	if(osver.dwMajorVersion<=5)exStyle=0; //WinXP
-	else exStyle=WS_EX_COMPOSITED;//new systems
-}
+DWORD exStyle=WS_EX_COMPOSITED;
 
 CoInitialize(NULL);
 srand(GetTickCount());
