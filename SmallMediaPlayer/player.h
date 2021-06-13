@@ -13,7 +13,6 @@
 extern HWND hVideoWindow;
 
 //from player_dshow.cpp
-extern IMediaEventEx *pEvent;
 extern IBaseFilter* pSource;
 extern IBaseFilter* pSplitter;
 extern IBaseFilter* pAudioDecoder;
@@ -51,5 +50,12 @@ void EnableFullScreen();
 WORD GetMultimediaInfo(SMP_AUDIOINFO* pAudioInfo,SMP_VIDEOINFO* pVideoInfo,SMP_STREAM* pStreamType);
 void GetMultimediaInfoString(WCHAR* text,size_t size);
 int GetVolume();
+
+// Sets callback function to notify about player events (called from UI)
+void Player_SetEventCallback(PLAYER_EVENT_CALLBACK callback);
+
+// Processes messages related to playback events. 
+// Called by window procedure (in ui.cpp) that receives messages.
+void Player_ProcessNotify(WPARAM NotifyValue);
 
 #endif

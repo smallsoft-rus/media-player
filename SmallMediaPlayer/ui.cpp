@@ -713,37 +713,24 @@ DWORD WINAPI ThreadFunc(PVOID param){
   }
  }
 
+//callback invoked by player on event
+void OnPlaybackEvent(PLAYER_EVENT evt){
+    switch(evt){
+    case EVT_USERABORT:Close();break;
+        //errors
+    case EVT_FILE_CLOSED:
+    case EVT_ERRORABORT:
+        MessageBeep(MB_ICONERROR);
+        //complete
+    case EVT_COMPLETE:Close();
+        SetThreadExecutionState (ES_CONTINUOUS);
+        PlayNextTrack();
+        break;
+    }
+}
+
 void ProcessNotify(WPARAM NotifyValue){
-
-LONG EventCode;
-LONG_PTR param1;
-LONG_PTR param2;
-HRESULT hr;
-
-while(1){
-if(pEvent==NULL)break;
-hr=pEvent->GetEvent(&EventCode,&param1,&param2,100);
-if(hr==E_ABORT)break;
-switch(EventCode){
-	case EC_USERABORT:Close();break;
-		//errors
-	case EC_FILE_CLOSED:
-	case EC_ERRORABORT:MessageBeep(MB_ICONERROR);
-		//complete
-	case EC_COMPLETE:Close();
-		SetThreadExecutionState (ES_CONTINUOUS);
-		
-		PlayNextTrack();break;
-		
-}
-
-if(pEvent!=NULL){
-	
-	pEvent->FreeEventParams(EventCode,param1,param2);
-}
-
-}
-
+    Player_ProcessNotify(NotifyValue);
 }
 
 void StartPlayingPlaylist(){
@@ -1434,6 +1421,9 @@ ic.dwICC=ICC_WIN95_CLASSES;
 InitCommonControlsEx(&ic);
 GdiplusStartup(&gdip_code, new GdiplusStartupInput(),NULL);
 InitErrorHandler();
+
+    //player event callback
+    Player_SetEventCallback(OnPlaybackEvent);
 
 hAccel=LoadAccelerators(hResModule,MAKEINTRESOURCE(ID_ACCEL));
 hm=LoadMenu(NULL,MAKEINTRESOURCE(IDR_CONTEXT_MENU));

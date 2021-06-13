@@ -8,6 +8,7 @@
 
 //exports
 
+void DS_ProcessNotify(WPARAM NotifyValue);
 WORD DS_GetMultimediaInfo(SMP_AUDIOINFO* pAudioInfo,SMP_VIDEOINFO* pVideoInfo,SMP_STREAM* pStreamType);
 void DS_Player_Close();
 BOOL DS_Player_OpenFile(WCHAR* filename);

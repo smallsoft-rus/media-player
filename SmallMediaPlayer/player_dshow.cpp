@@ -9,6 +9,7 @@ void DisableFullScreen();
 void GetMultimediaInfoString(WCHAR* text,size_t size);
 bool SetVideoWindow(HWND hParent);
 void SetVideoRect();
+void OnPlayerEvent(PLAYER_EVENT evt);
 extern bool fShowNextImage;
 extern HWND hWnd;
 extern PLAYER_STATE PlayerState;
@@ -845,4 +846,31 @@ void DS_SetVideoRect(){
     }
 
     pVideo->SetDestinationPosition((rc.right-DestWidth)*0.5f,(rc.bottom-DestHeight)*0.5f,DestWidth,DestHeight);
+}
+
+void DS_ProcessNotify(WPARAM NotifyValue){
+
+    LONG EventCode;
+    LONG_PTR param1;
+    LONG_PTR param2;
+    HRESULT hr;
+
+    while(1){
+        if(pEvent==NULL)break;
+        hr=pEvent->GetEvent(&EventCode,&param1,&param2,100);
+        if(hr==E_ABORT)break;
+
+        switch(EventCode){
+            case EC_USERABORT:OnPlayerEvent(EVT_USERABORT);break;
+            //errors
+            case EC_FILE_CLOSED:OnPlayerEvent(EVT_FILE_CLOSED);break;
+            case EC_ERRORABORT:OnPlayerEvent(EVT_ERRORABORT);break;
+            //complete
+            case EC_COMPLETE:OnPlayerEvent(EVT_COMPLETE);break;
+        }
+
+        if(pEvent!=NULL){
+            pEvent->FreeEventParams(EventCode,param1,param2);
+        }
+    }//end while
 }

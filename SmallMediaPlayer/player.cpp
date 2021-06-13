@@ -22,6 +22,24 @@ bool IsPlayingVideo=false;
 bool fShowNextImage=false;
 bool FullScreen=false;
 
+// Pointer to function that receives playback event notifications.
+// Set by Player_SetEventCallback, invoked by OnPlayerEvent.
+PLAYER_EVENT_CALLBACK pfnEventCallback=NULL;
+
+void Player_SetEventCallback(PLAYER_EVENT_CALLBACK callback){
+    pfnEventCallback=callback;
+}
+
+// Invokes event callback (called by implementation)
+void OnPlayerEvent(PLAYER_EVENT evt){
+    if(pfnEventCallback==NULL)return;
+    pfnEventCallback(evt);
+}
+
+void Player_ProcessNotify(WPARAM NotifyValue){
+    DS_ProcessNotify(NotifyValue);
+}
+
 WORD GetMultimediaInfo(SMP_AUDIOINFO* pAudioInfo,SMP_VIDEOINFO* pVideoInfo,SMP_STREAM* pStreamType){
     return DS_GetMultimediaInfo(pAudioInfo,pVideoInfo,pStreamType);
 }
