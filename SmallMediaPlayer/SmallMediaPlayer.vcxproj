@@ -88,6 +88,7 @@
     <ClCompile Include="DirectShowStuff.cpp" />
     <ClCompile Include="errors.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="player_dshow.cpp" />
     <ClCompile Include="ui.cpp" />
     <ClCompile Include="PictureManager.cpp" />
     <ClCompile Include="player.cpp" />
@@ -102,6 +103,7 @@
     <ClInclude Include="common.h" />
     <ClInclude Include="PictureManager.h" />
     <ClInclude Include="player.h" />
+    <ClInclude Include="player_dshow.h" />
     <ClInclude Include="PlayListEditor.h" />
     <ClInclude Include="RegistryModule.h" />
     <ClInclude Include="resource.h" />

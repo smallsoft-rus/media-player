@@ -122,6 +122,9 @@ typedef union{
 #define TM_NEXT_IMAGE 3
 #define TM_HIDE_CURSOR 4
 
+//DirectShow time unit
+#define TIME_KOEFF 10000
+
 BOOL inline IsCursorShown(){
 	CURSORINFO ci={0};
 	ci.cbSize=sizeof(CURSORINFO);

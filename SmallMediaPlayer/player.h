@@ -2,40 +2,35 @@
  * Copyright (c) 2021,  MSDN.WhiteKnight (https://github.com/smallsoft-rus/media-player) 
  * License: BSD 2.0 */
 #ifndef PLAYER_H
-
 #define PLAYER_H
-
-#ifndef UNICODE
-#define UNICODE
-#endif
 
 #include "DirectShowStuff.h"
 #include <DvdMedia.h>
 #include "common.h"
 #include <MMReg.h>
 
-#define TIME_KOEFF 10000
-
 //extern vars
 extern HWND hVideoWindow;
-	
 
-
-//declaraations of vars
-extern HWND hWnd;
-extern PLAYER_STATE PlayerState;
-extern IMediaEventEx   *pEvent;
-extern long Volume;
-extern bool IsPlayingVideo;
-extern bool fShowNextImage;
-extern bool FullScreen;
-extern RECT VRect;
+//from player_dshow.cpp
+extern IMediaEventEx *pEvent;
 extern IBaseFilter* pSource;
 extern IBaseFilter* pSplitter;
 extern IBaseFilter* pAudioDecoder;
 extern IBaseFilter* pAudioRenderer;
 extern IBaseFilter* pVideoDecoder;
 extern IBaseFilter* pVideoRenderer;
+
+//declarations of vars
+extern HWND hWnd;
+extern PLAYER_STATE PlayerState;
+extern long Volume;
+extern bool IsPlayingVideo;
+extern bool fShowNextImage;
+extern bool FullScreen;
+extern RECT VRect;
+
+//exports
 
 BOOL Player_OpenFile(WCHAR* filename);
 void PlayFile(TCHAR* lpstrFileName);
