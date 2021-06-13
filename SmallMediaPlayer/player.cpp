@@ -290,3 +290,7 @@ SetVideoWindow(hVideoWindow);
 		if(IsCursorShown()==FALSE){ShowCursor(TRUE);}
 
 }
+
+void ShowPropertyPage(TOPOLOGY_NODE node){
+    DS_ShowPropertyPage(node);
+}

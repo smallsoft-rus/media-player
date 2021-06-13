@@ -23,5 +23,6 @@ BOOL DS_Player_SetPosition(LONGLONG pos);
 void DS_Player_SetVolume(long x);
 bool DS_SetVideoWindow(HWND hParent);
 void DS_SetVideoRect();
+void DS_ShowPropertyPage(TOPOLOGY_NODE node);
 
 #endif

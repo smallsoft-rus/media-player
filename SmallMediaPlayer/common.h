@@ -21,6 +21,15 @@ typedef enum {
 
 typedef void (*PLAYER_EVENT_CALLBACK)(PLAYER_EVENT evt);
 
+typedef enum {
+    TN_UNKNOWN=0,
+    TN_SPLITTER,
+    TN_AUDIO_DECODER,
+    TN_AUDIO_OUT,
+    TN_VIDEO_DECODER,
+    TN_VIDEO_OUT
+} TOPOLOGY_NODE;
+
 const int SMPVER_MAJOR = 2;
 const int SMPVER_MINOR = 2;
 

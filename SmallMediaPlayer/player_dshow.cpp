@@ -874,3 +874,39 @@ void DS_ProcessNotify(WPARAM NotifyValue){
         }
     }//end while
 }
+
+void DS_ShowPropertyPage(TOPOLOGY_NODE node){
+
+    IBaseFilter* pFilter=NULL;
+
+    switch(node){
+        case TN_SPLITTER:
+            if(pSplitter==NULL)pFilter=pSource;
+            else pFilter=pSplitter;
+            break;
+        case TN_AUDIO_DECODER:
+            pFilter=pAudioDecoder;
+            break;
+        case TN_VIDEO_DECODER:
+            pFilter=pVideoDecoder;
+            break;
+        case TN_AUDIO_OUT:
+            pFilter=pAudioRenderer;
+            break;
+        case TN_VIDEO_OUT:
+            pFilter=pVideoRenderer;
+            break;
+    }
+
+    if(pFilter==NULL){
+        //can't show property page
+        ShowError(0,ERROR_NOTSUPPORTED);
+        return;
+    }
+
+    //show property page
+    if(ShowFilterProperties(pFilter)==FALSE){
+        //no property page
+        ShowError(0,ERROR_NOPROPERTIES);
+    }
+}

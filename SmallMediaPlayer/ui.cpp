@@ -1128,26 +1128,15 @@ case ID_SHOWCOVER:Settings.fShowCover=!Settings.fShowCover;
 	UpdateView();break;
 case ID_FILE_INFORMATION:DisplayFileInfo(GetPlaylistSelectedElement());break;
 case ID_FILEINFO:DisplayMultimediaInfo();break;
-case ID_PROP_AUDIO:if(pAudioDecoder==NULL){ShowError(0,ERROR_NOTSUPPORTED);break;}
-	if(ShowFilterProperties(pAudioDecoder)==FALSE)ShowError(0,ERROR_NOPROPERTIES);
+case ID_PROP_AUDIO:ShowPropertyPage(TN_AUDIO_DECODER);
 	break;
-case ID_PROP_VIDEO:if(pVideoDecoder==NULL){ShowError(0,ERROR_NOTSUPPORTED);break;}
-	if(ShowFilterProperties(pVideoDecoder)==FALSE)ShowError(0,ERROR_NOPROPERTIES);
+case ID_PROP_VIDEO:ShowPropertyPage(TN_VIDEO_DECODER);
 	break;
-case ID_PROP_AUDIOOUT:if(pAudioRenderer==NULL){ShowError(0,ERROR_NOTSUPPORTED);break;}
-	if(ShowFilterProperties(pAudioRenderer)==FALSE)ShowError(0,ERROR_NOPROPERTIES);
+case ID_PROP_AUDIOOUT:ShowPropertyPage(TN_AUDIO_OUT);
 	break;
-case ID_PROP_VIDEOOUT:if(pVideoRenderer==NULL){ShowError(0,ERROR_NOTSUPPORTED);break;}
-	if(ShowFilterProperties(pVideoRenderer)==FALSE)ShowError(0,ERROR_NOPROPERTIES);
+case ID_PROP_VIDEOOUT:ShowPropertyPage(TN_VIDEO_OUT);
 	break;
-case ID_PROP_SPLITTER:
-	if(pSplitter==NULL){
-		if(pSource==NULL){ShowError(0,ERROR_NOTSUPPORTED);break;}
-		if(ShowFilterProperties(pSource)==FALSE)ShowError(0,ERROR_NOPROPERTIES);
-					  }
-	else{
-	if(ShowFilterProperties(pSplitter)==FALSE)ShowError(0,ERROR_NOPROPERTIES);
-	}
+case ID_PROP_SPLITTER:ShowPropertyPage(TN_SPLITTER);
 	break;
 case ID_HOMEPAGE:
 	ShellExecute(NULL, L"open", L"http://smallsoft2.blogspot.ru/",L"",L"",SW_SHOW);break;

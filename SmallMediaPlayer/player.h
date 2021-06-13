@@ -4,21 +4,11 @@
 #ifndef PLAYER_H
 #define PLAYER_H
 
-#include "DirectShowStuff.h"
-#include <DvdMedia.h>
 #include "common.h"
 #include <MMReg.h>
 
 //extern vars
 extern HWND hVideoWindow;
-
-//from player_dshow.cpp
-extern IBaseFilter* pSource;
-extern IBaseFilter* pSplitter;
-extern IBaseFilter* pAudioDecoder;
-extern IBaseFilter* pAudioRenderer;
-extern IBaseFilter* pVideoDecoder;
-extern IBaseFilter* pVideoRenderer;
 
 //declarations of vars
 extern HWND hWnd;
@@ -57,5 +47,8 @@ void Player_SetEventCallback(PLAYER_EVENT_CALLBACK callback);
 // Processes messages related to playback events. 
 // Called by window procedure (in ui.cpp) that receives messages.
 void Player_ProcessNotify(WPARAM NotifyValue);
+
+// Show property page for the specified node
+void ShowPropertyPage(TOPOLOGY_NODE node);
 
 #endif
