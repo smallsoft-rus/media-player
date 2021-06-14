@@ -48,6 +48,9 @@
     <ClCompile Include="dshow_helpers.cpp">
       <Filter>Файлы исходного кода</Filter>
     </ClCompile>
+    <ClCompile Include="player_mf.cpp">
+      <Filter>Файлы исходного кода</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="PictureManager.h">
@@ -84,6 +87,9 @@
       <Filter>Заголовочные файлы</Filter>
     </ClInclude>
     <ClInclude Include="dshow_helpers.h">
+      <Filter>Заголовочные файлы</Filter>
+    </ClInclude>
+    <ClInclude Include="player_mf.h">
       <Filter>Заголовочные файлы</Filter>
     </ClInclude>
   </ItemGroup>

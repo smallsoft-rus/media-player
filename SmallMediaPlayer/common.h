@@ -132,6 +132,7 @@ typedef union{
 #define MNUM_PLAYLISTMENU (1)
 
 #define UM_TRAYICON (WM_USER+1)
+#define UM_PLAYER_EVENT (WM_USER+2) // WPARAM = IMFMediaEvent*, LPARAM = MediaEventType
 
 //timers
 #define TM_NEXT_IMAGE 3
