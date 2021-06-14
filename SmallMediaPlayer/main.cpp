@@ -7,7 +7,6 @@
 
 #pragma comment(linker,"/MERGE:.rdata=.text")
 #pragma comment(linker,"/SECTION:.text,EWR")
-#pragma comment(linker,"/ENTRY:New_WinMain")
 
 #include <Windows.h>
 
@@ -27,7 +26,7 @@ extern void LoadSettings();
 extern void Init_ProgramFileName();
 
 // Entry point
-void New_WinMain(void){
+int APIENTRY WinMain(HINSTANCE hInst, HINSTANCE hInstPrev, PSTR pstrCmdLine, int nCmdShow){
 
     EnsureSingleInstance();
     Init_ProgramFileName();
