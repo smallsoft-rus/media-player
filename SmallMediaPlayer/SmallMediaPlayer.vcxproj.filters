@@ -15,9 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="DirectShowStuff.cpp">
-      <Filter>Файлы исходного кода</Filter>
-    </ClCompile>
     <ClCompile Include="PictureManager.cpp">
       <Filter>Файлы исходного кода</Filter>
     </ClCompile>
@@ -48,11 +45,11 @@
     <ClCompile Include="player_dshow.cpp">
       <Filter>Файлы исходного кода</Filter>
     </ClCompile>
+    <ClCompile Include="dshow_helpers.cpp">
+      <Filter>Файлы исходного кода</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="DirectShowStuff.h">
-      <Filter>Заголовочные файлы</Filter>
-    </ClInclude>
     <ClInclude Include="PictureManager.h">
       <Filter>Заголовочные файлы</Filter>
     </ClInclude>
@@ -84,6 +81,9 @@
       <Filter>Заголовочные файлы</Filter>
     </ClInclude>
     <ClInclude Include="player_dshow.h">
+      <Filter>Заголовочные файлы</Filter>
+    </ClInclude>
+    <ClInclude Include="dshow_helpers.h">
       <Filter>Заголовочные файлы</Filter>
     </ClInclude>
   </ItemGroup>

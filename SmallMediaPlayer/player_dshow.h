@@ -1,7 +1,7 @@
 #ifndef PLAYER_DSHOW_H
 #define PLAYER_DSHOW_H
 
-#include "DirectShowStuff.h"
+#include "dshow_helpers.h"
 #include <DvdMedia.h>
 #include "common.h"
 #include <MMReg.h>

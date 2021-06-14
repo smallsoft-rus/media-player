@@ -1,8 +1,8 @@
 /* Small Media Player 
  * Copyright (c) 2021,  MSDN.WhiteKnight (https://github.com/smallsoft-rus/media-player) 
  * License: BSD 2.0 */
-#ifndef DSHOW_STUFF_H
-#define DSHOW_STUFF_H
+#ifndef DSHOW_HELPERS_H
+#define DSHOW_HELPERS_H
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -13,22 +13,23 @@
 #define SOURCE_FILTER L"WM ASF Reader"
 
 typedef enum {
-		SYSTEM_ERROR,
-		PLAY_ERROR,
-		ERROR_NOPROPERTIES,
-		ERROR_NOTSUPPORTED
-		}
-	ERROR_TYPE;
+    SYSTEM_ERROR,
+    PLAY_ERROR,
+    ERROR_NOPROPERTIES,
+    ERROR_NOTSUPPORTED
+}ERROR_TYPE;
+
 typedef	enum {
-		MT_AUDIO,
-		MT_AVI,
-		MT_MPEG,
-		MT_MKV}MEDIATYPE;
+    MT_AUDIO,
+    MT_AVI,
+    MT_MPEG,
+    MT_MKV
+}MEDIATYPE;
 
 typedef struct{
-			TCHAR* FilterName;
-			bool IsSource;}
-SPLITTER_DATA;
+    TCHAR* FilterName;
+    bool IsSource;
+}SPLITTER_DATA;
 
 const SPLITTER_DATA sdAsfReader={SOURCE_FILTER,true};
 const SPLITTER_DATA sdBassSource={L"DC-Bass Source",true};

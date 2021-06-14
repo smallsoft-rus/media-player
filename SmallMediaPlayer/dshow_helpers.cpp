@@ -2,7 +2,7 @@
  * Copyright (c) 2021,  MSDN.WhiteKnight (https://github.com/smallsoft-rus/media-player) 
  * License: BSD 2.0 */
 #include <stdint.h>
-#include "DirectShowStuff.h"
+#include "dshow_helpers.h"
 
 void LogMessage(const WCHAR* message, BOOL fTime); //from errors.cpp
 

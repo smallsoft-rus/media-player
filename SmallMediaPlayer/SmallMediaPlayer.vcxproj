@@ -85,7 +85,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="DirectShowStuff.cpp" />
+    <ClCompile Include="dshow_helpers.cpp" />
     <ClCompile Include="errors.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="player_dshow.cpp" />
@@ -98,7 +98,7 @@
     <ClCompile Include="tags.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="DirectShowStuff.h" />
+    <ClInclude Include="dshow_helpers.h" />
     <ClInclude Include="errors.h" />
     <ClInclude Include="common.h" />
     <ClInclude Include="PictureManager.h" />
