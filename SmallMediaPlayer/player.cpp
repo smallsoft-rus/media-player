@@ -137,6 +137,22 @@ BOOL Player_OpenFile(WCHAR* filename){
     BOOL res = DS_Player_OpenFile(filename);
     if(res==FALSE)return FALSE;
     PlayerState=STOPPED;
+
+    //initialize and show video window, if the file has video
+    bool hasvideo=SetVideoWindow(hVideoWindow);
+
+    if(hasvideo==false){
+        DisableFullScreen();
+        IsPlayingVideo=false;
+        ShowWindow(hVideoWindow,SW_HIDE);
+        SetThreadExecutionState (ES_CONTINUOUS|ES_SYSTEM_REQUIRED);
+    }
+    else {
+        IsPlayingVideo=true;
+        ShowWindow(hVideoWindow,SW_SHOW);
+        SetThreadExecutionState (ES_CONTINUOUS|ES_DISPLAY_REQUIRED|ES_SYSTEM_REQUIRED);
+    }
+
     return TRUE;
 }
 

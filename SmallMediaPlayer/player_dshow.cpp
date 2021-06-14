@@ -4,16 +4,12 @@
 
 //imports
 void Close();
-void EnableFullScreen();
-void DisableFullScreen();
 void GetMultimediaInfoString(WCHAR* text,size_t size);
-bool SetVideoWindow(HWND hParent);
 void SetVideoRect();
 void OnPlayerEvent(PLAYER_EVENT evt);
 extern bool fShowNextImage;
 extern HWND hWnd;
 extern PLAYER_STATE PlayerState;
-extern bool IsPlayingVideo;
 extern long Volume;
 extern SMPSETTINGS Settings; //settings
 extern HWND hVideoWindow; //UI
@@ -660,20 +656,6 @@ if(lstrcmp(ext,L"jpg")==0||lstrcmp(ext,L"JPG")==0||
 #endif
 
     pSeek->SetTimeFormat(&tf);
-    res=SetVideoWindow(hVideoWindow);
-
-    if(res==false){
-        DisableFullScreen();
-        IsPlayingVideo=false;
-        ShowWindow(hVideoWindow,SW_HIDE);
-        SetThreadExecutionState (ES_CONTINUOUS|ES_SYSTEM_REQUIRED);
-    }
-    else {
-        IsPlayingVideo=true;
-        ShowWindow(hVideoWindow,SW_SHOW);
-        SetThreadExecutionState (ES_CONTINUOUS|ES_DISPLAY_REQUIRED|ES_SYSTEM_REQUIRED);
-    }
-
     pAudio->put_Volume(Volume);
     return TRUE;
 }
