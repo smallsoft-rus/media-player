@@ -30,6 +30,8 @@ typedef enum {
     TN_VIDEO_OUT
 } TOPOLOGY_NODE;
 
+typedef enum {IMPL_DSHOW=1,IMPL_MF} PLAYER_IMPL;
+
 const int SMPVER_MAJOR = 2;
 const int SMPVER_MINOR = 2;
 

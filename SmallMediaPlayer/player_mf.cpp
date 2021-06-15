@@ -903,25 +903,26 @@ MfPlayer     *g_pPlayer = NULL;                  // Global player object.
 // window is destroyed.
 
 //  Open an audio/video file.
-void OnFileOpen(PWSTR file)
+BOOL MF_Player_OpenFile(PWSTR file)
 {
     // Display the file name to the user.
     HRESULT hr = g_pPlayer->OpenURL(file);
+
     if (SUCCEEDED(hr))
     {
         UpdateUI(hWnd, OpenPending);
+        return TRUE;
     }
-
-done:
-    if (FAILED(hr))
+    else
     {
         NotifyError(hWnd, L"Could not open the file.", hr);
         UpdateUI(hWnd, Closed);
-    }    
+        return FALSE;
+    }
 }
 
 //  Handler for WM_CREATE message.
-LRESULT OnCreateWindow(HWND hVideo,HWND hEvent)
+LRESULT MF_Player_InitWindows(HWND hVideo,HWND hEvent)
 {
     // Initialize the player object.
     HRESULT hr = MfPlayer::CreateInstance(hVideo, hEvent, &g_pPlayer); 
@@ -969,7 +970,7 @@ void OnResize(WORD width, WORD height)
 
 // Update the application UI to reflect the current state.
 
-void UpdateUI(HWND hwnd, PlayerState state)
+void UpdateUI(HWND hwnd, MF_PlayerState state)
 {
     BOOL bWaiting = FALSE;
     BOOL bPlayback = FALSE;
@@ -1015,7 +1016,7 @@ void NotifyError(HWND hwnd, PCWSTR pszErrorMessage, HRESULT hrErr)
 }
 
 // Handler for Media Session events.
-void OnPlayerEvent(HWND hwnd, WPARAM pUnkPtr)
+void MF_OnPlayerEvent(HWND hwnd, WPARAM pUnkPtr)
 {
     HRESULT hr = g_pPlayer->HandleEvent(pUnkPtr);
     if (FAILED(hr))

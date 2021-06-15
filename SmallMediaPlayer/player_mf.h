@@ -46,7 +46,7 @@ template <class T> void SafeRelease(T **ppT)
 }
 
 
-enum PlayerState
+enum MF_PlayerState
 {
     Closed = 0,     // No session.
     Ready,          // Session was created, ready to open a file. 
@@ -87,7 +87,7 @@ public:
     HRESULT       Stop();
     HRESULT       Shutdown();
     HRESULT       HandleEvent(UINT_PTR pUnkPtr);
-    PlayerState   GetState() const { return m_state; }
+    MF_PlayerState   GetState() const { return m_state; }
 
     // Video functionality
     HRESULT       Repaint();
@@ -128,7 +128,7 @@ protected:
 
     HWND                    m_hwndVideo;        // Video window.
     HWND                    m_hwndEvent;        // App window to receive events.
-    PlayerState             m_state;            // Current state of the media session.
+    MF_PlayerState             m_state;            // Current state of the media session.
     HANDLE                  m_hCloseEvent;      // Event to wait on while closing.
 };
 
@@ -154,23 +154,27 @@ HRESULT GetEventObject(IMFMediaEvent *pEvent, Q **ppObject)
     return hr;
 }
 
+extern MfPlayer *g_pPlayer;
+
 HRESULT CreateMediaSource(PCWSTR pszURL, IMFMediaSource **ppSource);
 
 HRESULT CreatePlaybackTopology(IMFMediaSource *pSource, 
     IMFPresentationDescriptor *pPD, HWND hVideoWnd,IMFTopology **ppTopology);
 
+BOOL MF_Player_OpenFile(PWSTR file);
+LRESULT MF_Player_InitWindows(HWND hVideo,HWND hEvent);
+void MF_OnPlayerEvent(HWND hwnd, WPARAM pUnkPtr);
+
 // Forward declarations of functions included in this code module:
 
 INT_PTR CALLBACK    OpenUrlDialogProc(HWND, UINT, WPARAM, LPARAM);
 void                NotifyError(HWND hwnd, const WCHAR *sErrorMessage, HRESULT hr);
-void                UpdateUI(HWND hwnd, PlayerState state);
+void                UpdateUI(HWND hwnd, MF_PlayerState state);
 HRESULT             AllocGetWindowText(HWND hwnd, WCHAR **pszText, DWORD *pcchLen);
 
 // Message handlers
-LRESULT OnCreateWindow(HWND hVideo,HWND hEvent);
-void                OnFileOpen(HWND hwnd);
 void                OnOpenURL(HWND hwnd);
-void                OnPlayerEvent(HWND hwnd, WPARAM pUnkPtr);
+
 void                OnPaint(HWND hwnd);
 void                OnResize(WORD width, WORD height);
 

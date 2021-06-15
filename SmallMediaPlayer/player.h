@@ -51,4 +51,7 @@ void Player_ProcessNotify(WPARAM NotifyValue);
 // Show property page for the specified node
 void ShowPropertyPage(TOPOLOGY_NODE node);
 
+LRESULT Player_InitWindows(HWND hVideo,HWND hEvent);
+void Player_OnMfEvent(HWND hwnd, WPARAM pUnkPtr);
+
 #endif
