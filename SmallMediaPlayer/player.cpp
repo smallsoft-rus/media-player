@@ -4,12 +4,15 @@
 #include <math.h>
 #include "player.h"
 #include "player_dshow.h"
+#include "player_mf.h"
 #include "tags.h"
 #include "errors.h"
 
 extern SMPSETTINGS Settings;
 extern TAGS_GENERIC OpenedFileTags;
 extern bool fOpenedFileTags;
+
+PLAYER_IMPL CurrentImpl=IMPL_DSHOW;
 
 HWND hWnd;//for notify
 
@@ -134,7 +137,12 @@ void Close(){
 BOOL Player_OpenFile(WCHAR* filename){
     if(PlayerState!=FILE_NOT_LOADED){Close();}
     fShowNextImage=false;
+
     BOOL res = DS_Player_OpenFile(filename);
+        
+    /*BOOL res = MF_Player_OpenFile(filename);
+    CurrentImpl=IMPL_MF;*/
+    
     if(res==FALSE)return FALSE;
     PlayerState=STOPPED;
 
@@ -170,7 +178,13 @@ void Play(){
         return;
     }
 
-    BOOL res = DS_Player_Play();
+    BOOL res;
+    if(CurrentImpl==IMPL_DSHOW) res = DS_Player_Play();
+    else {
+        g_pPlayer->Play();
+        res=TRUE;
+    }
+
     if(res==FALSE)return;
 
     PlayerState=PLAYING;
@@ -204,12 +218,18 @@ void Stop(){
 DWORD GetLength(){
     if(PlayerState==FILE_NOT_LOADED)return 0;
 	if(fShowNextImage==true)return Settings.ImageDelay;
+
+    if(CurrentImpl==IMPL_MF)return 1000;
+
     return DS_Player_GetLength();
 	
 }
 
 DWORD GetPosition(){
     if(PlayerState==FILE_NOT_LOADED||PlayerState==STOPPED)return 0;
+
+    if(CurrentImpl==IMPL_MF)return 0;
+
     return DS_Player_GetPosition();
 }
 
@@ -310,3 +330,12 @@ SetVideoWindow(hVideoWindow);
 void ShowPropertyPage(TOPOLOGY_NODE node){
     DS_ShowPropertyPage(node);
 }
+
+LRESULT Player_InitWindows(HWND hVideo,HWND hEvent){
+    return MF_Player_InitWindows(hVideo,hEvent);
+}
+
+void Player_OnMfEvent(HWND hwnd, WPARAM pUnkPtr){
+    MF_OnPlayerEvent(hwnd,pUnkPtr);
+}
+
