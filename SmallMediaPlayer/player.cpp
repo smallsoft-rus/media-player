@@ -184,7 +184,7 @@ void Play(){
     }
     else {
         HRESULT hr=g_pPlayer->Play();
-        res=TRUE;
+        res=SUCCEEDED(hr);
     }
 
     if(res==FALSE)return;

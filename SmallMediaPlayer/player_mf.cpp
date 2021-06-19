@@ -12,6 +12,7 @@ extern PLAYER_STATE PlayerState;
 void OnPlayerEvent(PLAYER_EVENT evt);
 
 //forward decl
+extern HANDLE MF_hOpenEvent;
 HRESULT GetSourceDuration(IMFMediaSource *pSource, MFTIME *pDuration);
 
 //  Static class method to create the MfPlayer object.
@@ -46,8 +47,6 @@ HRESULT MfPlayer::CreateInstance(
 
 HRESULT MfPlayer::Initialize()
 {
-    m_fDelayedPause=false;
-
     // Start up Media Foundation platform.
     HRESULT hr = MFStartup(MF_VERSION);
     if (SUCCEEDED(hr))
@@ -122,8 +121,6 @@ ULONG MfPlayer::Release()
 //  Open a URL for playback.
 HRESULT MfPlayer::OpenURL(const WCHAR *sURL)
 {
-    this->m_fDelayedPause=false;
-
     // 1. Create a new media session.
     // 2. Create the media source.
     // 3. Create the topology.
@@ -162,7 +159,7 @@ HRESULT MfPlayer::OpenURL(const WCHAR *sURL)
     }
 
     // Set the topology on the media session.
-    hr = m_pSession->SetTopology(0, pTopology);
+    hr = m_pSession->SetTopology(MFSESSION_SETTOPOLOGY_IMMEDIATE, pTopology);
     if (FAILED(hr))
     {
         goto done;
@@ -190,11 +187,6 @@ HRESULT MfPlayer::Pause()
 {
     if (m_state != Started)
     {
-        if(m_state==OpenPending){
-            this->m_fDelayedPause=true;
-            return S_OK;
-        }
-
         return MF_E_INVALIDREQUEST;
     }
     if (m_pSession == NULL || m_pSource == NULL)
@@ -420,16 +412,11 @@ HRESULT MfPlayer::OnTopologyStatus(IMFMediaEvent *pEvent)
         (void)MFGetService(m_pSession, MR_VIDEO_RENDER_SERVICE, 
             IID_PPV_ARGS(&m_pVideoDisplay));
 
-        if(PlayerState==PLAYING){
-            hr = StartPlayback();
-        }
+        //File opened, the state is now "Stopped"
+        this->m_state=Stopped;
 
-        if(this->m_fDelayedPause){
-            this->Pause();
-            this->m_state=Paused;
-            PlayerState=PAUSED;
-            this->m_fDelayedPause=false;
-        }
+        //Signal file opened event
+        SetEvent(MF_hOpenEvent);
     }
     return hr;
 }
@@ -511,7 +498,7 @@ HRESULT MfPlayer::CreateSession()
     }
 
     m_state = Ready;
-    PlayerState=STOPPED;
+    PlayerState=FILE_NOT_LOADED;
 
 done:
     return hr;
@@ -588,7 +575,6 @@ HRESULT MfPlayer::StartPlayback()
         // fails later, we'll get an MESessionStarted event with
         // an error code, and we will update our state then.
         m_state = Started;
-        PlayerState=PLAYING;
     }
     PropVariantClear(&varStart);
     return hr;
@@ -927,7 +913,10 @@ done:
 //***** Application *********
 
 BOOL        g_bRepaintClient = TRUE;            // Repaint the application client area?
-MfPlayer     *g_pPlayer = NULL;                  // Global player object. 
+MfPlayer     *g_pPlayer = NULL;                  // Global player object.
+
+//event that signals when async file open operation is finished
+HANDLE MF_hOpenEvent=NULL;
 
 // Note: After WM_CREATE is processed, g_pPlayer remains valid until the
 // window is destroyed.
@@ -935,11 +924,16 @@ MfPlayer     *g_pPlayer = NULL;                  // Global player object.
 //  Open an audio/video file.
 BOOL MF_Player_OpenFile(PWSTR file)
 {
+    //run async file open operation
+    ResetEvent(MF_hOpenEvent);
     HRESULT hr = g_pPlayer->OpenURL(file);
 
     if (SUCCEEDED(hr))
     {
         UpdateUI(hWnd, OpenPending);
+
+        //wait until async file open operation is completed
+        AwaitHandle(MF_hOpenEvent);
         return TRUE;
     }
     else
@@ -953,6 +947,8 @@ BOOL MF_Player_OpenFile(PWSTR file)
 //  Handler for WM_CREATE message.
 LRESULT MF_Player_InitWindows(HWND hVideo,HWND hEvent)
 {
+    MF_hOpenEvent = CreateEventW(NULL, FALSE, FALSE, NULL);
+
     // Initialize the player object.
     HRESULT hr = MfPlayer::CreateInstance(hVideo, hEvent, &g_pPlayer); 
     if (SUCCEEDED(hr))
@@ -1068,6 +1064,7 @@ void MF_OnPlayerEvent(HWND hwnd, WPARAM pUnkPtr)
     if (FAILED(hr))
     {
         NotifyError(hwnd, L"OnPlayerEvent error", hr);
+        SetEvent(MF_hOpenEvent);
     }
     UpdateUI(hwnd, g_pPlayer->GetState());
 }

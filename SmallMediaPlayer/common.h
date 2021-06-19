@@ -225,4 +225,28 @@ inline BOOL IsURL(const WCHAR* str){
     return FALSE;
 }
 
+// Waits for the specified handle while processing windows messages
+// Returns TRUE on success, FALSE on error or timeout (10 seconds)
+inline BOOL AwaitHandle(HANDLE hEvent){
+
+    MSG msg={0};
+
+    while(1){
+        DWORD res = MsgWaitForMultipleObjectsEx(1,&hEvent,10000,QS_ALLEVENTS,0);
+
+        switch (res){
+            case WAIT_OBJECT_0:return TRUE;
+            case WAIT_OBJECT_0 + 1:
+            
+            while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
+               TranslateMessage(&msg);
+               DispatchMessage(&msg);
+            }
+            break;
+            default:return FALSE;//error
+        }//end switch
+
+    }//end while
+}
+
 #endif

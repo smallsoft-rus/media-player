@@ -130,8 +130,6 @@ protected:
     HWND                    m_hwndEvent;        // App window to receive events.
     MF_PlayerState             m_state;            // Current state of the media session.
     HANDLE                  m_hCloseEvent;      // Event to wait on while closing.
-
-    bool m_fDelayedPause;
 };
 
 template <class Q>
