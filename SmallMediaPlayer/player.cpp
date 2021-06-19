@@ -179,9 +179,11 @@ void Play(){
     }
 
     BOOL res;
-    if(CurrentImpl==IMPL_DSHOW) res = DS_Player_Play();
+    if(CurrentImpl==IMPL_DSHOW) {
+        res = DS_Player_Play();
+    }
     else {
-        g_pPlayer->Play();
+        HRESULT hr=g_pPlayer->Play();
         res=TRUE;
     }
 
@@ -192,14 +194,32 @@ void Play(){
 
 void Pause(){
     if(PlayerState!=PLAYING)return;
-    BOOL res = DS_Player_Pause();
+    BOOL res;
+
+    if(CurrentImpl==IMPL_DSHOW){
+       res = DS_Player_Pause();
+    }
+    else{
+        HRESULT hr=g_pPlayer->Pause();
+        res=SUCCEEDED(hr);
+    }
+
     if(res==FALSE)return;
     PlayerState=PAUSED;
 }
 
 void Resume(){
     if(PlayerState!=PAUSED)return;
-    BOOL res=DS_Player_Resume();
+    BOOL res;
+
+    if(CurrentImpl==IMPL_DSHOW){
+       res=DS_Player_Resume();
+    }
+    else{
+        HRESULT hr=g_pPlayer->Play();
+        res=SUCCEEDED(hr);
+    }
+
     if(res==FALSE)return;
     PlayerState=PLAYING;
 }
@@ -208,7 +228,16 @@ void Stop(){
     if(PlayerState!=PLAYING)return;
 
     Pause();
-    BOOL res=DS_Player_Stop();
+    BOOL res;
+
+    if(CurrentImpl==IMPL_DSHOW){
+       res=DS_Player_Stop();
+    }
+    else{
+        HRESULT hr=g_pPlayer->Stop();
+        res=SUCCEEDED(hr);
+    }
+
     if(res==FALSE)return;
 
     PlayerState=STOPPED;
@@ -219,7 +248,7 @@ DWORD GetLength(){
     if(PlayerState==FILE_NOT_LOADED)return 0;
 	if(fShowNextImage==true)return Settings.ImageDelay;
 
-    if(CurrentImpl==IMPL_MF)return 1000;
+    if(CurrentImpl==IMPL_MF)return 1000;//not implemented
 
     return DS_Player_GetLength();
 	
@@ -228,14 +257,21 @@ DWORD GetLength(){
 DWORD GetPosition(){
     if(PlayerState==FILE_NOT_LOADED||PlayerState==STOPPED)return 0;
 
-    if(CurrentImpl==IMPL_MF)return 0;
+    if(CurrentImpl==IMPL_MF)return 0;//not implemented
 
     return DS_Player_GetPosition();
 }
 
 void Rewind(){
     if(PlayerState==FILE_NOT_LOADED)return;
+
+    if(CurrentImpl==IMPL_MF){
+        //Not implemented
+        return;
+    }
+
     BOOL res = DS_Player_Rewind();
+
     if(res==FALSE)return;
     if(PlayerState==PLAYING)Play();
     if(PlayerState==PAUSED)PlayerState=STOPPED;
@@ -248,6 +284,10 @@ void SetPosition(LONGLONG pos){
 	if(PlayerState==FILE_NOT_LOADED) return;
 	dur=GetLength();
 	if(((DWORD)pos)>dur)return;
+
+    if(CurrentImpl==IMPL_MF){
+        return; //not implemented
+    }
 
 	BOOL res = DS_Player_SetPosition(pos);
     if(res==FALSE)return;
@@ -276,16 +316,38 @@ void SetVolume(long x)
     Volume=y;
 
     if(PlayerState==FILE_NOT_LOADED)return;
+
+    if(CurrentImpl==IMPL_MF){
+        return; //not implemented
+    }
+
     DS_Player_SetVolume(y);
 }
 
 bool SetVideoWindow(HWND hParent){
     if(PlayerState==FILE_NOT_LOADED)return false;
+
+    if(CurrentImpl==IMPL_MF){
+        if(g_pPlayer->HasVideo()){
+            SetVideoRect();
+            return true;
+        }
+        else return false;
+    }
+
     return DS_SetVideoWindow(hParent);
 }
 
 void SetVideoRect(){
     if(PlayerState==FILE_NOT_LOADED)return;
+
+    if(CurrentImpl==IMPL_MF){
+        RECT rc={0};
+        GetClientRect(hVideoWindow,&rc);
+        OnResize(rc.right,rc.bottom);
+        return;
+    }
+
     DS_SetVideoRect();
 }
 
@@ -328,6 +390,12 @@ SetVideoWindow(hVideoWindow);
 }
 
 void ShowPropertyPage(TOPOLOGY_NODE node){
+
+    if(CurrentImpl==IMPL_MF){
+        MessageBoxW(hWnd,L"Not implemented",L"",MB_OK);
+        return;
+    }
+
     DS_ShowPropertyPage(node);
 }
 

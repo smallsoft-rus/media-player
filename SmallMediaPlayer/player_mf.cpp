@@ -4,7 +4,15 @@
 #include <assert.h>
 #include "player_mf.h"
 
-extern HWND hWnd; //from player.cpp
+extern HWND hVideoWindow;
+
+//from player.cpp
+extern HWND hWnd;
+extern PLAYER_STATE PlayerState;
+void OnPlayerEvent(PLAYER_EVENT evt);
+
+//forward decl
+HRESULT GetSourceDuration(IMFMediaSource *pSource, MFTIME *pDuration);
 
 //  Static class method to create the MfPlayer object.
 
@@ -38,6 +46,8 @@ HRESULT MfPlayer::CreateInstance(
 
 HRESULT MfPlayer::Initialize()
 {
+    m_fDelayedPause=false;
+
     // Start up Media Foundation platform.
     HRESULT hr = MFStartup(MF_VERSION);
     if (SUCCEEDED(hr))
@@ -112,6 +122,8 @@ ULONG MfPlayer::Release()
 //  Open a URL for playback.
 HRESULT MfPlayer::OpenURL(const WCHAR *sURL)
 {
+    this->m_fDelayedPause=false;
+
     // 1. Create a new media session.
     // 2. Create the media source.
     // 3. Create the topology.
@@ -167,6 +179,7 @@ done:
         m_state = Closed;
     }
 
+    PlayerState=FILE_NOT_LOADED;
     SafeRelease(&pSourcePD);
     SafeRelease(&pTopology);
     return hr;
@@ -177,6 +190,11 @@ HRESULT MfPlayer::Pause()
 {
     if (m_state != Started)
     {
+        if(m_state==OpenPending){
+            this->m_fDelayedPause=true;
+            return S_OK;
+        }
+
         return MF_E_INVALIDREQUEST;
     }
     if (m_pSession == NULL || m_pSource == NULL)
@@ -188,6 +206,7 @@ HRESULT MfPlayer::Pause()
     if (SUCCEEDED(hr))
     {
         m_state = Paused;
+        PlayerState=PAUSED;
     }
 
     return hr;
@@ -209,6 +228,7 @@ HRESULT MfPlayer::Stop()
     if (SUCCEEDED(hr))
     {
         m_state = Stopped;
+        PlayerState=STOPPED;
     }
     return hr;
 }
@@ -400,7 +420,16 @@ HRESULT MfPlayer::OnTopologyStatus(IMFMediaEvent *pEvent)
         (void)MFGetService(m_pSession, MR_VIDEO_RENDER_SERVICE, 
             IID_PPV_ARGS(&m_pVideoDisplay));
 
-        hr = StartPlayback();
+        if(PlayerState==PLAYING){
+            hr = StartPlayback();
+        }
+
+        if(this->m_fDelayedPause){
+            this->Pause();
+            this->m_state=Paused;
+            PlayerState=PAUSED;
+            this->m_fDelayedPause=false;
+        }
     }
     return hr;
 }
@@ -411,6 +440,8 @@ HRESULT MfPlayer::OnPresentationEnded(IMFMediaEvent *pEvent)
 {
     // The session puts itself into the stopped state automatically.
     m_state = Stopped;
+    PlayerState=STOPPED;
+    OnPlayerEvent(EVT_COMPLETE);
     return S_OK;
 }
 
@@ -480,6 +511,7 @@ HRESULT MfPlayer::CreateSession()
     }
 
     m_state = Ready;
+    PlayerState=STOPPED;
 
 done:
     return hr;
@@ -536,6 +568,7 @@ HRESULT MfPlayer::CloseSession()
     SafeRelease(&m_pSource);
     SafeRelease(&m_pSession);
     m_state = Closed;
+    PlayerState=FILE_NOT_LOADED;
     return hr;
 }
 
@@ -555,6 +588,7 @@ HRESULT MfPlayer::StartPlayback()
         // fails later, we'll get an MESessionStarted event with
         // an error code, and we will update our state then.
         m_state = Started;
+        PlayerState=PLAYING;
     }
     PropVariantClear(&varStart);
     return hr;
@@ -892,10 +926,6 @@ done:
 
 //***** Application *********
 
-PCWSTR szTitle = L"BasicPlayback";
-PCWSTR szWindowClass = L"MFBASICPLAYBACK";
-
-HINSTANCE   g_hInstance;                        // current instance
 BOOL        g_bRepaintClient = TRUE;            // Repaint the application client area?
 MfPlayer     *g_pPlayer = NULL;                  // Global player object. 
 
@@ -905,7 +935,6 @@ MfPlayer     *g_pPlayer = NULL;                  // Global player object.
 //  Open an audio/video file.
 BOOL MF_Player_OpenFile(PWSTR file)
 {
-    // Display the file name to the user.
     HRESULT hr = g_pPlayer->OpenURL(file);
 
     if (SUCCEEDED(hr))
@@ -994,6 +1023,7 @@ void UpdateUI(HWND hwnd, MF_PlayerState state)
 
     if (bPlayback && g_pPlayer->HasVideo())
     {
+        ShowWindow(hVideoWindow,SW_SHOW);
         g_bRepaintClient = FALSE;
     }
     else
@@ -1013,6 +1043,22 @@ void NotifyError(HWND hwnd, PCWSTR pszErrorMessage, HRESULT hrErr)
     {
         MessageBox(hwnd, message, NULL, MB_OK | MB_ICONERROR);
     }
+}
+
+HRESULT GetSourceDuration(IMFMediaSource *pSource, MFTIME *pDuration)
+{
+    //https://docs.microsoft.com/en-us/windows/win32/medfound/how-to-find-the-duration-of-a-media-file
+    *pDuration = 0;
+
+    IMFPresentationDescriptor *pPD = NULL;
+
+    HRESULT hr = pSource->CreatePresentationDescriptor(&pPD);
+    if (SUCCEEDED(hr))
+    {
+        hr = pPD->GetUINT64(MF_PD_DURATION, (UINT64*)pDuration);
+        pPD->Release();
+    }
+    return hr;
 }
 
 // Handler for Media Session events.
