@@ -89,6 +89,9 @@ public:
     HRESULT       HandleEvent(UINT_PTR pUnkPtr);
     MF_PlayerState   GetState() const { return m_state; }
 
+    //Retuns current file duration in milliseconds
+    DWORD GetLength();
+
     // Video functionality
     HRESULT       Repaint();
     HRESULT       ResizeVideo(WORD width, WORD height);

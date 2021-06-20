@@ -121,6 +121,11 @@ ULONG MfPlayer::Release()
 //  Open a URL for playback.
 HRESULT MfPlayer::OpenURL(const WCHAR *sURL)
 {
+    if(this->m_state == OpenPending){
+        //async open operation in progress
+        return MF_E_INVALIDREQUEST;
+    }
+
     // 1. Create a new media session.
     // 2. Create the media source.
     // 3. Create the topology.
@@ -594,6 +599,13 @@ HRESULT MfPlayer::Play()
     return StartPlayback();
 }
 
+DWORD MfPlayer::GetLength(){
+    MFTIME t=0;
+    HRESULT hr=GetSourceDuration(this->m_pSource,&t);
+
+    if(SUCCEEDED(hr))return t/TIME_KOEFF;
+    else return 0;
+}
 
 //  Create a media source from a URL.
 HRESULT CreateMediaSource(PCWSTR sURL, IMFMediaSource **ppSource)

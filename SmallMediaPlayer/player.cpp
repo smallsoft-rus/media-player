@@ -248,10 +248,12 @@ DWORD GetLength(){
     if(PlayerState==FILE_NOT_LOADED)return 0;
 	if(fShowNextImage==true)return Settings.ImageDelay;
 
-    if(CurrentImpl==IMPL_MF)return 1000;//not implemented
-
-    return DS_Player_GetLength();
-	
+    if(CurrentImpl==IMPL_MF){
+        return g_pPlayer->GetLength();
+    }
+    else{
+        return DS_Player_GetLength();
+    }
 }
 
 DWORD GetPosition(){
