@@ -290,16 +290,20 @@ void Rewind(){
 void SetPosition(LONGLONG pos){
 
     DWORD dur;
+    BOOL res;
 
 	if(PlayerState==FILE_NOT_LOADED) return;
 	dur=GetLength();
 	if(((DWORD)pos)>dur)return;
 
     if(CurrentImpl==IMPL_MF){
-        return; //not implemented
+        HRESULT hr=g_pPlayer->SetPosition(pos);
+        res=SUCCEEDED(hr);
+    }
+	else {
+        res = DS_Player_SetPosition(pos);
     }
 
-	BOOL res = DS_Player_SetPosition(pos);
     if(res==FALSE)return;
 
     if(PlayerState==PLAYING)Play();

@@ -99,6 +99,9 @@ public:
     //Retuns current playback position in milliseconds
     DWORD GetPosition();
 
+    //Starts playback from the specified position in milliseconds
+    HRESULT SetPosition(LONGLONG newpos);
+
     // Video functionality
     HRESULT       Repaint();
     HRESULT       ResizeVideo(WORD width, WORD height);
@@ -140,6 +143,9 @@ protected:
     HWND                    m_hwndEvent;        // App window to receive events.
     MF_PlayerState             m_state;            // Current state of the media session.
     HANDLE                  m_hCloseEvent;      // Event to wait on while closing.
+
+    int nSeekPending; //count of pending seek requests
+    DWORD dwSeekPos; //target of the last seek request
 };
 
 template <class Q>

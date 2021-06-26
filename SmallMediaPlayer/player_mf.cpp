@@ -70,6 +70,8 @@ MfPlayer::MfPlayer(HWND hVideo, HWND hEvent) :
     m_hCloseEvent(NULL),
     m_nRefCount(1)
 {
+    nSeekPending=0;
+    dwSeekPos=0;
 }
 
 MfPlayer::~MfPlayer()
@@ -182,6 +184,7 @@ done:
     }
 
     PlayerState=FILE_NOT_LOADED;
+    nSeekPending=0;
     SafeRelease(&pSourcePD);
     SafeRelease(&pTopology);
     return hr;
@@ -370,6 +373,11 @@ HRESULT MfPlayer::HandleEvent(UINT_PTR pEventPtr)
 
     case MENewPresentation:
         hr = OnNewPresentation(pEvent);
+        break;
+
+    case MESessionStarted:
+        //StartPlayback or SetPosition request complete
+        nSeekPending--;
         break;
 
     default:
@@ -593,8 +601,28 @@ HRESULT MfPlayer::StartPlayback()
         // fails later, we'll get an MESessionStarted event with
         // an error code, and we will update our state then.
         m_state = Started;
+
+        //StartPlayback is technically seeking to the zero time
+        nSeekPending++;
+        dwSeekPos=0;
     }
     PropVariantClear(&varStart);
+    return hr;
+}
+
+HRESULT MfPlayer::SetPosition(LONGLONG newpos){
+    PROPVARIANT varStart;
+    PropVariantInit(&varStart);
+    varStart.vt=VT_I8;
+    varStart.hVal.QuadPart=TIME_KOEFF*newpos;
+    
+    HRESULT hr = m_pSession->Start(&GUID_NULL, &varStart);
+    nSeekPending++;
+    dwSeekPos=newpos;
+    PropVariantClear(&varStart);
+
+    if(PlayerState == PAUSED)m_pSession->Pause();
+    
     return hr;
 }
 
@@ -625,6 +653,7 @@ DWORD MfPlayer::GetPosition(){
     IMFClock* pClock=NULL;
     IMFPresentationClock* ppClock=NULL;
     HRESULT hr;
+    DWORD ret=0;
     hr=m_pSession->GetClock(&pClock);
     if(FAILED(hr)) goto end;
 
@@ -635,11 +664,18 @@ DWORD MfPlayer::GetPosition(){
     hr=ppClock->GetTime(&t);
     if(FAILED(hr)) goto end;
 
-    return t/TIME_KOEFF;
+    ret = t/TIME_KOEFF;
 
 end:SafeRelease(&pClock);
     SafeRelease(&ppClock);
-    return 0;
+
+    if(ret==0){
+        //if seek operation is pending, clock can report zero time incorrectly
+        //return the last requested position to prevent scrollbar jumping to left
+        if(nSeekPending>0)return dwSeekPos;
+    }
+    
+    return ret;
 }
 
 //  Create a media source from a URL.
