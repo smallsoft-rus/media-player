@@ -386,10 +386,23 @@ done:
 HRESULT MfPlayer::Shutdown()
 {
     // Close the session
-    HRESULT hr = CloseSession();
+    HRESULT hr = Close();
 
     // Shutdown the Media Foundation platform
     MFShutdown();
+
+    return hr;
+}
+
+HRESULT MfPlayer::Close()
+{
+    if(this->m_state == Closing || this->m_state == Closed){
+        //no need to close 
+        return S_OK;
+    }
+
+    // Close the session
+    HRESULT hr = CloseSession();
 
     if (m_hCloseEvent)
     {
@@ -605,6 +618,28 @@ DWORD MfPlayer::GetLength(){
 
     if(SUCCEEDED(hr))return t/TIME_KOEFF;
     else return 0;
+}
+
+DWORD MfPlayer::GetPosition(){
+
+    IMFClock* pClock=NULL;
+    IMFPresentationClock* ppClock=NULL;
+    HRESULT hr;
+    hr=m_pSession->GetClock(&pClock);
+    if(FAILED(hr)) goto end;
+
+    hr=pClock->QueryInterface(IID_PPV_ARGS(&ppClock));
+    if(FAILED(hr)) goto end;
+
+    MFTIME t=0;
+    hr=ppClock->GetTime(&t);
+    if(FAILED(hr)) goto end;
+
+    return t/TIME_KOEFF;
+
+end:SafeRelease(&pClock);
+    SafeRelease(&ppClock);
+    return 0;
 }
 
 //  Create a media source from a URL.

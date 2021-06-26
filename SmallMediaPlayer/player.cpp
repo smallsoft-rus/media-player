@@ -129,8 +129,13 @@ void Close(){
 
     Stop();
 
-    DS_Player_Close();
-	
+    if(CurrentImpl==IMPL_DSHOW) {
+        DS_Player_Close();
+    }
+    else {
+        g_pPlayer->Close();
+    }
+
     PlayerState=FILE_NOT_LOADED;
 }
 
@@ -259,9 +264,12 @@ DWORD GetLength(){
 DWORD GetPosition(){
     if(PlayerState==FILE_NOT_LOADED||PlayerState==STOPPED)return 0;
 
-    if(CurrentImpl==IMPL_MF)return 0;//not implemented
-
-    return DS_Player_GetPosition();
+    if(CurrentImpl==IMPL_MF){
+        return g_pPlayer->GetPosition();
+    }
+    else {
+        return DS_Player_GetPosition();
+    }
 }
 
 void Rewind(){

@@ -81,6 +81,7 @@ public:
     STDMETHODIMP  Invoke(IMFAsyncResult* pAsyncResult);
 
     // Playback
+
     HRESULT       OpenURL(const WCHAR *sURL);
     HRESULT       Play();
     HRESULT       Pause();
@@ -89,8 +90,14 @@ public:
     HRESULT       HandleEvent(UINT_PTR pUnkPtr);
     MF_PlayerState   GetState() const { return m_state; }
 
+    //Releases resources used to play current file
+    HRESULT Close();
+
     //Retuns current file duration in milliseconds
     DWORD GetLength();
+
+    //Retuns current playback position in milliseconds
+    DWORD GetPosition();
 
     // Video functionality
     HRESULT       Repaint();
