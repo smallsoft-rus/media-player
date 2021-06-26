@@ -9,6 +9,7 @@ extern HWND hVideoWindow;
 //from player.cpp
 extern HWND hWnd;
 extern PLAYER_STATE PlayerState;
+extern long VolumeX;
 void OnPlayerEvent(PLAYER_EVENT evt);
 
 //forward decl
@@ -443,6 +444,9 @@ HRESULT MfPlayer::OnTopologyStatus(IMFMediaEvent *pEvent)
 
         //Signal file opened event
         SetEvent(MF_hOpenEvent);
+
+        //restore volume
+        this->SetVolume(VolumeX);
     }
     return hr;
 }
@@ -623,6 +627,20 @@ HRESULT MfPlayer::SetPosition(LONGLONG newpos){
 
     if(PlayerState == PAUSED)m_pSession->Pause();
     
+    return hr;
+}
+
+HRESULT MfPlayer::SetVolume(DWORD vol){
+
+    if(m_pSession==NULL) return MF_E_INVALIDREQUEST;
+
+    IMFSimpleAudioVolume* pVolume=NULL;
+    HRESULT hr=MFGetService(m_pSession, MR_POLICY_VOLUME_SERVICE,IID_PPV_ARGS(&pVolume));
+    if(FAILED(hr))goto end;
+
+    hr=pVolume->SetMasterVolume(vol/100.0f);
+
+end:SafeRelease(&pVolume);
     return hr;
 }
 

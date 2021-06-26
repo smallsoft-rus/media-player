@@ -27,13 +27,6 @@ MY_DEFINE_GUID(MFMediaType_Video,
 0x73646976, 0x0000, 0x0010, 0x80, 0x00, 0x00, 0xAA, 0x00, 0x38, 0x9B, 0x71);
 MY_DEFINE_GUID(MF_EVENT_TOPOLOGY_STATUS,
 0x30c5018d, 0x9a53, 0x454b, 0xad, 0x9e, 0x6d, 0x5f, 0x8f, 0xa7, 0xc4, 0x3b);
-MY_DEFINE_GUID(MR_VIDEO_RENDER_SERVICE, 
-    0x1092a86c, 
-    0xab1a, 
-    0x459a, 
-    0xa3, 0x36, 0x83, 0x1f, 0xbc, 0x4d, 0x11, 0xff 
-);
-
 
 
 template <class T> void SafeRelease(T **ppT)
@@ -101,6 +94,9 @@ public:
 
     //Starts playback from the specified position in milliseconds
     HRESULT SetPosition(LONGLONG newpos);
+
+    //Sets audio volume (value between 0 and 100)
+    HRESULT SetVolume(DWORD vol);
 
     // Video functionality
     HRESULT       Repaint();

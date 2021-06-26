@@ -320,22 +320,26 @@ void SetVolume(long x)
     if(x>100)x=100;
     long y;
 
-    //audio-tapered control
-    if(x==0) y=-10000;
-    else y=(long)floor(2173.91f * log((float)x) - 10000);
-
-    if(y<-10000)y=-10000;
-    if(y>0)y=0;
-    VolumeX=x;
-    Volume=y;
-
-    if(PlayerState==FILE_NOT_LOADED)return;
-
+    VolumeX=x; //store volume in percents
+    
     if(CurrentImpl==IMPL_MF){
-        return; //not implemented
+        //Media Foundation
+        if(PlayerState==FILE_NOT_LOADED)return;
+        g_pPlayer->SetVolume(x);
     }
+    else{
+        //DirectShow: audio-tapered control
+        if(x==0) y=-10000;
+        else y=(long)floor(2173.91f * log((float)x) - 10000);
 
-    DS_Player_SetVolume(y);
+        if(y<-10000)y=-10000;
+        if(y>0)y=0;
+    
+        Volume=y;
+
+        if(PlayerState==FILE_NOT_LOADED)return;
+        DS_Player_SetVolume(y);
+    }
 }
 
 bool SetVideoWindow(HWND hParent){
