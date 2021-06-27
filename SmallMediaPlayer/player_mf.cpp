@@ -3,6 +3,7 @@
  * License: BSD 2.0 */
 #include <assert.h>
 #include "player_mf.h"
+#include "errors.h"
 
 extern HWND hVideoWindow;
 
@@ -634,11 +635,16 @@ HRESULT MfPlayer::SetVolume(DWORD vol){
 
     if(m_pSession==NULL) return MF_E_INVALIDREQUEST;
 
-    IMFSimpleAudioVolume* pVolume=NULL;
-    HRESULT hr=MFGetService(m_pSession, MR_POLICY_VOLUME_SERVICE,IID_PPV_ARGS(&pVolume));
+    IMFAudioStreamVolume* pVolume=NULL;
+    HRESULT hr=MFGetService(m_pSession, MR_STREAM_VOLUME_SERVICE,IID_PPV_ARGS(&pVolume));
     if(FAILED(hr))goto end;
 
-    hr=pVolume->SetMasterVolume(vol/100.0f);
+    UINT c=0;
+    pVolume->GetChannelCount(&c);
+
+    for(UINT i=0;i<c;i++){
+        hr=pVolume->SetChannelVolume(i,vol/100.0f);
+    }
 
 end:SafeRelease(&pVolume);
     return hr;
@@ -1023,7 +1029,7 @@ HANDLE MF_hOpenEvent=NULL;
 // window is destroyed.
 
 //  Open an audio/video file.
-BOOL MF_Player_OpenFile(PWSTR file)
+HRESULT MF_Player_OpenFile(PWSTR file)
 {
     //run async file open operation
     ResetEvent(MF_hOpenEvent);
@@ -1035,13 +1041,18 @@ BOOL MF_Player_OpenFile(PWSTR file)
 
         //wait until async file open operation is completed
         AwaitHandle(MF_hOpenEvent);
-        return TRUE;
+
+#ifdef DEBUG
+    LogMessage(L"MF_Player_OpenFile",TRUE);
+    LogMessage(file,FALSE);
+#endif
+
+        return S_OK;
     }
     else
     {
-        NotifyError(hWnd, L"Could not open the file.", hr);
         UpdateUI(hWnd, Closed);
-        return FALSE;
+        return hr;
     }
 }
 

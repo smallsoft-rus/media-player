@@ -19,6 +19,7 @@ void HandleError(const WCHAR* message,SMP_ALERTTYPE alerttype, const WCHAR* info
 void HandleError(const WCHAR* message,SMP_ALERTTYPE alerttype, const WCHAR* info, CONTEXT* pContext);
 void HandlePlayError(HRESULT hr, const WCHAR* file);
 void HandleMediaError(HRESULT hr);
+void HandleMfError(HRESULT hr, const WCHAR* pszErrorMessage, const WCHAR* file);
 void LogMessage(const WCHAR* message, BOOL fTime);
 
 #endif

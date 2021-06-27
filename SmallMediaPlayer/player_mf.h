@@ -173,7 +173,7 @@ HRESULT CreateMediaSource(PCWSTR pszURL, IMFMediaSource **ppSource);
 HRESULT CreatePlaybackTopology(IMFMediaSource *pSource, 
     IMFPresentationDescriptor *pPD, HWND hVideoWnd,IMFTopology **ppTopology);
 
-BOOL MF_Player_OpenFile(PWSTR file);
+HRESULT MF_Player_OpenFile(PWSTR file);
 LRESULT MF_Player_InitWindows(HWND hVideo,HWND hEvent);
 void MF_OnPlayerEvent(HWND hwnd, WPARAM pUnkPtr);
 

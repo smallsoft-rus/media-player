@@ -7,6 +7,7 @@
 #include "player_mf.h"
 #include "tags.h"
 #include "errors.h"
+#include "resource.h"
 
 extern SMPSETTINGS Settings;
 extern TAGS_GENERIC OpenedFileTags;
@@ -128,14 +129,9 @@ else{StringCchCat(text,size,L"[Нет данных]\n");}
 void Close(){
 
     Stop();
-
-    if(CurrentImpl==IMPL_DSHOW) {
-        DS_Player_Close();
-    }
-    else {
-        g_pPlayer->Close();
-    }
-
+    DS_Player_Close();
+    g_pPlayer->Close();
+    
     PlayerState=FILE_NOT_LOADED;
 }
 
@@ -143,12 +139,29 @@ BOOL Player_OpenFile(WCHAR* filename){
     if(PlayerState!=FILE_NOT_LOADED){Close();}
     fShowNextImage=false;
 
-    BOOL res = DS_Player_OpenFile(filename);
-        
-    /*BOOL res = MF_Player_OpenFile(filename);
-    CurrentImpl=IMPL_MF;*/
+    //try DirectShow
+    HRESULT hr = DS_Player_OpenFile(filename);
+
+    if(SUCCEEDED(hr)){
+        CurrentImpl=IMPL_DSHOW;
+    }
+    else{
+        //if failed, try Media Foundation
+        hr = MF_Player_OpenFile(filename);
+
+        if(SUCCEEDED(hr)){
+            CurrentImpl=IMPL_MF;
+        }
+    }
+
+    if(FAILED(hr)){
+        //HandlePlayError(hr,filename);
+        HandleMfError(hr,L"Could not open the file.",filename);
+        WPARAM wParam=MAKEWPARAM(ID_NEXTTRACK,0);
+        PostMessage(hWnd,WM_COMMAND,wParam,0);
+        return FALSE;
+    }
     
-    if(res==FALSE)return FALSE;
     PlayerState=STOPPED;
 
     //initialize and show video window, if the file has video
@@ -316,28 +329,30 @@ int GetVolume()
 
 void SetVolume(long x)
 {
-    if(x<0)x=0;
-    if(x>100)x=100;
     long y;
 
+    if(x<0)x=0;
+    if(x>100)x=100;
+
     VolumeX=x; //store volume in percents
+
+    //audio-tapered control
+    if(x==0) y=-10000;
+    else y=(long)floor(2173.91f * log((float)x) - 10000);
+
+    if(y<-10000)y=-10000;
+    if(y>0)y=0;
+    
+    Volume=y; //store volume in DirectX units
+
+    if(PlayerState==FILE_NOT_LOADED)return;
     
     if(CurrentImpl==IMPL_MF){
         //Media Foundation
-        if(PlayerState==FILE_NOT_LOADED)return;
         g_pPlayer->SetVolume(x);
     }
     else{
-        //DirectShow: audio-tapered control
-        if(x==0) y=-10000;
-        else y=(long)floor(2173.91f * log((float)x) - 10000);
-
-        if(y<-10000)y=-10000;
-        if(y>0)y=0;
-    
-        Volume=y;
-
-        if(PlayerState==FILE_NOT_LOADED)return;
+        //DirectShow
         DS_Player_SetVolume(y);
     }
 }
