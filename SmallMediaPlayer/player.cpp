@@ -288,12 +288,14 @@ DWORD GetPosition(){
 void Rewind(){
     if(PlayerState==FILE_NOT_LOADED)return;
 
+    BOOL res;
     if(CurrentImpl==IMPL_MF){
-        //Not implemented
-        return;
+        HRESULT hr=g_pPlayer->SetPosition(0);
+        res=SUCCEEDED(hr);
     }
-
-    BOOL res = DS_Player_Rewind();
+    else{
+        res=DS_Player_Rewind();
+    }
 
     if(res==FALSE)return;
     if(PlayerState==PLAYING)Play();
