@@ -553,11 +553,10 @@ void DS_Player_Close(){
     if(pGraph!=NULL){pGraph->Release();pGraph=NULL;}
 }
 
-BOOL DS_Player_OpenFile(WCHAR* filename){
+HRESULT DS_Player_OpenFile(WCHAR* filename){
     HRESULT hr;
     GUID tf=TIME_FORMAT_MEDIA_TIME;
     TCHAR ext[8]=L"";
-    bool res;
     BOOL success=FALSE;
     bool autobuild=false;    
 
@@ -567,28 +566,27 @@ BOOL DS_Player_OpenFile(WCHAR* filename){
     hr = CoCreateInstance(CLSID_FilterGraph, NULL, CLSCTX_INPROC_SERVER, 
                         IID_IGraphBuilder, (void **)&pGraph);
 
-    if(FAILED(hr)){ShowError(hr,SYSTEM_ERROR);Close();return FALSE;}
+    if(FAILED(hr)){ShowError(hr,SYSTEM_ERROR);Close();return hr;}
     hr = pGraph->QueryInterface(IID_IMediaControl, (void **)&pControl);
-    if(FAILED(hr)){ShowError(hr,SYSTEM_ERROR);Close();return FALSE;}
+    if(FAILED(hr)){ShowError(hr,SYSTEM_ERROR);Close();return hr;}
     hr = pGraph->QueryInterface(IID_IMediaEventEx, (void **)&pEvent);
-    if(FAILED(hr)){ShowError(hr,SYSTEM_ERROR);Close();return FALSE;}
+    if(FAILED(hr)){ShowError(hr,SYSTEM_ERROR);Close();return hr;}
     hr = pGraph->QueryInterface(IID_IMediaSeeking, (void **)&pSeek);
-    if(FAILED(hr)){ShowError(hr,SYSTEM_ERROR);Close();return FALSE;}
+    if(FAILED(hr)){ShowError(hr,SYSTEM_ERROR);Close();return hr;}
     hr = pGraph->QueryInterface(IID_IBasicAudio, (void **)&pAudio);
-    if(FAILED(hr)){ShowError(hr,SYSTEM_ERROR);Close();return FALSE;}
+    if(FAILED(hr)){ShowError(hr,SYSTEM_ERROR);Close();return hr;}
     hr = pGraph->QueryInterface(IID_IVideoWindow, (void **)&pVideoWindow);
-    if(FAILED(hr)){ShowError(hr,SYSTEM_ERROR);Close();return FALSE;}
+    if(FAILED(hr)){ShowError(hr,SYSTEM_ERROR);Close();return hr;}
     hr = pGraph->QueryInterface(IID_IBasicVideo, (void **)&pVideo);
-    if(FAILED(hr)){ShowError(hr,SYSTEM_ERROR);Close();return FALSE;}
+    if(FAILED(hr)){ShowError(hr,SYSTEM_ERROR);Close();return hr;}
 
     //handle URL
     if(IsURL(filename)!=FALSE){
         hr = pGraph->RenderFile(filename, NULL);
 
         if(FAILED(hr)){
-            HandlePlayError(hr,filename);
             Close();
-            return FALSE;
+            return hr;
         }
 
         goto play;
@@ -622,18 +620,14 @@ if(lstrcmp(ext,L"jpg")==0||lstrcmp(ext,L"JPG")==0||
    ){
 		fShowNextImage=true;
 	   SetTimer(hVideoWindow,TM_NEXT_IMAGE,Settings.ImageDelay,NULL);
-	   
 	}
 
     //try auto build
     hr = pGraph->RenderFile(filename, NULL);
 
     if(FAILED(hr)){
-        HandlePlayError(hr,filename);
         Close();
-        WPARAM wParam=MAKEWPARAM(ID_NEXTTRACK,0);
-        PostMessage(hWnd,WM_COMMAND,wParam,0);
-        return FALSE;
+        return hr;
     }
 
     autobuild=true;
@@ -657,7 +651,7 @@ if(lstrcmp(ext,L"jpg")==0||lstrcmp(ext,L"JPG")==0||
 
     pSeek->SetTimeFormat(&tf);
     pAudio->put_Volume(Volume);
-    return TRUE;
+    return S_OK;
 }
 
 BOOL DS_Player_Play(){

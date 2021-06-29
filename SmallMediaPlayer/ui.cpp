@@ -1194,6 +1194,11 @@ if(IsPlayingVideo==true)return 0;
 	return DefWindowProc(hWnd,uMsg,wParam,lParam);	
 	case MM_MCINOTIFY:
 		ProcessNotify(wParam);break;
+
+    case UM_PLAYER_EVENT:
+        Player_OnMfEvent(hWnd,wParam);
+        break;
+
 	case WM_CONTEXTMENU:
 		if(fBlockContextMenu==true){fBlockContextMenu=false;break;}
 		ShowContextMenu(MNUM_MAINMENU,(int)GET_X_LPARAM(lParam),(int)GET_Y_LPARAM(lParam));
@@ -1564,6 +1569,8 @@ Extensions[6]=TEXT("wma");Extensions[7]=TEXT("wmv");Extensions[8]=TEXT("mpg");
 Extensions[9]=TEXT("ogg");Extensions[10]=TEXT("cda");Extensions[11]=TEXT("aac");
 Extensions[12]=TEXT("mkv");Extensions[13]=TEXT("flac");Extensions[14]=TEXT("mov");
 Extensions[15]=TEXT("wv");Extensions[16]=TEXT("ape");Extensions[17]=TEXT("m4a");
+
+Player_InitWindows(hVideoWindow,hMainWnd);
 
 }
 

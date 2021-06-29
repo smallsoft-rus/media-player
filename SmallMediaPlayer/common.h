@@ -30,6 +30,8 @@ typedef enum {
     TN_VIDEO_OUT
 } TOPOLOGY_NODE;
 
+typedef enum {IMPL_DSHOW=1,IMPL_MF} PLAYER_IMPL;
+
 const int SMPVER_MAJOR = 2;
 const int SMPVER_MINOR = 2;
 
@@ -132,6 +134,7 @@ typedef union{
 #define MNUM_PLAYLISTMENU (1)
 
 #define UM_TRAYICON (WM_USER+1)
+#define UM_PLAYER_EVENT (WM_USER+2) // WPARAM = IMFMediaEvent*, LPARAM = MediaEventType
 
 //timers
 #define TM_NEXT_IMAGE 3
@@ -220,6 +223,30 @@ inline BOOL IsURL(const WCHAR* str){
         if(str[i]==L':'&&str[i+1]==L'/'&&str[i+2]==L'/')return TRUE;
     }
     return FALSE;
+}
+
+// Waits for the specified handle while processing windows messages
+// Returns TRUE on success, FALSE on error or timeout (10 seconds)
+inline BOOL AwaitHandle(HANDLE hEvent){
+
+    MSG msg={0};
+
+    while(1){
+        DWORD res = MsgWaitForMultipleObjectsEx(1,&hEvent,10000,QS_ALLEVENTS,0);
+
+        switch (res){
+            case WAIT_OBJECT_0:return TRUE;
+            case WAIT_OBJECT_0 + 1:
+            
+            while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
+               TranslateMessage(&msg);
+               DispatchMessage(&msg);
+            }
+            break;
+            default:return FALSE;//error
+        }//end switch
+
+    }//end while
 }
 
 #endif

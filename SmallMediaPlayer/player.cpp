@@ -4,12 +4,16 @@
 #include <math.h>
 #include "player.h"
 #include "player_dshow.h"
+#include "player_mf.h"
 #include "tags.h"
 #include "errors.h"
+#include "resource.h"
 
 extern SMPSETTINGS Settings;
 extern TAGS_GENERIC OpenedFileTags;
 extern bool fOpenedFileTags;
+
+PLAYER_IMPL CurrentImpl=IMPL_DSHOW;
 
 HWND hWnd;//for notify
 
@@ -125,17 +129,39 @@ else{StringCchCat(text,size,L"[Нет данных]\n");}
 void Close(){
 
     Stop();
-
     DS_Player_Close();
-	
+    g_pPlayer->Close();
+    
     PlayerState=FILE_NOT_LOADED;
 }
 
 BOOL Player_OpenFile(WCHAR* filename){
     if(PlayerState!=FILE_NOT_LOADED){Close();}
     fShowNextImage=false;
-    BOOL res = DS_Player_OpenFile(filename);
-    if(res==FALSE)return FALSE;
+
+    //try DirectShow
+    HRESULT hr = DS_Player_OpenFile(filename);
+
+    if(SUCCEEDED(hr)){
+        CurrentImpl=IMPL_DSHOW;
+    }
+    else{
+        //if failed, try Media Foundation
+        hr = MF_Player_OpenFile(filename);
+
+        if(SUCCEEDED(hr)){
+            CurrentImpl=IMPL_MF;
+        }
+    }
+
+    if(FAILED(hr)){
+        //HandlePlayError(hr,filename);
+        HandleMfError(hr,L"Could not open the file.",filename);
+        WPARAM wParam=MAKEWPARAM(ID_NEXTTRACK,0);
+        PostMessage(hWnd,WM_COMMAND,wParam,0);
+        return FALSE;
+    }
+    
     PlayerState=STOPPED;
 
     //initialize and show video window, if the file has video
@@ -170,7 +196,15 @@ void Play(){
         return;
     }
 
-    BOOL res = DS_Player_Play();
+    BOOL res;
+    if(CurrentImpl==IMPL_DSHOW) {
+        res = DS_Player_Play();
+    }
+    else {
+        HRESULT hr=g_pPlayer->Play();
+        res=SUCCEEDED(hr);
+    }
+
     if(res==FALSE)return;
 
     PlayerState=PLAYING;
@@ -178,14 +212,32 @@ void Play(){
 
 void Pause(){
     if(PlayerState!=PLAYING)return;
-    BOOL res = DS_Player_Pause();
+    BOOL res;
+
+    if(CurrentImpl==IMPL_DSHOW){
+       res = DS_Player_Pause();
+    }
+    else{
+        HRESULT hr=g_pPlayer->Pause();
+        res=SUCCEEDED(hr);
+    }
+
     if(res==FALSE)return;
     PlayerState=PAUSED;
 }
 
 void Resume(){
     if(PlayerState!=PAUSED)return;
-    BOOL res=DS_Player_Resume();
+    BOOL res;
+
+    if(CurrentImpl==IMPL_DSHOW){
+       res=DS_Player_Resume();
+    }
+    else{
+        HRESULT hr=g_pPlayer->Play();
+        res=SUCCEEDED(hr);
+    }
+
     if(res==FALSE)return;
     PlayerState=PLAYING;
 }
@@ -194,7 +246,16 @@ void Stop(){
     if(PlayerState!=PLAYING)return;
 
     Pause();
-    BOOL res=DS_Player_Stop();
+    BOOL res;
+
+    if(CurrentImpl==IMPL_DSHOW){
+       res=DS_Player_Stop();
+    }
+    else{
+        HRESULT hr=g_pPlayer->Stop();
+        res=SUCCEEDED(hr);
+    }
+
     if(res==FALSE)return;
 
     PlayerState=STOPPED;
@@ -204,18 +265,38 @@ void Stop(){
 DWORD GetLength(){
     if(PlayerState==FILE_NOT_LOADED)return 0;
 	if(fShowNextImage==true)return Settings.ImageDelay;
-    return DS_Player_GetLength();
-	
+
+    if(CurrentImpl==IMPL_MF){
+        return g_pPlayer->GetLength();
+    }
+    else{
+        return DS_Player_GetLength();
+    }
 }
 
 DWORD GetPosition(){
     if(PlayerState==FILE_NOT_LOADED||PlayerState==STOPPED)return 0;
-    return DS_Player_GetPosition();
+
+    if(CurrentImpl==IMPL_MF){
+        return g_pPlayer->GetPosition();
+    }
+    else {
+        return DS_Player_GetPosition();
+    }
 }
 
 void Rewind(){
     if(PlayerState==FILE_NOT_LOADED)return;
-    BOOL res = DS_Player_Rewind();
+
+    BOOL res;
+    if(CurrentImpl==IMPL_MF){
+        HRESULT hr=g_pPlayer->SetPosition(0);
+        res=SUCCEEDED(hr);
+    }
+    else{
+        res=DS_Player_Rewind();
+    }
+
     if(res==FALSE)return;
     if(PlayerState==PLAYING)Play();
     if(PlayerState==PAUSED)PlayerState=STOPPED;
@@ -224,12 +305,20 @@ void Rewind(){
 void SetPosition(LONGLONG pos){
 
     DWORD dur;
+    BOOL res;
 
 	if(PlayerState==FILE_NOT_LOADED) return;
 	dur=GetLength();
 	if(((DWORD)pos)>dur)return;
 
-	BOOL res = DS_Player_SetPosition(pos);
+    if(CurrentImpl==IMPL_MF){
+        HRESULT hr=g_pPlayer->SetPosition(pos);
+        res=SUCCEEDED(hr);
+    }
+	else {
+        res = DS_Player_SetPosition(pos);
+    }
+
     if(res==FALSE)return;
 
     if(PlayerState==PLAYING)Play();
@@ -242,9 +331,12 @@ int GetVolume()
 
 void SetVolume(long x)
 {
+    long y;
+
     if(x<0)x=0;
     if(x>100)x=100;
-    long y;
+
+    VolumeX=x; //store volume in percents
 
     //audio-tapered control
     if(x==0) y=-10000;
@@ -252,20 +344,45 @@ void SetVolume(long x)
 
     if(y<-10000)y=-10000;
     if(y>0)y=0;
-    VolumeX=x;
-    Volume=y;
+    
+    Volume=y; //store volume in DirectX units
 
     if(PlayerState==FILE_NOT_LOADED)return;
-    DS_Player_SetVolume(y);
+    
+    if(CurrentImpl==IMPL_MF){
+        //Media Foundation
+        g_pPlayer->SetVolume(x);
+    }
+    else{
+        //DirectShow
+        DS_Player_SetVolume(y);
+    }
 }
 
 bool SetVideoWindow(HWND hParent){
     if(PlayerState==FILE_NOT_LOADED)return false;
+
+    if(CurrentImpl==IMPL_MF){
+        if(g_pPlayer->HasVideo()){
+            SetVideoRect();
+            return true;
+        }
+        else return false;
+    }
+
     return DS_SetVideoWindow(hParent);
 }
 
 void SetVideoRect(){
     if(PlayerState==FILE_NOT_LOADED)return;
+
+    if(CurrentImpl==IMPL_MF){
+        RECT rc={0};
+        GetClientRect(hVideoWindow,&rc);
+        OnResize(rc.right,rc.bottom);
+        return;
+    }
+
     DS_SetVideoRect();
 }
 
@@ -308,5 +425,20 @@ SetVideoWindow(hVideoWindow);
 }
 
 void ShowPropertyPage(TOPOLOGY_NODE node){
+
+    if(CurrentImpl==IMPL_MF){
+        MessageBoxW(hWnd,L"Not implemented",L"",MB_OK);
+        return;
+    }
+
     DS_ShowPropertyPage(node);
 }
+
+LRESULT Player_InitWindows(HWND hVideo,HWND hEvent){
+    return MF_Player_InitWindows(hVideo,hEvent);
+}
+
+void Player_OnMfEvent(HWND hwnd, WPARAM pUnkPtr){
+    MF_OnPlayerEvent(hwnd,pUnkPtr);
+}
+

@@ -59,8 +59,8 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies Condition="'$(VisualStudioVersion)'=='11.0'">winmm.lib;strmiids.lib;quartz.lib;comctl32.lib;gdiplus.lib;Version.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalDependencies Condition="'$(VisualStudioVersion)'&gt;'14.0'">winmm.lib;strmiids.lib;quartz.lib;comctl32.lib;gdiplus.lib;Version.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies Condition="'$(VisualStudioVersion)'=='11.0'">winmm.lib;strmiids.lib;quartz.lib;comctl32.lib;gdiplus.lib;Version.lib;shlwapi.lib;Mf.lib;Mfplat.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies Condition="'$(VisualStudioVersion)'&gt;'14.0'">winmm.lib;strmiids.lib;quartz.lib;comctl32.lib;gdiplus.lib;Version.lib;shlwapi.lib;Mf.lib;Mfplat.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -80,8 +80,8 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies Condition="'$(VisualStudioVersion)'=='11.0'">winmm.lib;strmiids.lib;quartz.lib;comctl32.lib;gdiplus.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalDependencies Condition="'$(VisualStudioVersion)'&gt;'14.0'">winmm.lib;strmiids.lib;quartz.lib;comctl32.lib;gdiplus.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies Condition="'$(VisualStudioVersion)'=='11.0'">winmm.lib;strmiids.lib;quartz.lib;comctl32.lib;gdiplus.lib;shlwapi.lib;Mf.lib;Mfplat.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies Condition="'$(VisualStudioVersion)'&gt;'14.0'">winmm.lib;strmiids.lib;quartz.lib;comctl32.lib;gdiplus.lib;shlwapi.lib;Mf.lib;Mfplat.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -89,6 +89,7 @@
     <ClCompile Include="errors.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="player_dshow.cpp" />
+    <ClCompile Include="player_mf.cpp" />
     <ClCompile Include="ui.cpp" />
     <ClCompile Include="PictureManager.cpp" />
     <ClCompile Include="player.cpp" />
@@ -104,6 +105,7 @@
     <ClInclude Include="PictureManager.h" />
     <ClInclude Include="player.h" />
     <ClInclude Include="player_dshow.h" />
+    <ClInclude Include="player_mf.h" />
     <ClInclude Include="PlayListEditor.h" />
     <ClInclude Include="RegistryModule.h" />
     <ClInclude Include="resource.h" />

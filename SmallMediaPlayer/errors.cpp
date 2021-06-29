@@ -370,6 +370,24 @@ void HandlePlayError(HRESULT hr, const WCHAR* file){ //export
 	HandleError(output,SMP_ALERT_NONBLOCKING,L"");
 }
 
+void HandleMfError(HRESULT hr, const WCHAR* pszErrorMessage, const WCHAR* file){ //export
+
+    const size_t MESSAGE_LEN = 512;
+    WCHAR message[MESSAGE_LEN]=L"";
+    StringCchPrintf(message, MESSAGE_LEN, L"%s (HRESULT = 0x%X)", 
+        pszErrorMessage, hr);
+    	
+	const int output_len=1000;
+	WCHAR output[output_len]=L"";
+
+	StringCchCopyW(output,output_len,L"Ошибка Media Foundation. ");	
+	StringCchCatW(output,output_len,message);
+	StringCchCatW(output,output_len,L" - ");
+	StringCchCatW(output,output_len,file);
+	
+	HandleError(output,SMP_ALERT_NONBLOCKING,L"");
+}
+
 void HandleMediaError(HRESULT hr){ //export
 	WCHAR buf[100]=L"";
 	WCHAR mes[MAX_ERROR_TEXT_LEN]=L"";
