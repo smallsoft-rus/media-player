@@ -1450,7 +1450,7 @@ wc.hIcon=hSMPIcon;
 	
 	//create wclass structure VIDEO WINDOW
 	wc.cbSize=sizeof(wc);
-	wc.style=CS_HREDRAW|CS_VREDRAW|CS_DBLCLKS;
+	wc.style=CS_DBLCLKS;
 	wc.lpfnWndProc=VideoWndProc;
 	wc.cbClsExtra=0;
 	wc.cbWndExtra=0;
