@@ -895,12 +895,17 @@ Stop();
 PlayTrackByNumber(i);
 RunTimer();break;
 case NM_RCLICK:
-	pt.x=(LONG)lpnmitem->ptAction.x;
-	pt.y=(LONG)lpnmitem->ptAction.y;
-	ClientToScreen(PlayList,&pt);
-ShowContextMenu(MNUM_PLAYLISTMENU,pt.x,pt.y);
-fBlockContextMenu=true;
-	return TRUE;
+    success=GetCursorPos(&pt);
+    
+    if(success==FALSE){
+        pt.x=(LONG)lpnmitem->ptAction.x;
+        pt.y=(LONG)lpnmitem->ptAction.y;
+        ClientToScreen(PlayList,&pt);
+    }
+    
+    ShowContextMenu(MNUM_PLAYLISTMENU,pt.x,pt.y);
+    fBlockContextMenu=true;
+    return TRUE;
 case LVN_KEYDOWN:
 	pnkd = (LPNMLVKEYDOWN) lParam; 
 //KEYBOARD EVENT
