@@ -1175,16 +1175,18 @@ if(n==-1)break;
 SetPlaylistSelectedElement(n);
 break;
 case ID_MINIMIZE:SwitchTrayIcon();break;
+
 case ID_ABOUT:
-	MessageBox(hMainWnd,TEXT("\
-Small Media Player v2.2\n\
+    MessageBox(hMainWnd, PROGRAM_TITLE L" " PROGRAM_VERSION 
+L"\n\
 Лицензия: BSD 2.0\n\
 Разработчик: SmallSoft\n\
 E-Mail: vadim--111@yandex.ru\n\
 Сайт: http://smallsoft2.blogspot.ru/\n\
-Репозиторий: https://github.com/smallsoft-rus/media-player\n\
-"),
-TEXT("О программе"),MB_OK|MB_ICONINFORMATION);break;
+Репозиторий: https://github.com/smallsoft-rus/media-player\n", 
+L"О программе",MB_OK|MB_ICONINFORMATION);
+    break;
+
 case ID_EXIT:SendMessage(hMainWnd,WM_CLOSE,0,0);break;
 
 				}
@@ -1495,9 +1497,12 @@ wc.hIcon=hSMPIcon;
 	int ww=Settings.WndWidth,wh=Settings.WndHeight;
 	if(Settings.WndMaximized!=false){ww=CW_USEDEFAULT;wh=0;}
 	
-	//create window
-	hMainWnd=CreateWindowEx(0,wclass_name,L"SmallMediaPlayer",WS_OVERLAPPEDWINDOW|WS_CLIPCHILDREN,Settings.WndX,Settings.WndY,
-						ww,wh,NULL,NULL,GetModuleHandle(NULL),NULL);
+    //create window
+    hMainWnd=CreateWindowEx(
+        0,wclass_name,PROGRAM_TITLE,WS_OVERLAPPEDWINDOW|WS_CLIPCHILDREN,Settings.WndX,Settings.WndY,
+        ww,wh,NULL,NULL,GetModuleHandle(NULL),NULL
+    );
+
 	hWnd=hMainWnd;
 	if(hMainWnd==NULL)
 	{
