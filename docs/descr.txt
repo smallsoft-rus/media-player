@@ -16,7 +16,7 @@ https://github.com/smallsoft-rus/smallsoft-rus.github.io/raw/main/SmallMediaPlay
 - отображение информации о кодеках, используемых при воспроизведении файла
 - сворачивается в значок на системной панели
 
-Поддерживаемые ОС: Windows XP, Vista, 7, 8, 8.1, 10.
+Поддерживаемые ОС: Windows Vista, 7, 8, 8.1, 10.
 Для запуска требуется Visual C++ 2012 Redistributable (x86).
 
 Screens:

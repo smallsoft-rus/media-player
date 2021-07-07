@@ -3,7 +3,7 @@
 ## Системные требования
 
 - Процессор x86 с поддержкой инструкций SSE2 (Intel Pentium 4, AMD Athlon 64 или более новые) 
-- Операционная система: Windows XP, Vista, 7, 8, 8.1, 10
+- Операционная система: Windows Vista, 7, 8, 8.1, 10
 - [Microsoft Visual C++ 2012 Redistributable](https://www.microsoft.com/en-us/download/details.aspx?id=30679)
 
 ## Установка
@@ -33,7 +33,7 @@
 
 Чтобы вывести изображение на полный экран при просмотре видео, щелкните два раза левой кнопкой мыши в окне видео, либо выберите "Вид - На полный экран" в меню.
 
-Проигрыватель не содержит встроенных кодеков, поэтому он может воспроизвести только файлы тех форматов, для которых декодер встроен в систему или установлен сторонний декодер. Список форматов, для которых в Windows имеется встроенный декодер, см. на странице [Supported Formats in DirectShow](https://docs.microsoft.com/en-us/windows/win32/directshow/supported-formats-in-directshow).
+Проигрыватель не содержит встроенных кодеков, поэтому он может воспроизвести только файлы тех форматов, для которых декодер встроен в систему или установлен сторонний декодер. Список форматов, для которых в Windows имеется встроенный декодер, см. на странице [Supported Formats in DirectShow](https://docs.microsoft.com/en-us/windows/win32/directshow/supported-formats-in-directshow), [Supported Media Formats in Media Foundation](https://docs.microsoft.com/en-us/windows/win32/medfound/supported-media-formats-in-media-foundation).
 
 ## Работа со списком воспроизведения
 

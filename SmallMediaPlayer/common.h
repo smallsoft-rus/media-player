@@ -38,9 +38,9 @@ typedef enum {IMPL_DSHOW=1,IMPL_MF} PLAYER_IMPL;
 #define PROGRAM_TITLE L"Small Media Player"
 #endif
 
-#define PROGRAM_VERSION L"v2.2"
+#define PROGRAM_VERSION L"v2.3"
 const int SMPVER_MAJOR = 2;
-const int SMPVER_MINOR = 2;
+const int SMPVER_MINOR = 3;
 
 typedef struct 
 {
