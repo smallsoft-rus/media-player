@@ -15,6 +15,7 @@ void OnPlayerEvent(PLAYER_EVENT evt);
 
 //forward decl
 extern HANDLE MF_hOpenEvent;
+extern HRESULT MF_OpenEvent_LastResult;
 HRESULT GetSourceDuration(IMFMediaSource *pSource, MFTIME *pDuration);
 
 //  Static class method to create the MfPlayer object.
@@ -445,6 +446,7 @@ HRESULT MfPlayer::OnTopologyStatus(IMFMediaEvent *pEvent)
 
         //Signal file opened event
         SetEvent(MF_hOpenEvent);
+        MF_OpenEvent_LastResult = S_OK;
 
         //restore volume
         this->SetVolume(VolumeX);
@@ -1023,6 +1025,9 @@ MfPlayer     *g_pPlayer = NULL;                  // Global player object.
 //event that signals when async file open operation is finished
 HANDLE MF_hOpenEvent=NULL;
 
+//the result of the last async file open operation
+HRESULT MF_OpenEvent_LastResult = S_OK;
+
 // Note: After WM_CREATE is processed, g_pPlayer remains valid until the
 // window is destroyed.
 
@@ -1031,6 +1036,8 @@ HRESULT MF_Player_OpenFile(PWSTR file)
 {
     //run async file open operation
     ResetEvent(MF_hOpenEvent);
+    MF_OpenEvent_LastResult = S_OK;
+
     HRESULT hr = g_pPlayer->OpenURL(file);
 
     if (SUCCEEDED(hr))
@@ -1039,6 +1046,12 @@ HRESULT MF_Player_OpenFile(PWSTR file)
 
         //wait until async file open operation is completed
         AwaitHandle(MF_hOpenEvent);
+
+        //check results of async operation
+        if(FAILED(MF_OpenEvent_LastResult)){
+            UpdateUI(hWnd, Closed);
+            return MF_OpenEvent_LastResult;
+        }
 
 #ifdef DEBUG
     LogMessage(L"MF_Player_OpenFile",TRUE);
@@ -1171,10 +1184,21 @@ HRESULT GetSourceDuration(IMFMediaSource *pSource, MFTIME *pDuration)
 void MF_OnPlayerEvent(HWND hwnd, WPARAM pUnkPtr)
 {
     HRESULT hr = g_pPlayer->HandleEvent(pUnkPtr);
+
     if (FAILED(hr))
     {
-        NotifyError(hwnd, L"OnPlayerEvent error", hr);
+        if(g_pPlayer->GetState() == OpenPending){
+            g_pPlayer->Close();
+        }
+        else
+        {
+            NotifyError(hwnd, L"OnPlayerEvent error", hr);
+        }
+
+        //communicate failure to async open operation
+        MF_OpenEvent_LastResult = hr;
         SetEvent(MF_hOpenEvent);
     }
+
     UpdateUI(hwnd, g_pPlayer->GetState());
 }
