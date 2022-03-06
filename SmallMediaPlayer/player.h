@@ -40,6 +40,7 @@ void EnableFullScreen();
 WORD GetMultimediaInfo(SMP_AUDIOINFO* pAudioInfo,SMP_VIDEOINFO* pVideoInfo,SMP_STREAM* pStreamType);
 void GetMultimediaInfoString(WCHAR* text,size_t size);
 int GetVolume();
+PLAYER_IMPL Player_GetCurrentImpl();
 
 // Sets callback function to notify about player events (called from UI)
 void Player_SetEventCallback(PLAYER_EVENT_CALLBACK callback);

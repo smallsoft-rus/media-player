@@ -827,10 +827,15 @@ case WM_INITDIALOG:
 case WM_HSCROLL:
                   
 if(lParam==(LPARAM)hScrollbar) {
-	Progress.ProcessScrollEvent((short)LOWORD(wParam),(short)HIWORD(wParam));
-	pos=Progress.GetTrackPos()*1000;
-	SetPosition(pos);
-	UpdatePosition();
+    short eventType = (short)LOWORD(wParam);
+    Progress.ProcessScrollEvent(eventType, (short)HIWORD(wParam));
+    pos=Progress.GetTrackPos()*1000;
+
+    //On Media Foundation we don't do any live scrolling on drag, because seeking is async and too slow
+    if(Player_GetCurrentImpl() == IMPL_DSHOW || (Player_GetCurrentImpl() == IMPL_MF && eventType != SB_THUMBTRACK)){
+        SetPosition(pos);
+        UpdatePosition();
+    }
 }
 break;
 
@@ -1222,7 +1227,11 @@ if(IsPlayingVideo==true)return 0;
 		if(lParam==WM_LBUTTONDBLCLK){SwitchTrayIcon();}
 		break;
 	case WM_TIMER:
-		UpdatePosition();
+        //On Media Foundation, we don't update position while user drags scrollbar track, because 
+        //we aren't doing actual live scrolling and player won't report correct position in this case
+        if(Player_GetCurrentImpl() == IMPL_DSHOW || (Player_GetCurrentImpl() == IMPL_MF && !Progress.IsDragging())) {
+            UpdatePosition();
+        }
 		break;
 	case WM_PAINT:hDC=BeginPaint(hWnd,&ps);
 		

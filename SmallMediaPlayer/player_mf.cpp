@@ -674,6 +674,10 @@ DWORD MfPlayer::GetLength(){
 
 DWORD MfPlayer::GetPosition(){
 
+    // If seek operation is pending, clock can report zero time incorrectly
+    // return the last requested position to prevent scrollbar jumping to left
+    if(nSeekPending>0) return dwSeekPos;
+
     IMFClock* pClock=NULL;
     IMFPresentationClock* ppClock=NULL;
     HRESULT hr;
@@ -693,12 +697,6 @@ DWORD MfPlayer::GetPosition(){
 end:SafeRelease(&pClock);
     SafeRelease(&ppClock);
 
-    if(ret==0){
-        //if seek operation is pending, clock can report zero time incorrectly
-        //return the last requested position to prevent scrollbar jumping to left
-        if(nSeekPending>0)return dwSeekPos;
-    }
-    
     return ret;
 }
 

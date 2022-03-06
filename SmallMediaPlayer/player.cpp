@@ -140,7 +140,8 @@ BOOL Player_OpenFile(WCHAR* filename){
     fShowNextImage=false;
 
     //try DirectShow
-    HRESULT hr = DS_Player_OpenFile(filename);
+    HRESULT hr;
+    hr = DS_Player_OpenFile(filename);
 
     if(SUCCEEDED(hr)){
         CurrentImpl=IMPL_DSHOW;
@@ -442,3 +443,6 @@ void Player_OnMfEvent(HWND hwnd, WPARAM pUnkPtr){
     MF_OnPlayerEvent(hwnd,pUnkPtr);
 }
 
+PLAYER_IMPL Player_GetCurrentImpl(){
+    return CurrentImpl;
+}

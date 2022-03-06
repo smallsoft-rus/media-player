@@ -11,7 +11,8 @@
 
 class ScrollbarControl{
 public:
-    ScrollbarControl(){;}
+    ScrollbarControl(){}
+
     ScrollbarControl(int type,HWND handle,int min,int max,UINT page){
         si.cbSize=sizeof(SCROLLINFO);
         si.nMin=min;si.nMax=max;
@@ -20,9 +21,10 @@ public:
         SetScrollInfo(handle,type,&si,TRUE);
         hwnd=handle;
         BarType=type;
-        Inc=10;        
-        };
-        
+        Inc=10;
+        isDragging = false;
+    }
+
     void SetTrackPosition(int pos){
         si.nPos=pos;
         si.fMask=SIF_POS;
@@ -39,10 +41,17 @@ public:
             
             case SB_PAGEUP:SetTrackPosition(si.nPos-si.nPage);break;
             
-             case SB_PAGEDOWN:SetTrackPosition(si.nPos+si.nPage);break;
-            case SB_THUMBTRACK:
-            case SB_THUMBPOSITION:SetTrackPosition(TrackPos);break;
-            
+            case SB_PAGEDOWN:SetTrackPosition(si.nPos+si.nPage);break;
+
+            case SB_THUMBTRACK: 
+                isDragging=true;
+                SetTrackPosition(TrackPos);
+                break;
+
+            case SB_THUMBPOSITION:
+                isDragging=false;
+                SetTrackPosition(TrackPos);
+                break;
             };
             
             }
@@ -50,12 +59,16 @@ public:
 		si.fMask=SIF_POS;
         GetScrollInfo(hwnd,BarType,&si);
 		return si.nPos;}
+
+    bool IsDragging(){
+        return this->isDragging;
+    }
       
 private:SCROLLINFO si;
 HWND hwnd;
 int BarType;
 int Inc;
-
+bool isDragging;
 
     };
 
