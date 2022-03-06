@@ -15,7 +15,7 @@ jobs:
     - uses: actions/checkout@v1
     - name: Build with MSBuild
       run: |
-        & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\msbuild.exe"
+        & "${env:ProgramFiles}\Microsoft Visual Studio\2022\Enterprise\MSBuild\Current\Bin\msbuild.exe"
     - name: Test
       run: |
-        Set-Location -Path .\Debug; & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\2019\Enterprise\Common7\IDE\Extensions\TestPlatform\vstest.console.exe" SmallMediaPlayer_Tests.dll /TestCaseFilter:"Owner!=GUI"
+        Set-Location -Path .\Debug; & "${env:ProgramFiles}\Microsoft Visual Studio\2022\Enterprise\Common7\IDE\Extensions\TestPlatform\vstest.console.exe" SmallMediaPlayer_Tests.dll /TestCaseFilter:"Owner!=GUI"
