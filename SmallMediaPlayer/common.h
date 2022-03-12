@@ -42,6 +42,10 @@ typedef enum {IMPL_DSHOW=1,IMPL_MF} PLAYER_IMPL;
 const int SMPVER_MAJOR = 2;
 const int SMPVER_MINOR = 3;
 
+#ifndef PROGRAM_BUILD_INFO
+#define PROGRAM_BUILD_INFO L""
+#endif
+
 typedef struct 
 {
 	int size;

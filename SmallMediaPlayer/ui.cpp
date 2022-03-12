@@ -1188,7 +1188,7 @@ L"\n\
 Разработчик: SmallSoft\n\
 E-Mail: vadim--111@yandex.ru\n\
 Сайт: http://smallsoft2.blogspot.ru/\n\
-Репозиторий: https://github.com/smallsoft-rus/media-player\n", 
+Репозиторий: https://github.com/smallsoft-rus/media-player\n" PROGRAM_BUILD_INFO, 
 L"О программе",MB_OK|MB_ICONINFORMATION);
     break;
 
