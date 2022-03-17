@@ -38,9 +38,12 @@ typedef enum {IMPL_DSHOW=1,IMPL_MF} PLAYER_IMPL;
 #define PROGRAM_TITLE L"Small Media Player"
 #endif
 
-#define PROGRAM_VERSION L"v2.3"
-const int SMPVER_MAJOR = 2;
-const int SMPVER_MINOR = 3;
+#define PROGRAM_VERSION L"v2.3.1"
+#define SMPVER_MAJOR 2
+#define SMPVER_MINOR 3
+
+#define VER_FILEVERSION             SMPVER_MAJOR,SMPVER_MINOR,1,0
+#define VER_PRODUCTVERSION          SMPVER_MAJOR,SMPVER_MINOR,1,0
 
 #ifndef PROGRAM_BUILD_INFO
 #define PROGRAM_BUILD_INFO L""
