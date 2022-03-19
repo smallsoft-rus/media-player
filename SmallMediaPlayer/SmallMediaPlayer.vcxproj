@@ -115,6 +115,7 @@
     <ClInclude Include="resource.h" />
     <ClInclude Include="ScrollbarControl.h" />
     <ClInclude Include="SMPSettings.h" />
+    <ClInclude Include="smpver.h" />
     <ClInclude Include="tags.h" />
   </ItemGroup>
   <ItemGroup>
