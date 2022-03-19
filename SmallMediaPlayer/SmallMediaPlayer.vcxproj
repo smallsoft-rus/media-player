@@ -63,6 +63,9 @@
       <AdditionalDependencies Condition="'$(VisualStudioVersion)'=='11.0'">winmm.lib;strmiids.lib;quartz.lib;comctl32.lib;gdiplus.lib;Version.lib;shlwapi.lib;Mf.lib;Mfplat.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalDependencies Condition="'$(VisualStudioVersion)'&gt;'14.0'">winmm.lib;strmiids.lib;quartz.lib;comctl32.lib;gdiplus.lib;Version.lib;shlwapi.lib;Mf.lib;Mfplat.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <ResourceCompile>
+      <PreprocessorDefinitions>_UNICODE;UNICODE;DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>

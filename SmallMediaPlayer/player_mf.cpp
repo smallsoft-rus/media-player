@@ -275,6 +275,18 @@ HRESULT MfPlayer::ResizeVideo(WORD width, WORD height)
 
 HRESULT MfPlayer::Invoke(IMFAsyncResult *pResult)
 {
+
+#ifdef DEBUG
+    LogMessage(L"MfPlayer::Invoke",TRUE);
+    WCHAR buf[100]=L"";
+    StringCchPrintf(buf,100,L"State: %u", (UINT)this->m_state);
+
+    if(m_pSession == NULL) {
+        HandleError(L"Session is NULL in MfPlayer::Invoke",SMP_ALERT_BLOCKING,L"",NULL);
+        return E_FAIL;
+    }
+#endif
+
     MediaEventType meType = MEUnknown;  // Event type
 
     IMFMediaEvent *pEvent = NULL;
@@ -283,8 +295,15 @@ HRESULT MfPlayer::Invoke(IMFAsyncResult *pResult)
     HRESULT hr = m_pSession->EndGetEvent(pResult, &pEvent);
     if (FAILED(hr))
     {
+#ifdef DEBUG        
+        HandleMfError(hr,L"m_pSession->EndGetEvent failed in MfPlayer::Invoke",L"");
+#endif
         goto done;
     }
+
+#ifdef DEBUG
+    LogMessage(L"m_pSession->EndGetEvent success",FALSE);    
+#endif
 
     // Get the event type. 
     hr = pEvent->GetType(&meType);
@@ -292,6 +311,11 @@ HRESULT MfPlayer::Invoke(IMFAsyncResult *pResult)
     {
         goto done;
     }
+
+#ifdef DEBUG
+    StringCchPrintf(buf,100,L"Event type: %u", (UINT)meType);
+    LogMessage(buf,FALSE);
+#endif
 
     if (meType == MESessionClosed)
     {
@@ -718,11 +742,6 @@ HRESULT CreateMediaSource(PCWSTR sURL, IMFMediaSource **ppSource)
     }
 
     // Use the source resolver to create the media source.
-
-    // Note: For simplicity this sample uses the synchronous method to create 
-    // the media source. However, creating a media source can take a noticeable
-    // amount of time, especially for a network source. For a more responsive 
-    // UI, use the asynchronous BeginCreateObjectFromURL method.
 
     hr = pSourceResolver->CreateObjectFromURL(
         sURL,                       // URL of the source.
