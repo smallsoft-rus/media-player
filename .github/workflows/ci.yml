@@ -13,6 +13,9 @@ jobs:
 
     steps:
     - uses: actions/checkout@v1
+    - name: Set version info
+      run: |
+        .\scripts\git.ps1
     - name: Build with MSBuild
       run: |
         $Env:Path += ";${Env:ProgramFiles}\Microsoft Visual Studio\2022\Enterprise\MSBuild\Current\Bin\"; .\scripts\build.ps1
