@@ -280,6 +280,7 @@ HRESULT MfPlayer::Invoke(IMFAsyncResult *pResult)
     LogMessage(L"MfPlayer::Invoke",TRUE);
     WCHAR buf[100]=L"";
     StringCchPrintf(buf,100,L"State: %u", (UINT)this->m_state);
+    LogMessage(buf,FALSE);
 
     if(m_pSession == NULL) {
         HandleError(L"Session is NULL in MfPlayer::Invoke",SMP_ALERT_BLOCKING,L"",NULL);
