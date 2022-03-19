@@ -33,9 +33,9 @@ typedef enum {
 typedef enum {IMPL_DSHOW=1,IMPL_MF} PLAYER_IMPL;
 
 #ifdef DEBUG
-#define PROGRAM_TITLE L"Small Media Player [Debug]"
+#define PROGRAM_TITLE L"Small Media Player MF [Debug]"
 #else
-#define PROGRAM_TITLE L"Small Media Player"
+#define PROGRAM_TITLE L"Small Media Player MF"
 #endif
 
 #define PROGRAM_VERSION L"v2.3.1"
