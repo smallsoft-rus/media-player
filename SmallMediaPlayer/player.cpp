@@ -135,20 +135,24 @@ void Close(){
     PlayerState=FILE_NOT_LOADED;
 }
 
-BOOL Player_OpenFile(WCHAR* filename){
+BOOL Player_OpenFileCore(WCHAR* filename, BOOL useDirectShow, BOOL useMediaFoundation){
     if(PlayerState!=FILE_NOT_LOADED){Close();}
     fShowNextImage=false;
-
+        
+    HRESULT hr=E_FAIL;
     //try DirectShow
-    HRESULT hr;
-    hr = DS_Player_OpenFile(filename);
+    if(useDirectShow != FALSE){
+        hr = DS_Player_OpenFile(filename);
+    }
 
     if(SUCCEEDED(hr)){
         CurrentImpl=IMPL_DSHOW;
     }
     else{
         //if failed, try Media Foundation
-        hr = MF_Player_OpenFile(filename);
+        if(useMediaFoundation != FALSE){
+            hr = MF_Player_OpenFile(filename);
+        }
 
         if(SUCCEEDED(hr)){
             CurrentImpl=IMPL_MF;
@@ -181,6 +185,12 @@ BOOL Player_OpenFile(WCHAR* filename){
     }
 
     return TRUE;
+}
+
+BOOL Player_OpenFile(WCHAR* filename){
+    BOOL useDirectShow = TRUE;
+    BOOL useMediaFoundation = TRUE;
+    return Player_OpenFileCore(filename, useDirectShow, useMediaFoundation);
 }
 
 void PlayFile(TCHAR* filename){
