@@ -283,8 +283,13 @@ HRESULT MfPlayer::Invoke(IMFAsyncResult *pResult)
     LogMessage(buf,FALSE);
 
     if(m_pSession == NULL) {
-        HandleError(L"Session is NULL in MfPlayer::Invoke",SMP_ALERT_BLOCKING,L"",NULL);
-        return E_FAIL;
+        HandleError(L"Session is NULL in MfPlayer::Invoke",SMP_ALERT_NONBLOCKING,L"",NULL);
+        return MF_E_INVALIDREQUEST;
+    }
+#else
+    if(m_pSession == NULL) {
+        //Fix for issue https://github.com/smallsoft-rus/media-player/issues/15
+        return MF_E_INVALIDREQUEST;
     }
 #endif
 
@@ -566,7 +571,7 @@ done:
 HRESULT MfPlayer::CloseSession()
 {
     //  The IMFMediaSession::Close method is asynchronous, but the 
-    //  CPlayer::CloseSession method waits on the MESessionClosed event.
+    //  MfPlayer::CloseSession method waits on the MESessionClosed event.
     //  
     //  MESessionClosed is guaranteed to be the last event that the 
     //  media session fires.
