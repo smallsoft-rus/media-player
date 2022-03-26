@@ -17,6 +17,7 @@ void OnPlayerEvent(PLAYER_EVENT evt);
 extern HANDLE MF_hOpenEvent;
 extern HRESULT MF_OpenEvent_LastResult;
 HRESULT GetSourceDuration(IMFMediaSource *pSource, MFTIME *pDuration);
+WORD GetSourceInfo(IMFMediaSource *pSource, SMP_AUDIOINFO* pAudioInfo,SMP_VIDEOINFO* pVideoInfo,SMP_STREAM* pStreamType);
 
 //  Static class method to create the MfPlayer object.
 
@@ -732,6 +733,14 @@ end:SafeRelease(&pClock);
     return ret;
 }
 
+WORD MfPlayer::GetMultimediaInfo(SMP_AUDIOINFO* pAudioInfo,SMP_VIDEOINFO* pVideoInfo,SMP_STREAM* pStreamType){
+
+    if(PlayerState == FILE_NOT_LOADED) return INFORES_NO;
+    if(this->m_pSource == NULL) return INFORES_NO;
+
+    return GetSourceInfo(this->m_pSource, pAudioInfo, pVideoInfo, pStreamType);
+}
+
 //  Create a media source from a URL.
 HRESULT CreateMediaSource(PCWSTR sURL, IMFMediaSource **ppSource)
 {
@@ -931,7 +940,6 @@ done:
     SafeRelease(&pNode);
     return hr;
 }
-//</SnippetPlayer.cpp>
 
 //  Add a topology branch for one stream.
 //
@@ -1203,6 +1211,93 @@ HRESULT GetSourceDuration(IMFMediaSource *pSource, MFTIME *pDuration)
         pPD->Release();
     }
     return hr;
+}
+
+WORD GetSourceInfo(IMFMediaSource *pSource, SMP_AUDIOINFO* pAudioInfo,SMP_VIDEOINFO* pVideoInfo,SMP_STREAM* pStreamType){
+    IMFPresentationDescriptor* pPD = NULL;
+    IMFStreamDescriptor* pStream = NULL;
+    IMFMediaTypeHandler* pTypeHandler = NULL;
+    IMFMediaType* pMediaType = NULL;
+    DWORD count = 0;
+    BOOL selected = FALSE;
+    GUID majorType;
+    GUID subtype;
+    bool hasAudio = false;
+
+    HRESULT hr = pSource->CreatePresentationDescriptor(&pPD);
+
+    if(FAILED(hr)) goto End;
+    
+    hr = pPD->GetStreamDescriptorCount(&count);
+
+    if(FAILED(hr)) goto End;
+
+    for(DWORD i=0;i<count; i++){
+        hr = pPD->GetStreamDescriptorByIndex(i, &selected, &pStream);
+        if(FAILED(hr)) continue;
+
+        hr = pStream->GetMediaTypeHandler(&pTypeHandler);
+
+        if(FAILED(hr)) {
+            SafeRelease(&pStream);
+            continue;
+        }
+
+        hr = pTypeHandler->GetCurrentMediaType(&pMediaType);
+
+        if(FAILED(hr)) {
+            //if there's no current media type, try the first supported one
+            DWORD typeCount = 0;
+            pTypeHandler->GetMediaTypeCount(&typeCount);
+            if(typeCount>0) hr = pTypeHandler->GetMediaTypeByIndex(0, &pMediaType);
+        }
+
+        if(FAILED(hr)) {
+            SafeRelease(&pStream);
+            SafeRelease(&pTypeHandler);
+            continue;
+        }
+        
+        ZeroMemory(&majorType, sizeof(GUID));
+        pMediaType->GetMajorType(&majorType);
+
+        ZeroMemory(&subtype, sizeof(GUID));
+        pMediaType->GetGUID(MF_MT_SUBTYPE, &subtype);
+
+        if(majorType == MFMediaType_Audio){
+            hasAudio = true;
+
+            //Format tag is a first DWORD in GUID (https://docs.microsoft.com/en-us/windows/win32/medfound/audio-subtype-guids)
+            pAudioInfo->wFormatTag = (WORD)subtype.Data1;
+            
+            //Get audio stream properties
+            UINT32 numChannels = 0;
+            pMediaType->GetUINT32(MF_MT_AUDIO_NUM_CHANNELS, &numChannels);
+            if(numChannels>255) numChannels=255;
+            pAudioInfo->chans = (BYTE)numChannels;
+
+            UINT32 bitsPerSample = 0;
+            pMediaType->GetUINT32(MF_MT_AUDIO_BITS_PER_SAMPLE, &bitsPerSample);
+            pAudioInfo->BitsPerSample = (int)bitsPerSample;
+
+            UINT32 bytesPerSec = 0;
+            pMediaType->GetUINT32(MF_MT_AUDIO_AVG_BYTES_PER_SECOND, &bytesPerSec);
+            pAudioInfo->BitsPerSecond = (int)bytesPerSec*8;
+
+            UINT32 samplesPerSec = 0;
+            pMediaType->GetUINT32(MF_MT_AUDIO_SAMPLES_PER_SECOND, &samplesPerSec);
+            pAudioInfo->nFreq = (int)samplesPerSec;
+        }
+
+        SafeRelease(&pStream);
+        SafeRelease(&pTypeHandler);
+        SafeRelease(&pMediaType);
+    }
+
+End:SafeRelease(&pPD);
+
+    if(hasAudio) return INFORES_AUDIO;
+    else return INFORES_NO;
 }
 
 // Handler for Media Session events.
