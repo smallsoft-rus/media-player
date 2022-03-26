@@ -1223,6 +1223,7 @@ WORD GetSourceInfo(IMFMediaSource *pSource, SMP_AUDIOINFO* pAudioInfo,SMP_VIDEOI
     GUID majorType;
     GUID subtype;
     bool hasAudio = false;
+    bool hasVideo = false;
 
     HRESULT hr = pSource->CreatePresentationDescriptor(&pPD);
 
@@ -1288,6 +1289,52 @@ WORD GetSourceInfo(IMFMediaSource *pSource, SMP_AUDIOINFO* pAudioInfo,SMP_VIDEOI
             pMediaType->GetUINT32(MF_MT_AUDIO_SAMPLES_PER_SECOND, &samplesPerSec);
             pAudioInfo->nFreq = (int)samplesPerSec;
         }
+        else if(majorType == MFMediaType_Video){
+            hasVideo = true;
+            
+            //Codec FOURCC is the first dword in GUID
+            //(https://docs.microsoft.com/en-us/windows/win32/medfound/video-subtype-guids#creating-subtype-guids-from-fourccs-and-d3dformat-values)
+            DWORD fourcc = (DWORD)subtype.Data1;
+
+            if(subtype == MFVideoFormat_MPG1) {
+                pVideoInfo->VideoType = VIDEOTYPE_MPEG1;
+                pVideoInfo->dwVideoCodec = VIDEO_MPEG1;
+            }
+            else if(subtype == MFVideoFormat_MPEG2){
+                pVideoInfo->VideoType = VIDEOTYPE_MPEG2;
+            }
+            else if(subtype == MFVideoFormat_RGB8){
+                pVideoInfo->VideoType = VIDEOTYPE_VIDEO;
+                pVideoInfo->dwVideoCodec = fourcc;
+                pVideoInfo->BitsPerPixel = 8;
+            }
+            else if(subtype == MFVideoFormat_RGB24){
+                pVideoInfo->VideoType = VIDEOTYPE_VIDEO;
+                pVideoInfo->dwVideoCodec = fourcc;
+                pVideoInfo->BitsPerPixel = 24;
+            }
+            else if(subtype == MFVideoFormat_RGB32){
+                pVideoInfo->VideoType = VIDEOTYPE_VIDEO;
+                pVideoInfo->dwVideoCodec = fourcc;
+                pVideoInfo->BitsPerPixel = 32;
+            }
+            else { //other format identified by FOURCC
+                pVideoInfo->VideoType=VIDEOTYPE_VIDEO;
+                pVideoInfo->dwVideoCodec = fourcc;
+            }
+
+            //Get video stream properties
+            UINT32 width = 0;
+            UINT32 height = 0;
+            MFGetAttributeSize(pMediaType, MF_MT_FRAME_SIZE, &width, &height);
+            pVideoInfo->width = (int)width;
+            pVideoInfo->height = (int)height;
+
+            UINT32 nom = 0;
+            UINT32 denom = 0;
+            MFGetAttributeRatio(pMediaType, MF_MT_FRAME_RATE, &nom, &denom);
+            if(denom!=0) pVideoInfo->FramesPerSecond = (int)(nom/denom);
+        }
 
         SafeRelease(&pStream);
         SafeRelease(&pTypeHandler);
@@ -1296,8 +1343,14 @@ WORD GetSourceInfo(IMFMediaSource *pSource, SMP_AUDIOINFO* pAudioInfo,SMP_VIDEOI
 
 End:SafeRelease(&pPD);
 
-    if(hasAudio) return INFORES_AUDIO;
-    else return INFORES_NO;
+    if(hasAudio) {
+        if(hasVideo) return INFORES_BOTH;
+        else return INFORES_AUDIO;
+    }
+    else {
+        if(hasVideo) return INFORES_VIDEO;
+        return INFORES_NO;
+    }
 }
 
 // Handler for Media Session events.
