@@ -45,7 +45,13 @@ void Player_ProcessNotify(WPARAM NotifyValue){
 }
 
 WORD GetMultimediaInfo(SMP_AUDIOINFO* pAudioInfo,SMP_VIDEOINFO* pVideoInfo,SMP_STREAM* pStreamType){
-    return DS_GetMultimediaInfo(pAudioInfo,pVideoInfo,pStreamType);
+    if(CurrentImpl == IMPL_DSHOW) {
+        return DS_GetMultimediaInfo(pAudioInfo,pVideoInfo,pStreamType);
+    }
+    else {
+        if(g_pPlayer!=NULL) return g_pPlayer->GetMultimediaInfo(pAudioInfo, pVideoInfo, pStreamType);
+        else return INFORES_NO; 
+    }
 }
 
 void GetMultimediaInfoString(WCHAR* text,size_t size){

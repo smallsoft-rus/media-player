@@ -17,13 +17,14 @@ void OnPlayerEvent(PLAYER_EVENT evt);
 extern HANDLE MF_hOpenEvent;
 extern HRESULT MF_OpenEvent_LastResult;
 HRESULT GetSourceDuration(IMFMediaSource *pSource, MFTIME *pDuration);
+WORD GetSourceInfo(IMFMediaSource *pSource, SMP_AUDIOINFO* pAudioInfo,SMP_VIDEOINFO* pVideoInfo,SMP_STREAM* pStreamType);
 
 //  Static class method to create the MfPlayer object.
 
 HRESULT MfPlayer::CreateInstance(
     HWND hVideo,                  // Video window.
     HWND hEvent,                  // Window to receive notifications.
-    MfPlayer **ppPlayer)           // Receives a pointer to the CPlayer object.
+    MfPlayer **ppPlayer)          // Receives a pointer to the MfPlayer object.
 {
     if (ppPlayer == NULL)
     {
@@ -82,11 +83,11 @@ MfPlayer::~MfPlayer()
     assert(m_pSession == NULL);  
     // If FALSE, the app did not call Shutdown().
 
-    // When CPlayer calls IMediaEventGenerator::BeginGetEvent on the
+    // When MfPlayer calls IMediaEventGenerator::BeginGetEvent on the
     // media session, it causes the media session to hold a reference 
-    // count on the CPlayer. 
+    // count on the MfPlayer. 
     
-    // This creates a circular reference count between CPlayer and the 
+    // This creates a circular reference count between MfPlayer and the 
     // media session. Calling Shutdown breaks the circular reference 
     // count.
 
@@ -331,6 +332,15 @@ HRESULT MfPlayer::Invoke(IMFAsyncResult *pResult)
     }
     else
     {
+
+        if(m_pSession==NULL){
+            //Fix for issue https://github.com/smallsoft-rus/media-player/issues/15
+#ifdef DEBUG
+            HandleError(L"Session is NULL in MfPlayer::Invoke",SMP_ALERT_NONBLOCKING,L"",NULL);
+#endif
+            goto done;
+        }
+
         // For all other events, get the next event in the queue.
         hr = m_pSession->BeginGetEvent(this, NULL);
         if (FAILED(hr))
@@ -437,6 +447,13 @@ HRESULT MfPlayer::Shutdown()
 
 HRESULT MfPlayer::Close()
 {
+#ifdef DEBUG
+    WCHAR buf[100]=L"";
+    LogMessage(L"MfPlayer::Close",TRUE);    
+    StringCchPrintf(buf,100,L"State: %u", (UINT)this->m_state);
+    LogMessage(buf,FALSE);
+#endif
+
     if(this->m_state == Closing || this->m_state == Closed){
         //no need to close 
         return S_OK;
@@ -570,6 +587,11 @@ done:
 //  Close the media session. 
 HRESULT MfPlayer::CloseSession()
 {
+
+#ifdef DEBUG
+    LogMessage(L"MfPlayer::CloseSession",TRUE);
+#endif
+
     //  The IMFMediaSession::Close method is asynchronous, but the 
     //  MfPlayer::CloseSession method waits on the MESessionClosed event.
     //  
@@ -730,6 +752,14 @@ end:SafeRelease(&pClock);
     SafeRelease(&ppClock);
 
     return ret;
+}
+
+WORD MfPlayer::GetMultimediaInfo(SMP_AUDIOINFO* pAudioInfo,SMP_VIDEOINFO* pVideoInfo,SMP_STREAM* pStreamType){
+
+    if(PlayerState == FILE_NOT_LOADED) return INFORES_NO;
+    if(this->m_pSource == NULL) return INFORES_NO;
+
+    return GetSourceInfo(this->m_pSource, pAudioInfo, pVideoInfo, pStreamType);
 }
 
 //  Create a media source from a URL.
@@ -931,7 +961,6 @@ done:
     SafeRelease(&pNode);
     return hr;
 }
-//</SnippetPlayer.cpp>
 
 //  Add a topology branch for one stream.
 //
@@ -1203,6 +1232,146 @@ HRESULT GetSourceDuration(IMFMediaSource *pSource, MFTIME *pDuration)
         pPD->Release();
     }
     return hr;
+}
+
+WORD GetSourceInfo(IMFMediaSource *pSource, SMP_AUDIOINFO* pAudioInfo,SMP_VIDEOINFO* pVideoInfo,SMP_STREAM* pStreamType){
+    IMFPresentationDescriptor* pPD = NULL;
+    IMFStreamDescriptor* pStream = NULL;
+    IMFMediaTypeHandler* pTypeHandler = NULL;
+    IMFMediaType* pMediaType = NULL;
+    DWORD count = 0;
+    BOOL selected = FALSE;
+    GUID majorType;
+    GUID subtype;
+    bool hasAudio = false;
+    bool hasVideo = false;
+
+    HRESULT hr = pSource->CreatePresentationDescriptor(&pPD);
+
+    if(FAILED(hr)) goto End;
+    
+    hr = pPD->GetStreamDescriptorCount(&count);
+
+    if(FAILED(hr)) goto End;
+
+    for(DWORD i=0;i<count; i++){
+        hr = pPD->GetStreamDescriptorByIndex(i, &selected, &pStream);
+        if(FAILED(hr)) continue;
+
+        hr = pStream->GetMediaTypeHandler(&pTypeHandler);
+
+        if(FAILED(hr)) {
+            SafeRelease(&pStream);
+            continue;
+        }
+
+        hr = pTypeHandler->GetCurrentMediaType(&pMediaType);
+
+        if(FAILED(hr)) {
+            //if there's no current media type, try the first supported one
+            DWORD typeCount = 0;
+            pTypeHandler->GetMediaTypeCount(&typeCount);
+            if(typeCount>0) hr = pTypeHandler->GetMediaTypeByIndex(0, &pMediaType);
+        }
+
+        if(FAILED(hr)) {
+            SafeRelease(&pStream);
+            SafeRelease(&pTypeHandler);
+            continue;
+        }
+        
+        ZeroMemory(&majorType, sizeof(GUID));
+        pMediaType->GetMajorType(&majorType);
+
+        ZeroMemory(&subtype, sizeof(GUID));
+        pMediaType->GetGUID(MF_MT_SUBTYPE, &subtype);
+
+        if(majorType == MFMediaType_Audio){
+            hasAudio = true;
+
+            //Format tag is a first DWORD in GUID (https://docs.microsoft.com/en-us/windows/win32/medfound/audio-subtype-guids)
+            pAudioInfo->wFormatTag = (WORD)subtype.Data1;
+            
+            //Get audio stream properties
+            UINT32 numChannels = 0;
+            pMediaType->GetUINT32(MF_MT_AUDIO_NUM_CHANNELS, &numChannels);
+            if(numChannels>255) numChannels=255;
+            pAudioInfo->chans = (BYTE)numChannels;
+
+            UINT32 bitsPerSample = 0;
+            pMediaType->GetUINT32(MF_MT_AUDIO_BITS_PER_SAMPLE, &bitsPerSample);
+            pAudioInfo->BitsPerSample = (int)bitsPerSample;
+
+            UINT32 bytesPerSec = 0;
+            pMediaType->GetUINT32(MF_MT_AUDIO_AVG_BYTES_PER_SECOND, &bytesPerSec);
+            pAudioInfo->BitsPerSecond = (int)bytesPerSec*8;
+
+            UINT32 samplesPerSec = 0;
+            pMediaType->GetUINT32(MF_MT_AUDIO_SAMPLES_PER_SECOND, &samplesPerSec);
+            pAudioInfo->nFreq = (int)samplesPerSec;
+        }
+        else if(majorType == MFMediaType_Video){
+            hasVideo = true;
+            
+            //Codec FOURCC is the first dword in GUID
+            //(https://docs.microsoft.com/en-us/windows/win32/medfound/video-subtype-guids#creating-subtype-guids-from-fourccs-and-d3dformat-values)
+            DWORD fourcc = (DWORD)subtype.Data1;
+
+            if(subtype == MFVideoFormat_MPG1) {
+                pVideoInfo->VideoType = VIDEOTYPE_MPEG1;
+                pVideoInfo->dwVideoCodec = VIDEO_MPEG1;
+            }
+            else if(subtype == MFVideoFormat_MPEG2){
+                pVideoInfo->VideoType = VIDEOTYPE_MPEG2;
+            }
+            else if(subtype == MFVideoFormat_RGB8){
+                pVideoInfo->VideoType = VIDEOTYPE_VIDEO;
+                pVideoInfo->dwVideoCodec = fourcc;
+                pVideoInfo->BitsPerPixel = 8;
+            }
+            else if(subtype == MFVideoFormat_RGB24){
+                pVideoInfo->VideoType = VIDEOTYPE_VIDEO;
+                pVideoInfo->dwVideoCodec = fourcc;
+                pVideoInfo->BitsPerPixel = 24;
+            }
+            else if(subtype == MFVideoFormat_RGB32){
+                pVideoInfo->VideoType = VIDEOTYPE_VIDEO;
+                pVideoInfo->dwVideoCodec = fourcc;
+                pVideoInfo->BitsPerPixel = 32;
+            }
+            else { //other format identified by FOURCC
+                pVideoInfo->VideoType=VIDEOTYPE_VIDEO;
+                pVideoInfo->dwVideoCodec = fourcc;
+            }
+
+            //Get video stream properties
+            UINT32 width = 0;
+            UINT32 height = 0;
+            MFGetAttributeSize(pMediaType, MF_MT_FRAME_SIZE, &width, &height);
+            pVideoInfo->width = (int)width;
+            pVideoInfo->height = (int)height;
+
+            UINT32 nom = 0;
+            UINT32 denom = 0;
+            MFGetAttributeRatio(pMediaType, MF_MT_FRAME_RATE, &nom, &denom);
+            if(denom!=0) pVideoInfo->FramesPerSecond = (int)(nom/denom);
+        }
+
+        SafeRelease(&pStream);
+        SafeRelease(&pTypeHandler);
+        SafeRelease(&pMediaType);
+    }
+
+End:SafeRelease(&pPD);
+
+    if(hasAudio) {
+        if(hasVideo) return INFORES_BOTH;
+        else return INFORES_AUDIO;
+    }
+    else {
+        if(hasVideo) return INFORES_VIDEO;
+        return INFORES_NO;
+    }
 }
 
 // Handler for Media Session events.

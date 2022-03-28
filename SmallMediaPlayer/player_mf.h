@@ -92,6 +92,10 @@ public:
     //Retuns current playback position in milliseconds
     DWORD GetPosition();
 
+    //Returns information about audio & video formats of streams in the current source, 
+    //as well as their properties
+    WORD GetMultimediaInfo(SMP_AUDIOINFO* pAudioInfo,SMP_VIDEOINFO* pVideoInfo,SMP_STREAM* pStreamType);
+
     //Starts playback from the specified position in milliseconds
     HRESULT SetPosition(LONGLONG newpos);
 
