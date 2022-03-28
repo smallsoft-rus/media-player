@@ -24,7 +24,7 @@ WORD GetSourceInfo(IMFMediaSource *pSource, SMP_AUDIOINFO* pAudioInfo,SMP_VIDEOI
 HRESULT MfPlayer::CreateInstance(
     HWND hVideo,                  // Video window.
     HWND hEvent,                  // Window to receive notifications.
-    MfPlayer **ppPlayer)           // Receives a pointer to the CPlayer object.
+    MfPlayer **ppPlayer)          // Receives a pointer to the MfPlayer object.
 {
     if (ppPlayer == NULL)
     {
@@ -83,11 +83,11 @@ MfPlayer::~MfPlayer()
     assert(m_pSession == NULL);  
     // If FALSE, the app did not call Shutdown().
 
-    // When CPlayer calls IMediaEventGenerator::BeginGetEvent on the
+    // When MfPlayer calls IMediaEventGenerator::BeginGetEvent on the
     // media session, it causes the media session to hold a reference 
-    // count on the CPlayer. 
+    // count on the MfPlayer. 
     
-    // This creates a circular reference count between CPlayer and the 
+    // This creates a circular reference count between MfPlayer and the 
     // media session. Calling Shutdown breaks the circular reference 
     // count.
 
@@ -332,6 +332,15 @@ HRESULT MfPlayer::Invoke(IMFAsyncResult *pResult)
     }
     else
     {
+
+        if(m_pSession==NULL){
+            //Fix for issue https://github.com/smallsoft-rus/media-player/issues/15
+#ifdef DEBUG
+            HandleError(L"Session is NULL in MfPlayer::Invoke",SMP_ALERT_NONBLOCKING,L"",NULL);
+#endif
+            goto done;
+        }
+
         // For all other events, get the next event in the queue.
         hr = m_pSession->BeginGetEvent(this, NULL);
         if (FAILED(hr))
@@ -438,6 +447,13 @@ HRESULT MfPlayer::Shutdown()
 
 HRESULT MfPlayer::Close()
 {
+#ifdef DEBUG
+    WCHAR buf[100]=L"";
+    LogMessage(L"MfPlayer::Close",TRUE);    
+    StringCchPrintf(buf,100,L"State: %u", (UINT)this->m_state);
+    LogMessage(buf,FALSE);
+#endif
+
     if(this->m_state == Closing || this->m_state == Closed){
         //no need to close 
         return S_OK;
@@ -571,6 +587,11 @@ done:
 //  Close the media session. 
 HRESULT MfPlayer::CloseSession()
 {
+
+#ifdef DEBUG
+    LogMessage(L"MfPlayer::CloseSession",TRUE);
+#endif
+
     //  The IMFMediaSession::Close method is asynchronous, but the 
     //  MfPlayer::CloseSession method waits on the MESessionClosed event.
     //  
