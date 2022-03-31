@@ -284,12 +284,11 @@ HRESULT MfPlayer::Invoke(IMFAsyncResult *pResult)
     LogMessage(buf,FALSE);
 
     if(m_pSession == NULL) {
-        HandleError(L"Session is NULL in MfPlayer::Invoke",SMP_ALERT_NONBLOCKING,L"",NULL);
+        HandleError(L"Session is NULL in MfPlayer::Invoke",SMP_ALERT_BLOCKING,L"",NULL);
         return MF_E_INVALIDREQUEST;
     }
 #else
     if(m_pSession == NULL) {
-        //Fix for issue https://github.com/smallsoft-rus/media-player/issues/15
         return MF_E_INVALIDREQUEST;
     }
 #endif
@@ -334,9 +333,8 @@ HRESULT MfPlayer::Invoke(IMFAsyncResult *pResult)
     {
 
         if(m_pSession==NULL){
-            //Fix for issue https://github.com/smallsoft-rus/media-player/issues/15
 #ifdef DEBUG
-            HandleError(L"Session is NULL in MfPlayer::Invoke",SMP_ALERT_NONBLOCKING,L"",NULL);
+            HandleError(L"Session is NULL in MfPlayer::Invoke",SMP_ALERT_BLOCKING,L"",NULL);
 #endif
             goto done;
         }
@@ -439,6 +437,12 @@ HRESULT MfPlayer::Shutdown()
     // Close the session
     HRESULT hr = Close();
 
+    if (m_hCloseEvent)
+    {
+        CloseHandle(m_hCloseEvent);
+        m_hCloseEvent = NULL;
+    }
+
     // Shutdown the Media Foundation platform
     MFShutdown();
 
@@ -461,13 +465,7 @@ HRESULT MfPlayer::Close()
 
     // Close the session
     HRESULT hr = CloseSession();
-
-    if (m_hCloseEvent)
-    {
-        CloseHandle(m_hCloseEvent);
-        m_hCloseEvent = NULL;
-    }
-
+    
     return hr;
 }
 
@@ -617,6 +615,12 @@ HRESULT MfPlayer::CloseSession()
             if (dwWaitResult == WAIT_TIMEOUT)
             {
                 assert(FALSE);
+            }
+            else if(dwWaitResult == WAIT_FAILED){
+                DWORD dwError = GetLastError();
+                WCHAR buf[256]=L"";
+                StringCchPrintf(buf, 256, L"WaitForSingleObject failed in MfPlayer::CloseSession (error %u)", (UINT)dwError);
+                HandleError(buf, SMP_ALERT_NONBLOCKING, NULL, NULL);
             }
             // Now there will be no more events from this session.
         }
