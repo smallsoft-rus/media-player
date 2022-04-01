@@ -18,7 +18,10 @@ extern HANDLE MF_hOpenEvent;
 extern HRESULT MF_OpenEvent_LastResult;
 HRESULT GetSourceDuration(IMFMediaSource *pSource, MFTIME *pDuration);
 WORD GetSourceInfo(IMFMediaSource *pSource, SMP_AUDIOINFO* pAudioInfo,SMP_VIDEOINFO* pVideoInfo,SMP_STREAM* pStreamType);
-void ProcessTopology(IMFTopology* pTopology);
+
+#ifdef DEBUG
+void DebugLogging_ProcessTopology(IMFTopology* pTopology);
+#endif
 
 //  Static class method to create the MfPlayer object.
 
@@ -481,9 +484,11 @@ HRESULT MfPlayer::OnTopologyStatus(IMFMediaEvent *pEvent)
         MF_OpenEvent_LastResult = S_OK;
 
         //***
+#ifdef DEBUG
         IMFTopology* pTopology=NULL;
         m_pSession->GetFullTopology(MFSESSION_GETFULLTOPOLOGY_CURRENT,0,&pTopology);
-        ProcessTopology(pTopology);
+        DebugLogging_ProcessTopology(pTopology);
+#endif
         //***
 
         //restore volume
@@ -1360,17 +1365,17 @@ End:SafeRelease(&pPD);
     }
 }
 
-void ProcessNode(IMFTopologyNode* pNode, WCHAR* text, int c){
+#ifdef DEBUG
+void DebugLogging_ProcessNode(IMFTopologyNode* pNode, WCHAR* text, int c){
 
-    IMFCollection* pColl;
+    IMFCollection* pColl=NULL;
     DWORD count=0;
-    IUnknown* pElem;    
-    IMFMediaType* pMediaType;
-    DWORD outputCount;
+    IMFMediaType* pMediaType=NULL;
+    DWORD outputCount=NULL;
     GUID majorType;
     bool isAudio;
     bool isVideo;
-    IMFTopologyNode* pDownstreamNode;
+    IMFTopologyNode* pDownstreamNode=NULL;
     DWORD dwDummy;    
     WCHAR buf[250]=L"";
     HRESULT hr;
@@ -1392,9 +1397,35 @@ void ProcessNode(IMFTopologyNode* pNode, WCHAR* text, int c){
         break;
     }
 
+	//get QueryInterface function address (first in vtable)
+    uintptr_t* p = (uintptr_t*)(pNode);
+    uintptr_t addr = *p;
+
+	//get module from function address
+    HMODULE hModule = NULL;
+        
+    GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, 
+             (LPCTSTR)(addr), &hModule
+    );
+
+    //module name
+    if(hModule != NULL){
+        WCHAR module[MAX_PATH];
+        memset(module,0,sizeof(module));
+        GetModuleFileName(hModule,module,MAX_PATH);
+        StringCchCat(text,c,module);
+		StringCchPrintf(buf,250,L" @0x%x\r\n",(UINT)addr);
+        StringCchCat(text,c,buf);
+    }
+    else StringCchCat(text,c,L"[failed to get module]\r\n");
+
     ISpecifyPropertyPages *pProp=NULL;
     hr = pNode->QueryInterface(IID_ISpecifyPropertyPages, (void **)&pProp);
-    if(SUCCEEDED(hr)) StringCchCat(text,c,L"[has property page]\r\n");
+
+    if(SUCCEEDED(hr)) {
+        StringCchCat(text,c,L"[has property page]\r\n");
+        SafeRelease(&pProp);
+    }
     
     outputCount=0;
     pNode->GetOutputCount(&outputCount);
@@ -1403,30 +1434,33 @@ void ProcessNode(IMFTopologyNode* pNode, WCHAR* text, int c){
     for(DWORD j=0;j<outputCount;j++){
         StringCchPrintf(buf,250,L" Output #%u ",(UINT)j);
         StringCchCat(text,c,buf);
-            isAudio = false;
-            isVideo = false;
-            hr = pNode->GetOutputPrefType(j, &pMediaType);
+        isAudio = false;
+        isVideo = false;
+        hr = pNode->GetOutputPrefType(j, &pMediaType);
 
-            if(SUCCEEDED(hr)) {
-                 ZeroMemory(&majorType, sizeof(majorType));
-                 pMediaType->GetMajorType(&majorType);
+        if(SUCCEEDED(hr)) {
+             ZeroMemory(&majorType, sizeof(majorType));
+             pMediaType->GetMajorType(&majorType);
 
-                 if(majorType == MFMediaType_Audio) {isAudio=true;StringCchCat(text,c,L"[audio] ");}
-                 if(majorType == MFMediaType_Video) {isVideo=true;StringCchCat(text,c,L"[video] ");}
-            }
+             if(majorType == MFMediaType_Audio) {isAudio=true;StringCchCat(text,c,L"[audio] ");}
+             if(majorType == MFMediaType_Video) {isVideo=true;StringCchCat(text,c,L"[video] ");}
 
-            StringCchCat(text,c,L"\r\n");
+             SafeRelease(&pMediaType);
+        }
 
-            hr = pNode->GetOutput(j,&pDownstreamNode,&dwDummy);
+        StringCchCat(text,c,L"\r\n");
 
-            if(SUCCEEDED(hr)) {
-                 StringCchCat(text,c,L"Connected node: \r\n");
-                 ProcessNode(pDownstreamNode,text,c);
-            }
-    }
+        hr = pNode->GetOutput(j,&pDownstreamNode,&dwDummy);
+
+        if(SUCCEEDED(hr)) {
+            StringCchCat(text,c,L"Connected node: \r\n");
+            DebugLogging_ProcessNode(pDownstreamNode,text,c);
+            SafeRelease(&pDownstreamNode);
+        }
+    }//end for
 }
 
-void ProcessTopology(IMFTopology* pTopology){
+void DebugLogging_ProcessTopology(IMFTopology* pTopology){
     IMFCollection* pColl;
     DWORD count=0;
     IUnknown* pElem;
@@ -1450,11 +1484,12 @@ void ProcessTopology(IMFTopology* pTopology){
         pColl->GetElement(i,&pElem);
         pElem->QueryInterface(IID_PPV_ARGS(&pNode));
         
-        ProcessNode(pNode,text,5000);
+        DebugLogging_ProcessNode(pNode,text,5000);
     }
 
     //MessageBox(0,text,L"Info",0);
 }
+#endif
 
 // Handler for Media Session events.
 void MF_OnPlayerEvent(HWND hwnd, WPARAM pUnkPtr)
