@@ -194,7 +194,7 @@ BOOL Player_OpenFileCore(WCHAR* filename, BOOL useDirectShow, BOOL useMediaFound
 }
 
 BOOL Player_OpenFile(WCHAR* filename){
-    BOOL useDirectShow = FALSE;
+    BOOL useDirectShow = TRUE;
     BOOL useMediaFoundation = TRUE;
     return Player_OpenFileCore(filename, useDirectShow, useMediaFoundation);
 }

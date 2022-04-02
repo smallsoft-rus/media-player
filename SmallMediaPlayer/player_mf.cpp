@@ -483,14 +483,6 @@ HRESULT MfPlayer::OnTopologyStatus(IMFMediaEvent *pEvent)
         SetEvent(MF_hOpenEvent);
         MF_OpenEvent_LastResult = S_OK;
 
-        //***
-#ifdef DEBUG
-        IMFTopology* pTopology=NULL;
-        m_pSession->GetFullTopology(MFSESSION_GETFULLTOPOLOGY_CURRENT,0,&pTopology);
-        DebugLogging_ProcessTopology(pTopology);
-#endif
-        //***
-
         //restore volume
         this->SetVolume(VolumeX);
     }
@@ -1461,33 +1453,38 @@ void DebugLogging_ProcessNode(IMFTopologyNode* pNode, WCHAR* text, int c){
 }
 
 void DebugLogging_ProcessTopology(IMFTopology* pTopology){
-    IMFCollection* pColl;
+    IMFCollection* pColl = NULL;
     DWORD count=0;
-    IUnknown* pElem;
-    IMFTopologyNode* pNode;
-    IMFMediaType* pMediaType;
-    DWORD outputCount;
-    GUID majorType;
-    bool isAudio;
-    bool isVideo;
-    IMFTopologyNode* pDownstreamNode;
-    DWORD dwDummy;
+    IUnknown* pElem = NULL;
+    IMFTopologyNode* pNode = NULL;
     WCHAR text[5000]=L"";
     WCHAR buf[250]=L"";
 
     HRESULT hr = pTopology->GetSourceNodeCollection(&pColl);
+    if(FAILED(hr)) goto End;
+
     pColl->GetElementCount(&count);
 
     for(DWORD i=0;i<count;i++){
+        SafeRelease(&pElem);
+        SafeRelease(&pNode);
         StringCchPrintf(buf,250,L"Source #%u\r\n",(UINT)i);
         StringCchCat(text,5000,buf);
-        pColl->GetElement(i,&pElem);
-        pElem->QueryInterface(IID_PPV_ARGS(&pNode));
-        
+
+        hr = pColl->GetElement(i,&pElem);
+        if(FAILED(hr))continue;
+
+        hr = pElem->QueryInterface(IID_PPV_ARGS(&pNode));
+        if(FAILED(hr))continue;
+
         DebugLogging_ProcessNode(pNode,text,5000);
     }
 
-    //MessageBox(0,text,L"Info",0);
+    LogMessage(text, TRUE);
+
+End:SafeRelease(&pElem);
+    SafeRelease(&pNode);
+    SafeRelease(&pColl);
 }
 #endif
 
