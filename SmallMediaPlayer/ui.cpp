@@ -445,6 +445,7 @@ if(wRes==INFORES_AUDIO||wRes==INFORES_BOTH){
 		case  WAVE_FORMAT_MPEG_ADTS_AAC:case WAVE_FORMAT_MPEG_RAW_AAC:case WAVE_FORMAT_NOKIA_MPEG_ADTS_AAC:        
 		case WAVE_FORMAT_NOKIA_MPEG_RAW_AAC:case WAVE_FORMAT_VODAFONE_MPEG_ADTS_AAC:     
 		case WAVE_FORMAT_VODAFONE_MPEG_RAW_AAC:
+        case WAVE_FORMAT_MPEG_HEAAC:
 			StringCchCat(text,len,L"Advanced Audio Coding (AAC)");break; 
 		case AUDIO_FLAC:StringCchCat(text,len,L"Free Lossless Audio Codec (FLAC)");break; 
 		case AUDIO_WAVEPACK:StringCchCat(text,len,L"WavePack");break; 

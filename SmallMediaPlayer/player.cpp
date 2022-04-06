@@ -88,12 +88,11 @@ if(wRes==INFORES_AUDIO||wRes==INFORES_BOTH){
 		case WAVE_FORMAT_WMAVOICE9:		case WAVE_FORMAT_WMAVOICE10:		case WAVE_FORMAT_MSAUDIO1:             
 		case WAVE_FORMAT_WMAUDIO2:		case WAVE_FORMAT_WMAUDIO3:	case  WAVE_FORMAT_WMAUDIO_LOSSLESS:        
 		case WAVE_FORMAT_WMASPDIF: StringCchCat(text,size,L"Windows Media Audio");break; 
-		case AUDIO_AAC4:case AUDIO_AAC3:case AUDIO_AAC2 :case AUDIO_AAC :
-		case AUDIO_MPEG4AAC: 
 		case  WAVE_FORMAT_MPEG_ADTS_AAC:case WAVE_FORMAT_MPEG_RAW_AAC:case WAVE_FORMAT_NOKIA_MPEG_ADTS_AAC:        
 		case WAVE_FORMAT_NOKIA_MPEG_RAW_AAC:case WAVE_FORMAT_VODAFONE_MPEG_ADTS_AAC:     
 		case WAVE_FORMAT_VODAFONE_MPEG_RAW_AAC:
-			StringCchCat(text,size,L"Advanced Audio Coding (AAC)");break; 
+        case WAVE_FORMAT_MPEG_HEAAC:
+			StringCchCat(text,size,L"Advanced Audio Coding (AAC)");break;
 		case AUDIO_FLAC:StringCchCat(text,size,L"Free Lossless Audio Codec (FLAC)");break; 
 		case AUDIO_WAVEPACK:StringCchCat(text,size,L"WavePack");break; 
 		case AUDIO_AMR:StringCchCat(text,size,L"VOICEAGE AMR");break; 
