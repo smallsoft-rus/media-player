@@ -281,7 +281,7 @@ HRESULT MfPlayer::ResizeVideo(WORD width, WORD height)
 HRESULT MfPlayer::Invoke(IMFAsyncResult *pResult)
 {
 
-#ifdef DEBUG
+#if defined(DEBUG) && defined(DEBUG_LOGGING_DETAILED)
     LogMessage(L"MfPlayer::Invoke",TRUE);
     WCHAR buf[100]=L"";
     StringCchPrintf(buf,100,L"State: %u", (UINT)this->m_state);
@@ -311,7 +311,7 @@ HRESULT MfPlayer::Invoke(IMFAsyncResult *pResult)
         goto done;
     }
 
-#ifdef DEBUG
+#if defined(DEBUG) && defined(DEBUG_LOGGING_DETAILED)
     LogMessage(L"m_pSession->EndGetEvent success",FALSE);    
 #endif
 
@@ -322,7 +322,7 @@ HRESULT MfPlayer::Invoke(IMFAsyncResult *pResult)
         goto done;
     }
 
-#ifdef DEBUG
+#if defined(DEBUG) && defined(DEBUG_LOGGING_DETAILED)
     StringCchPrintf(buf,100,L"Event type: %u", (UINT)meType);
     LogMessage(buf,FALSE);
 #endif
@@ -455,7 +455,7 @@ HRESULT MfPlayer::Shutdown()
 
 HRESULT MfPlayer::Close()
 {
-#ifdef DEBUG
+#if defined(DEBUG) && defined(DEBUG_LOGGING_DETAILED)
     WCHAR buf[100]=L"";
     LogMessage(L"MfPlayer::Close",TRUE);    
     StringCchPrintf(buf,100,L"State: %u", (UINT)this->m_state);
@@ -590,7 +590,7 @@ done:
 HRESULT MfPlayer::CloseSession()
 {
 
-#ifdef DEBUG
+#if defined(DEBUG) && defined(DEBUG_LOGGING_DETAILED)
     LogMessage(L"MfPlayer::CloseSession",TRUE);
 #endif
 
