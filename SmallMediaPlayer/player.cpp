@@ -463,3 +463,13 @@ void Player_OnMfEvent(HWND hwnd, WPARAM pUnkPtr){
 PLAYER_IMPL Player_GetCurrentImpl(){
     return CurrentImpl;
 }
+
+LRESULT Player_OnPaint(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam){
+
+    //Media Foundation implementation need this call to have video repainted correctly on pause
+    //(issue https://github.com/smallsoft-rus/media-player/issues/20).
+    //DirectShow handles this automatically.
+
+    if(CurrentImpl == IMPL_MF) return MF_Player_OnPaint(hWnd);
+    else return DefWindowProc(hWnd, uMsg, wParam, lParam);
+}

@@ -1342,6 +1342,8 @@ break;
 	SendMessage(hVolume,TBM_SETPOS,TRUE,100-GetVolume());break;
 		}break;
 
+    case WM_PAINT:  return Player_OnPaint(hWnd,uMsg,wParam,lParam);
+        
 	case WM_CLOSE:
 		ShowWindow(hWnd,SW_HIDE);
 		break;

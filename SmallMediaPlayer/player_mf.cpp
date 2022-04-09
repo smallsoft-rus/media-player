@@ -1149,7 +1149,7 @@ LRESULT MF_Player_InitWindows(HWND hVideo,HWND hEvent)
 }
 
 //  Handler for WM_PAINT messages.
-void OnPaint(HWND hwnd)
+LRESULT MF_Player_OnPaint(HWND hwnd)
 {
     PAINTSTRUCT ps;
     HDC hdc = BeginPaint(hwnd, &ps);
@@ -1167,6 +1167,7 @@ void OnPaint(HWND hwnd)
         FillRect(hdc, &rc, (HBRUSH) COLOR_WINDOW);
     }
     EndPaint(hwnd, &ps);
+    return 0;
 }
 
 //  Handler for WM_SIZE messages.

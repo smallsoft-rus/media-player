@@ -42,6 +42,9 @@ void GetMultimediaInfoString(WCHAR* text,size_t size);
 int GetVolume();
 PLAYER_IMPL Player_GetCurrentImpl();
 
+//Redraws video window (called on WM_PAINT)
+LRESULT Player_OnPaint(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam);
+
 // Sets callback function to notify about player events (called from UI)
 void Player_SetEventCallback(PLAYER_EVENT_CALLBACK callback);
 

@@ -172,26 +172,24 @@ HRESULT GetEventObject(IMFMediaEvent *pEvent, Q **ppObject)
 
 extern MfPlayer *g_pPlayer;
 
-HRESULT CreateMediaSource(PCWSTR pszURL, IMFMediaSource **ppSource);
-
-HRESULT CreatePlaybackTopology(IMFMediaSource *pSource, 
-    IMFPresentationDescriptor *pPD, HWND hVideoWnd,IMFTopology **ppTopology);
-
 HRESULT MF_Player_OpenFile(PWSTR file);
 LRESULT MF_Player_InitWindows(HWND hVideo,HWND hEvent);
+LRESULT MF_Player_OnPaint(HWND hwnd);
 void MF_OnPlayerEvent(HWND hwnd, WPARAM pUnkPtr);
 
 // Forward declarations of functions included in this code module:
 
-INT_PTR CALLBACK    OpenUrlDialogProc(HWND, UINT, WPARAM, LPARAM);
+HRESULT CreateMediaSource(PCWSTR pszURL, IMFMediaSource **ppSource);
+
+HRESULT CreatePlaybackTopology(IMFMediaSource *pSource, IMFPresentationDescriptor *pPD, HWND hVideoWnd,
+                               IMFTopology **ppTopology);
+
 void                NotifyError(HWND hwnd, const WCHAR *sErrorMessage, HRESULT hr);
 void                UpdateUI(HWND hwnd, MF_PlayerState state);
 HRESULT             AllocGetWindowText(HWND hwnd, WCHAR **pszText, DWORD *pcchLen);
 
 // Message handlers
 void                OnOpenURL(HWND hwnd);
-
-void                OnPaint(HWND hwnd);
 void                OnResize(WORD width, WORD height);
 
 #endif
