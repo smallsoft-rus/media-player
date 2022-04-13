@@ -13,7 +13,6 @@ extern HWND hVideoWindow;
 //declarations of vars
 extern HWND hWnd;
 extern PLAYER_STATE PlayerState;
-extern long Volume;
 extern bool IsPlayingVideo;
 extern bool fShowNextImage;
 extern bool FullScreen;
@@ -32,14 +31,14 @@ DWORD GetLength();
 DWORD GetPosition();
 void Rewind();
 void SetPosition(LONGLONG dwPos);
-void SetVolume(long vol);
+void SetVolume(DWORD vol);
 bool SetVideoWindow(HWND hParent);
 void SetVideoRect();
 void DisableFullScreen();
 void EnableFullScreen();
 WORD GetMultimediaInfo(SMP_AUDIOINFO* pAudioInfo,SMP_VIDEOINFO* pVideoInfo,SMP_STREAM* pStreamType);
 void GetMultimediaInfoString(WCHAR* text,size_t size);
-int GetVolume();
+DWORD GetVolume();
 PLAYER_IMPL Player_GetCurrentImpl();
 
 //Redraws video window (called on WM_PAINT)

@@ -2,6 +2,7 @@
  * Copyright (c) 2021,  MSDN.WhiteKnight (https://github.com/smallsoft-rus/media-player) 
  * License: BSD 2.0 */
 #include <assert.h>
+#include <math.h>
 #include "player_mf.h"
 #include "errors.h"
 
@@ -10,8 +11,8 @@ extern HWND hVideoWindow;
 //from player.cpp
 extern HWND hWnd;
 extern PLAYER_STATE PlayerState;
-extern long VolumeX;
 void OnPlayerEvent(PLAYER_EVENT evt);
+DWORD GetVolume();
 
 //forward decl
 extern HANDLE MF_hOpenEvent;
@@ -498,7 +499,7 @@ HRESULT MfPlayer::OnTopologyStatus(IMFMediaEvent *pEvent)
         MF_OpenEvent_LastResult = S_OK;
 
         //restore volume
-        this->SetVolume(VolumeX);
+        this->SetVolume(GetVolume());
     }
     return hr;
 }
@@ -704,8 +705,22 @@ HRESULT MfPlayer::SetVolume(DWORD vol){
     UINT c=0;
     pVolume->GetChannelCount(&c);
 
+    // Media Foundation uses logarithmic formula to calculate sound attenuation from stream volume level:
+    //
+    //     Attenuation [dB] = 20 * log10(VolumeLevel)
+    // 
+    // Because we want a linear dependency between slider position and attenuation (and therefore an exponential dependency  
+    // between slider position and sound amplitude), we calculate effective sound level using an exponential function.
+    // The logaritm of an exponent results in linear function.
+    // (https://docs.microsoft.com/en-us/windows/win32/api/mfidl/nn-mfidl-imfsimpleaudiovolume)
+
+    float effectiveLevel;
+
+    if(vol == 0) effectiveLevel = 0.0f;
+    else effectiveLevel = exp(4.38*(vol/100.0-1.0));
+
     for(UINT i=0;i<c;i++){
-        hr=pVolume->SetChannelVolume(i,vol/100.0f);
+        hr=pVolume->SetChannelVolume(i, effectiveLevel);
     }
 
 end:SafeRelease(&pVolume);

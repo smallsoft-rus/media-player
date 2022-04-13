@@ -1,7 +1,6 @@
 ﻿/* Small Media Player 
  * Copyright (c) 2021,  MSDN.WhiteKnight (https://github.com/smallsoft-rus/media-player) 
  * License: BSD 2.0 */
-#include <math.h>
 #include "player.h"
 #include "player_dshow.h"
 #include "player_mf.h"
@@ -19,8 +18,7 @@ HWND hWnd;//for notify
 
 PLAYER_STATE PlayerState=FILE_NOT_LOADED;
 DWORD pos;
-long Volume=0;
-long VolumeX=0;
+DWORD VolumeX=0;
 bool IsPlayingVideo=false;
 
 bool fShowNextImage=false;
@@ -342,29 +340,18 @@ void SetPosition(LONGLONG pos){
     if(PlayerState==PLAYING)Play();
 }
 
-int GetVolume()
+DWORD GetVolume()
 {	
     return VolumeX;
 }
 
-void SetVolume(long x)
+void SetVolume(DWORD x)
 {
-    long y;
-
     if(x<0)x=0;
     if(x>100)x=100;
 
     VolumeX=x; //store volume in percents
-
-    //audio-tapered control
-    if(x==0) y=-10000;
-    else y=(long)floor(2173.91f * log((float)x) - 10000);
-
-    if(y<-10000)y=-10000;
-    if(y>0)y=0;
     
-    Volume=y; //store volume in DirectX units
-
     if(PlayerState==FILE_NOT_LOADED)return;
     
     if(CurrentImpl==IMPL_MF){
@@ -373,7 +360,7 @@ void SetVolume(long x)
     }
     else{
         //DirectShow
-        DS_Player_SetVolume(y);
+        DS_Player_SetVolume(x);
     }
 }
 

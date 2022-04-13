@@ -7,10 +7,10 @@ void Close();
 void GetMultimediaInfoString(WCHAR* text,size_t size);
 void SetVideoRect();
 void OnPlayerEvent(PLAYER_EVENT evt);
+DWORD GetVolume();
 extern bool fShowNextImage;
 extern HWND hWnd;
 extern PLAYER_STATE PlayerState;
-extern long Volume;
 extern SMPSETTINGS Settings; //settings
 extern HWND hVideoWindow; //UI
 
@@ -650,7 +650,7 @@ if(lstrcmp(ext,L"jpg")==0||lstrcmp(ext,L"JPG")==0||
 #endif
 
     pSeek->SetTimeFormat(&tf);
-    pAudio->put_Volume(Volume);
+    DS_Player_SetVolume(GetVolume());
     return S_OK;
 }
 
@@ -762,10 +762,22 @@ BOOL DS_Player_SetPosition(LONGLONG pos){
     return TRUE;
 }
 
-void DS_Player_SetVolume(long value)
+void DS_Player_SetVolume(DWORD x)
 {
+    long y;
+
+    // Calculate target sound attenuation in DirectX units. Because DirectX uses attenuation in decibels, we 
+    // use a linear function in a range of -40 dB .. 0 db
+    // (https://docs.microsoft.com/en-us/windows/win32/api/control/nf-control-ibasicaudio-put_volume)
+
+    if(x==0) y = -10000;
+    else y = 40 * (x-100);
+
+    if(y<-10000) y=-10000;
+    if(y>0) y=0;
+
     if(pAudio==NULL)return;
-    pAudio->put_Volume(value);
+    pAudio->put_Volume(y);
 }
 
 bool DS_SetVideoWindow(HWND hParent){

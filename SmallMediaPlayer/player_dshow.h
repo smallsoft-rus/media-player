@@ -20,7 +20,7 @@ DWORD DS_Player_GetLength();
 DWORD DS_Player_GetPosition();
 BOOL DS_Player_Rewind();
 BOOL DS_Player_SetPosition(LONGLONG pos);
-void DS_Player_SetVolume(long x);
+void DS_Player_SetVolume(DWORD x);
 bool DS_SetVideoWindow(HWND hParent);
 void DS_SetVideoRect();
 void DS_ShowPropertyPage(TOPOLOGY_NODE node);
