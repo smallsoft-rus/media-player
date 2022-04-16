@@ -413,73 +413,85 @@ SMP_STREAM stream=STREAM_UNKNOWN;
 
 GetPlaylistElement(CurrentTrack,buf);
 StringCchCopy(text,len,buf);
+StringCchCat(text,len,L"\n\n");
 
 wRes=GetMultimediaInfo(&ai,&vi,&stream);
 
-StringCchCat(text,len,L"\n\nФормат: ");
-switch(stream){
-case STREAM_AVI:StringCchCat(text,len,L"Audio-Video Interleaved\n");break;
-case STREAM_ASF:StringCchCat(text,len,L"Advanced Systems Format\n");break;
-case STREAM_MPEG1:StringCchCat(text,len,L"MPEG1\n");break;
-case STREAM_MPEG1VCD:StringCchCat(text,len,L"MPEG1 VideoCD\n");break;
-case STREAM_MPEG2:StringCchCat(text,len,L"MPEG2\n");break;
-case STREAM_WAVE:StringCchCat(text,len,L"Waveform Audio\n");break;
-case STREAM_QUICKTIME:StringCchCat(text,len,L"Apple(tm) Quick Time Movie\n");break;
-case STREAM_UNKNOWN:default:StringCchCat(text,len,L"[неизвестно]\n");break;
+if(stream != STREAM_UNKNOWN){
+    StringCchCat(text,len,L"Формат: ");
+
+    switch(stream){
+        case STREAM_AVI:StringCchCat(text,len,L"AVI\n");break;
+        case STREAM_ASF:StringCchCat(text,len,L"ASF\n");break;
+        case STREAM_MPEG1:StringCchCat(text,len,L"MPEG1\n");break;
+        case STREAM_MPEG1VCD:StringCchCat(text,len,L"MPEG1 VideoCD\n");break;
+        case STREAM_MPEG2:StringCchCat(text,len,L"MPEG2\n");break;
+        case STREAM_WAVE:StringCchCat(text,len,L"WAV\n");break;
+        case STREAM_QUICKTIME:StringCchCat(text,len,L"Quick Time\n");break;
+    }
 }
+
 StringCchCat(text,len,L"Аудио: ");
 if(wRes==INFORES_AUDIO||wRes==INFORES_BOTH){
 	
-	switch(ai.wFormatTag){
-		case WAVE_FORMAT_PCM:StringCchCat(text,len,L"PCM Waveform Audio");break;
-		case AUDIO_DVI_ADPCM:StringCchCat(text,len,L"DVI ADPCM");break; 
-		case AUDIO_MPEG1:StringCchCat(text,len,L"MPEG1 Layer 1/2");break;
-		case 	WAVE_FORMAT_MPEGLAYER3:StringCchCat(text,len,L"MPEG1 Layer3");break;
-		case WAVE_FORMAT_DOLBY_AC3_SPDIF:
-		case AUDIO_AC3 :StringCchCat(text,len,L"DOLBY AC3");break;
-		case WAVE_FORMAT_WMAVOICE9:		case WAVE_FORMAT_WMAVOICE10:		case WAVE_FORMAT_MSAUDIO1:             
-		case WAVE_FORMAT_WMAUDIO2:		case WAVE_FORMAT_WMAUDIO3:	case  WAVE_FORMAT_WMAUDIO_LOSSLESS:        
-		case WAVE_FORMAT_WMASPDIF: StringCchCat(text,len,L"Windows Media Audio");break; 
-		case AUDIO_AAC4:case AUDIO_AAC3:case AUDIO_AAC2 :case AUDIO_AAC :
-		case AUDIO_MPEG4AAC: 
-		case  WAVE_FORMAT_MPEG_ADTS_AAC:case WAVE_FORMAT_MPEG_RAW_AAC:case WAVE_FORMAT_NOKIA_MPEG_ADTS_AAC:        
-		case WAVE_FORMAT_NOKIA_MPEG_RAW_AAC:case WAVE_FORMAT_VODAFONE_MPEG_ADTS_AAC:     
-		case WAVE_FORMAT_VODAFONE_MPEG_RAW_AAC:
-        case WAVE_FORMAT_MPEG_HEAAC:
-			StringCchCat(text,len,L"Advanced Audio Coding (AAC)");break; 
-		case AUDIO_FLAC:StringCchCat(text,len,L"Free Lossless Audio Codec (FLAC)");break; 
-		case AUDIO_WAVEPACK:StringCchCat(text,len,L"WavePack");break; 
-		case AUDIO_AMR:StringCchCat(text,len,L"VOICEAGE AMR");break; 
-		case AUDIO_MPEG2AAC:StringCchCat(text,len,L"MPEG2");break; 
-		default:StringCchCat(text,len,L"неизвестен");break;
-	}
+    switch(ai.wFormatTag){
+        case WAVE_FORMAT_PCM: StringCchCat(text,len,L"PCM");break;
+        case AUDIO_DVI_ADPCM: StringCchCat(text,len,L"DVI ADPCM");break; 
+        case AUDIO_MPEG1: StringCchCat(text,len,L"MP1/2");break;
+        case WAVE_FORMAT_MPEGLAYER3: StringCchCat(text,len,L"MP3");break;
+        case WAVE_FORMAT_DOLBY_AC3_SPDIF:
+        case AUDIO_AC3: 
+            StringCchCat(text,len,L"AC3");break;
+        case WAVE_FORMAT_WMAVOICE9: case WAVE_FORMAT_WMAVOICE10: case WAVE_FORMAT_MSAUDIO1: 
+        case WAVE_FORMAT_WMAUDIO2: case WAVE_FORMAT_WMAUDIO3: case WAVE_FORMAT_WMAUDIO_LOSSLESS: 
+        case WAVE_FORMAT_WMASPDIF: 
+            StringCchCat(text,len,L"WMA");break; 
+        case AUDIO_AAC: case AUDIO_AAC2: case AUDIO_AAC3: case AUDIO_AAC4: case AUDIO_MPEG4AAC: 
+        case WAVE_FORMAT_MPEG_ADTS_AAC: case WAVE_FORMAT_MPEG_RAW_AAC: case WAVE_FORMAT_NOKIA_MPEG_ADTS_AAC: 
+        case WAVE_FORMAT_NOKIA_MPEG_RAW_AAC: case WAVE_FORMAT_VODAFONE_MPEG_ADTS_AAC: 
+        case WAVE_FORMAT_VODAFONE_MPEG_RAW_AAC: case WAVE_FORMAT_MPEG_HEAAC:
+            StringCchCat(text,len,L"AAC");break; 
+        case AUDIO_FLAC: StringCchCat(text,len,L"FLAC");break; 
+        case AUDIO_WAVEPACK: StringCchCat(text,len,L"WavePack");break; 
+        case AUDIO_AMR: StringCchCat(text,len,L"AMR");break; 
+        case AUDIO_MPEG2AAC: StringCchCat(text,len,L"MPEG2");break; 
+        default: StringCchCat(text,len,L"неизвестно");break;
+    }
+
 	StringCchPrintf(buf,256,L" | %d кан. | %d Гц |",(int)ai.chans,(int)ai.nFreq);
 	StringCchCat(text,len,buf);
 	StringCchPrintf(buf,256,L" %d кбит/с\n",(int)(ai.BitsPerSecond/1000.0));StringCchCat(text,5000,buf);
 }
 else{StringCchCat(text,len,L"[Нет]\n");}
-StringCchCat(text,5000,L"Видео: ");
-if(wRes==INFORES_VIDEO||wRes==INFORES_BOTH){
-fcc=(FOURCC_EXTRACTOR*)&vi.dwVideoCodec;
 
-if(vi.dwVideoCodec==BI_RGB){
-	switch(vi.VideoType){
-	case VIDEOTYPE_MPEG1:StringCchCat(text,len,L"MPEG1 ");break;
-	case VIDEOTYPE_MPEG2:StringCchCat(text,len,L"MPEG2 ");break;
-	case VIDEOTYPE_VIDEO:default:StringCchCat(text,len,L"RGB ");
-	}
-}
-else{
-	StringCchPrintf(buf,256,L"%c%c%c%c ",fcc->chars[0],fcc->chars[1],fcc->chars[2],fcc->chars[3]);
-	StringCchCat(text,len,buf);
-}
-StringCchPrintf(buf,256,L" | %d бит | %d кадр./с ",(int)vi.BitsPerPixel,(int)vi.FramesPerSecond);
-StringCchCat(text,5000,buf);
-StringCchPrintf(buf,256,L"[%d x %d]\n",(int)vi.width,(int)vi.height);
-StringCchCat(text,len,buf);
+StringCchCat(text,len,L"Видео: ");
+
+if(wRes==INFORES_VIDEO||wRes==INFORES_BOTH){
+    fcc=(FOURCC_EXTRACTOR*)&vi.dwVideoCodec;
+
+    if(vi.dwVideoCodec==BI_RGB){
+        switch(vi.VideoType){
+          case VIDEOTYPE_MPEG1:StringCchCat(text,len,L"MPEG1 ");break;
+          case VIDEOTYPE_MPEG2:StringCchCat(text,len,L"MPEG2 ");break;
+          case VIDEOTYPE_VIDEO:default:StringCchCat(text,len,L"RGB ");
+	    }
+    }
+    else{
+        StringCchPrintf(buf,256,L"%c%c%c%c ",fcc->chars[0],fcc->chars[1],fcc->chars[2],fcc->chars[3]);
+        StringCchCat(text,len,buf);
+    }
+
+    StringCchPrintf(buf,256,L" | %d кадр./с | %d x %d", vi.FramesPerSecond, vi.width, vi.height);
+    StringCchCat(text,len,buf);
+
+    if(vi.BitsPerPixel>0){
+        StringCchPrintf(buf,256,L" | %d бит ", vi.BitsPerPixel);
+        StringCchCat(text,len,buf);
+    }
 
 }
 else{StringCchCat(text,len,L"[Нет]\n");}
+
 }
 
 void RunTimer(){
