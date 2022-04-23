@@ -157,6 +157,12 @@ typedef union{
 //DirectShow time unit
 #define TIME_KOEFF 10000
 
+//Gets the path to the module where the implementation of the specified COM object is located
+BOOL SMP_GetModuleFromObject(IUnknown* pObject, WCHAR* output, DWORD cchOutput);
+
+//Gets the version info for the specified module as text
+BOOL SMP_GetFileVersionInfo(const WCHAR* file, WCHAR* output, int cchOutput);
+
 BOOL inline IsCursorShown(){
 	CURSORINFO ci={0};
 	ci.cbSize=sizeof(CURSORINFO);

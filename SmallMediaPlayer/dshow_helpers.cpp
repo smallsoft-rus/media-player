@@ -318,96 +318,15 @@ IBaseFilter* FindFileSource(IGraphBuilder* pGraph)
 }
 
 #ifdef DEBUG
-
-typedef struct LANGANDCODEPAGE {
-      WORD wLanguage;
-      WORD wCodePage;
-} STRUCT_LANGANDCODEPAGE;
-
-WCHAR* GetVersionEntry(void* lpData,STRUCT_LANGANDCODEPAGE *lpTranslate, UINT cbTranslate,const WCHAR* name){
-
-    HRESULT hr;
-    WCHAR SubBlock[50]=L"";
-    LPVOID lpBuffer=NULL;
-    UINT dwBytes=0;
-    BOOL res=FALSE;
-
-    //get version info string in the first language available
-    for(UINT i=0; i < (cbTranslate/sizeof(struct LANGANDCODEPAGE)); i++ )
-    {
-      hr = StringCchPrintfW(SubBlock, 50,
-            TEXT("\\StringFileInfo\\%04x%04x\\%s"),
-            lpTranslate[i].wLanguage,
-            lpTranslate[i].wCodePage,
-            name);
-
-  	  if (FAILED(hr)) continue;
-      
-      lpBuffer=NULL;
-  	  res=VerQueryValueW(lpData, 
-                SubBlock, 
-                &lpBuffer, 
-                &dwBytes);
-
-      if(res==FALSE)continue;
-      if(lpBuffer==NULL)continue;
-
-      WCHAR* pStr=(WCHAR*)lpBuffer;
-      return pStr;
-  	}
-
-    return NULL;
-}
-
 void LogFileVersionInfo(const WCHAR* file){
-    DWORD unused=0;
-    DWORD size=GetFileVersionInfoSizeW(file,&unused);
-    if(size==0)return;
 
-    void* lpData=LocalAlloc(LMEM_ZEROINIT,size);
-    if(lpData==NULL)return;
+    const int bufSize = 5000;
+    WCHAR buf[bufSize]={0};
+    BOOL res = SMP_GetFileVersionInfo(file, buf, bufSize);
 
-    BOOL res = GetFileVersionInfoW(file,0,size,lpData);
-    if(res==FALSE){LocalFree(lpData);return;}
-
-    STRUCT_LANGANDCODEPAGE *lpTranslate=NULL;
-    UINT cbTranslate=0;
-    WCHAR SubBlock[50]=L"";
-    LPVOID lpBuffer=NULL;
-    UINT dwBytes=0;
-    WCHAR buf[500]=L"";
-
-    res=VerQueryValueW(lpData, TEXT("\\VarFileInfo\\Translation"),
-              (LPVOID*)&lpTranslate,
-              &cbTranslate);
-
-    if(res==FALSE){LocalFree(lpData);return;}
-
-    WCHAR* pName=GetVersionEntry(lpData,lpTranslate,cbTranslate,L"ProductName");
-
-    if(pName!=NULL){
-        StringCchCopy(buf,500,L"Product name: ");
-        StringCchCat(buf,500,pName);
-        LogMessage(buf,FALSE);
+    if(res!=FALSE){
+        LogMessage(buf, FALSE);
     }
-    
-    WCHAR* pFileVersion=GetVersionEntry(lpData,lpTranslate,cbTranslate,L"FileVersion");
-
-    if(pFileVersion!=NULL){
-        StringCchCopy(buf,500,L"File version: ");
-        StringCchCat(buf,500,pFileVersion);
-        LogMessage(buf,FALSE);
-    }        
-    
-    WCHAR* pProductVersion=GetVersionEntry(lpData,lpTranslate,cbTranslate,L"ProductVersion");
-
-    if(pProductVersion!=NULL){
-        StringCchCopy(buf,500,L"Product version: ");
-        StringCchCat(buf,500,pProductVersion);
-        LogMessage(buf,FALSE);
-    }
-
-    LocalFree(lpData);
 }
 
 //prints all filters in graph to log file
@@ -457,29 +376,19 @@ void LogAllFilters(IGraphBuilder* pGraph)
             CoTaskMemFree(pVendor);
         }
 
-        //get QueryInterface function address (first in vtable)
-        uintptr_t* p = (uintptr_t*)(pFilter);
-        uintptr_t addr = *p;
+        //module path
+        ZeroMemory(module, sizeof(module));
+        BOOL res = SMP_GetModuleFromObject(pFilter, module, MAX_PATH);
 
-        //get module from function address
-        hModule = NULL;
-        
-        GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, 
-             (LPCTSTR)(addr), &hModule
-        );
+        if(res != FALSE){
+            StringCchCopy(buf,500,L"Module: ");
+            StringCchCat(buf,500,module);
+            LogMessage(buf,FALSE);
 
-        if(hModule != NULL){
-             //module name
-             memset(module,0,sizeof(module));
-             GetModuleFileName(hModule,module,MAX_PATH);
-             StringCchCopy(buf,500,L"Module: ");
-             StringCchCat(buf,500,module);
-             LogMessage(buf,FALSE);
-
-             //module version info
-             LogFileVersionInfo(module);
+            //module version info
+            LogFileVersionInfo(module);
         }
-
+        
         pFilter->Release();
     }
 

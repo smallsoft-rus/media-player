@@ -1430,24 +1430,18 @@ void DebugLogging_ProcessNode(IMFTopologyNode* pNode, WCHAR* text, int c){
         break;
     }
 
-	//get QueryInterface function address (first in vtable)
+    //get QueryInterface function address (first in vtable)
     uintptr_t* p = (uintptr_t*)(pNode);
     uintptr_t addr = *p;
 
-	//get module from function address
-    HMODULE hModule = NULL;
-        
-    GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, 
-             (LPCTSTR)(addr), &hModule
-    );
+    //get module path
+    WCHAR module[MAX_PATH];
+    memset(module,0,sizeof(module));
+    BOOL res = SMP_GetModuleFromObject(pNode, module, MAX_PATH);
 
-    //module name
-    if(hModule != NULL){
-        WCHAR module[MAX_PATH];
-        memset(module,0,sizeof(module));
-        GetModuleFileName(hModule,module,MAX_PATH);
+    if(res != FALSE){
         StringCchCat(text,c,module);
-		StringCchPrintf(buf,250,L" @0x%x\r\n",(UINT)addr);
+        StringCchPrintf(buf,250,L" @0x%x\r\n",(UINT)addr);
         StringCchCat(text,c,buf);
     }
     else StringCchCat(text,c,L"[failed to get module]\r\n");

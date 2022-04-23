@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
-#include <windows.h>
+#include "common.h"
 #include <dshow.h>
 
 #define SOURCE_FILTER L"WM ASF Reader"
