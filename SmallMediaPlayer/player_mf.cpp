@@ -73,6 +73,7 @@ MfPlayer::MfPlayer(HWND hVideo, HWND hEvent) :
     m_pSession(NULL),
     m_pSource(NULL),
     m_pVideoDisplay(NULL),
+    m_pNodeSource(NULL),
     m_hwndVideo(hVideo),
     m_hwndEvent(hEvent),
     m_state(Closed),
@@ -476,6 +477,44 @@ HRESULT MfPlayer::Close()
 
 /// Protected methods
 
+HRESULT MfPlayer::FindCodecs(IMFTopology* pTopology){
+
+    //find topology nodes and save them into variables
+    IMFCollection* pColl = NULL;
+    DWORD count=0;
+    IUnknown* pElem = NULL;
+    IMFTopologyNode* pNode = NULL;
+    WCHAR text[5000]=L"";
+    WCHAR buf[250]=L"";
+
+    HRESULT hr = pTopology->GetSourceNodeCollection(&pColl);
+    if(FAILED(hr)) goto End;
+
+    pColl->GetElementCount(&count);
+
+    //find the first source node
+    for(DWORD i=0;i<count;i++){
+        SafeRelease(&pElem); 
+        StringCchPrintf(buf,250,L"Source #%u\r\n",(UINT)i);
+        StringCchCat(text,5000,buf);
+
+        hr = pColl->GetElement(i,&pElem);
+        if(FAILED(hr))continue;
+
+        hr = pElem->QueryInterface(IID_PPV_ARGS(&pNode));
+        if(FAILED(hr))continue;
+
+        //found
+        this->m_pNodeSource = pNode;
+        hr = S_OK;
+        break;
+    }    
+
+End:SafeRelease(&pElem);
+    SafeRelease(&pColl);
+    return hr;
+}
+
 HRESULT MfPlayer::OnTopologyStatus(IMFMediaEvent *pEvent)
 {
     UINT32 status; 
@@ -500,6 +539,11 @@ HRESULT MfPlayer::OnTopologyStatus(IMFMediaEvent *pEvent)
 
         //restore volume
         this->SetVolume(GetVolume());
+
+        IMFTopology* pTopology=NULL;
+        this->m_pSession->GetFullTopology(MFSESSION_GETFULLTOPOLOGY_CURRENT, 0, &pTopology);
+        if(pTopology!=NULL) this->FindCodecs(pTopology);
+        SafeRelease(&pTopology);
     }
     return hr;
 }
@@ -648,6 +692,7 @@ HRESULT MfPlayer::CloseSession()
 
     SafeRelease(&m_pSource);
     SafeRelease(&m_pSession);
+    SafeRelease(&m_pNodeSource);
     m_state = Closed;
     PlayerState=FILE_NOT_LOADED;
     return hr;
@@ -783,6 +828,47 @@ WORD MfPlayer::GetMultimediaInfo(SMP_AUDIOINFO* pAudioInfo,SMP_VIDEOINFO* pVideo
     if(this->m_pSource == NULL) return INFORES_NO;
 
     return GetSourceInfo(this->m_pSource, pAudioInfo, pVideoInfo, pStreamType);
+}
+
+BOOL MfPlayer::ShowCodecProperties(TOPOLOGY_NODE node){
+    IUnknown* pNode=NULL;
+
+    if(node == TN_SPLITTER){
+        pNode = this->m_pNodeSource;
+    }
+        
+    if(pNode==NULL){
+        //can't show property page
+        return FALSE;
+    }
+
+    WCHAR module[MAX_PATH]={0};
+    const int text_size = 10000;
+    WCHAR text[text_size]={0};
+    const int buf_size = 5000;
+    WCHAR buf[buf_size]={0};
+
+    BOOL res = SMP_GetModuleFromObject(pNode, module, MAX_PATH);
+    if(res == FALSE) return FALSE;
+
+    WCHAR* shortName = GetShortName(module);
+    StringCchCopy(text, text_size, L"Файл: ");
+    StringCchCat(text, text_size, shortName);
+    StringCchCat(text, text_size, L"\r\nТип: Источник Media Foundation\r\n");    
+
+    res = SMP_GetFileVersionInfo(module, buf, buf_size);
+
+    if(res != FALSE){
+        StringCchCat(text, text_size, L"\r\n");
+        StringCchCat(text, text_size, buf);
+        StringCchCat(text, text_size, L"\r\n");
+    }
+
+    StringCchCat(text, text_size, L"\r\nПуть к файлу: ");
+    StringCchCat(text, text_size, module);
+
+    MessageBox(NULL, text, L"Свойства источника", MB_OK);
+    return TRUE;
 }
 
 //  Create a media source from a URL.

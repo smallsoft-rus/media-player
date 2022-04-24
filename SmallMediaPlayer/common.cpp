@@ -1,4 +1,4 @@
-/* Small Media Player 
+﻿/* Small Media Player 
  * Copyright (c) 2022,  MSDN.WhiteKnight (https://github.com/smallsoft-rus/media-player) 
  * License: BSD 2.0 */
 #include "common.h"
@@ -92,10 +92,18 @@ BOOL SMP_GetFileVersionInfo(const WCHAR* file, WCHAR* output, int cchOutput){
 
     if(res==FALSE){LocalFree(lpData);return FALSE;}
 
+    WCHAR* pDescr=GetVersionEntry(lpData,lpTranslate,cbTranslate,L"FileDescription");
+
+    if(pDescr!=NULL){
+        StringCchCat(output,cchOutput,L"Описание: ");
+        StringCchCat(output,cchOutput,pDescr);
+        StringCchCat(output,cchOutput,L"\r\n");
+    }
+
     WCHAR* pName=GetVersionEntry(lpData,lpTranslate,cbTranslate,L"ProductName");
 
     if(pName!=NULL){
-        StringCchCat(output,cchOutput,L"Product name: ");
+        StringCchCat(output,cchOutput,L"Название продукта: ");
         StringCchCat(output,cchOutput,pName);
         StringCchCat(output,cchOutput,L"\r\n");
     }
@@ -103,7 +111,7 @@ BOOL SMP_GetFileVersionInfo(const WCHAR* file, WCHAR* output, int cchOutput){
     WCHAR* pFileVersion=GetVersionEntry(lpData,lpTranslate,cbTranslate,L"FileVersion");
 
     if(pFileVersion!=NULL){
-        StringCchCat(output,cchOutput,L"File version: ");
+        StringCchCat(output,cchOutput,L"Версия файла: ");
         StringCchCat(output,cchOutput,pFileVersion);
         StringCchCat(output,cchOutput,L"\r\n");
     }
@@ -111,7 +119,7 @@ BOOL SMP_GetFileVersionInfo(const WCHAR* file, WCHAR* output, int cchOutput){
     WCHAR* pProductVersion=GetVersionEntry(lpData,lpTranslate,cbTranslate,L"ProductVersion");
 
     if(pProductVersion!=NULL){
-        StringCchCat(output,cchOutput,L"Product version: ");
+        StringCchCat(output,cchOutput,L"Версия продукта: ");
         StringCchCat(output,cchOutput,pProductVersion);
     }
 

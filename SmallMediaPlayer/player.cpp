@@ -432,11 +432,15 @@ SetVideoWindow(hVideoWindow);
 void ShowPropertyPage(TOPOLOGY_NODE node){
 
     if(CurrentImpl==IMPL_MF){
-        MessageBoxW(hWnd,L"Not implemented",L"",MB_OK);
-        return;
-    }
+        BOOL res = g_pPlayer->ShowCodecProperties(node);
 
-    DS_ShowPropertyPage(node);
+        if(res == FALSE){
+            MessageBox(NULL, L"Невозможно показать страницу свойств", NULL, MB_OK);
+        }
+    }    
+    else {
+        DS_ShowPropertyPage(node);
+    }
 }
 
 LRESULT Player_InitWindows(HWND hVideo,HWND hEvent){

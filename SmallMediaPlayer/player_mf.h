@@ -96,6 +96,8 @@ public:
     //as well as their properties
     WORD GetMultimediaInfo(SMP_AUDIOINFO* pAudioInfo,SMP_VIDEOINFO* pVideoInfo,SMP_STREAM* pStreamType);
 
+    BOOL ShowCodecProperties(TOPOLOGY_NODE node);
+
     //Starts playback from the specified position in milliseconds
     HRESULT SetPosition(LONGLONG newpos);
 
@@ -120,6 +122,7 @@ protected:
     HRESULT CreateSession();
     HRESULT CloseSession();
     HRESULT StartPlayback();
+    HRESULT FindCodecs(IMFTopology* pTopology);
 
     // Media event handlers
     virtual HRESULT OnTopologyStatus(IMFMediaEvent *pEvent);
@@ -138,6 +141,7 @@ protected:
     IMFMediaSession         *m_pSession;
     IMFMediaSource          *m_pSource;
     IMFVideoDisplayControl  *m_pVideoDisplay;
+    IMFTopologyNode         *m_pNodeSource;
 
     HWND                    m_hwndVideo;        // Video window.
     HWND                    m_hwndEvent;        // App window to receive events.
