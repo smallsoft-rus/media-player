@@ -1,10 +1,11 @@
-/* Small Media Player 
+ï»¿/* Small Media Player 
  * Copyright (c) 2021,  MSDN.WhiteKnight (https://github.com/smallsoft-rus/media-player) 
  * License: BSD 2.0 */
 #include <assert.h>
 #include <math.h>
 #include "player_mf.h"
 #include "errors.h"
+#include <MMDeviceAPI.h>
 
 extern HWND hVideoWindow;
 
@@ -17,6 +18,7 @@ DWORD GetVolume();
 //forward decl
 extern HANDLE MF_hOpenEvent;
 extern HRESULT MF_OpenEvent_LastResult;
+extern UINT MF_AudioDevicesCount;
 HRESULT GetSourceDuration(IMFMediaSource *pSource, MFTIME *pDuration);
 WORD GetSourceInfo(IMFMediaSource *pSource, SMP_AUDIOINFO* pAudioInfo,SMP_VIDEOINFO* pVideoInfo,SMP_STREAM* pStreamType);
 
@@ -852,9 +854,9 @@ BOOL MfPlayer::ShowCodecProperties(TOPOLOGY_NODE node){
     if(res == FALSE) return FALSE;
 
     WCHAR* shortName = GetShortName(module);
-    StringCchCopy(text, text_size, L"Ôàéë: ");
+    StringCchCopy(text, text_size, L"Ð¤Ð°Ð¹Ð»: ");
     StringCchCat(text, text_size, shortName);
-    StringCchCat(text, text_size, L"\r\nÒèï: Èñòî÷íèê Media Foundation\r\n");    
+    StringCchCat(text, text_size, L"\r\nÐ¢Ð¸Ð¿: Ð˜ÑÑ‚Ð¾Ñ‡Ð½Ð¸Ðº Media Foundation\r\n");    
 
     res = SMP_GetFileVersionInfo(module, buf, buf_size);
 
@@ -864,10 +866,10 @@ BOOL MfPlayer::ShowCodecProperties(TOPOLOGY_NODE node){
         StringCchCat(text, text_size, L"\r\n");
     }
 
-    StringCchCat(text, text_size, L"\r\nÏóòü ê ôàéëó: ");
+    StringCchCat(text, text_size, L"\r\nÐŸÑƒÑ‚ÑŒ Ðº Ñ„Ð°Ð¹Ð»Ñƒ: ");
     StringCchCat(text, text_size, module);
 
-    MessageBox(NULL, text, L"Ñâîéñòâà èñòî÷íèêà", MB_OK);
+    MessageBox(NULL, text, L"Ð¡Ð²Ð¾Ð¹ÑÑ‚Ð²Ð° Ð¸ÑÑ‚Ð¾Ñ‡Ð½Ð¸ÐºÐ°", MB_OK);
     return TRUE;
 }
 
@@ -909,11 +911,24 @@ done:
     return hr;
 }
 
+UINT GetAudioDevicesCount(){
+    IMMDeviceEnumerator* deviceEnumerator = NULL;
+    IMMDeviceCollection* deviceCollection = NULL;
+    UINT cDevices=0;
+    CoCreateInstance(__uuidof(MMDeviceEnumerator), NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&deviceEnumerator));
+    if(deviceEnumerator!=NULL)deviceEnumerator->EnumAudioEndpoints(eRender, DEVICE_STATE_ACTIVE, &deviceCollection);
+    if(deviceCollection!=NULL)deviceCollection->GetCount(&cDevices);
+    SafeRelease(&deviceEnumerator);
+    SafeRelease(&deviceCollection);
+    return cDevices;
+}
+
 //  Create an activation object for a renderer, based on the stream media type.
 
 HRESULT CreateMediaSinkActivate(
     IMFStreamDescriptor *pSourceSD,     // Pointer to the stream descriptor.
     HWND hVideoWindow,                  // Handle to the video clipping window.
+    DWORD countStreams,
     IMFActivate **ppActivate
 )
 {
@@ -938,8 +953,16 @@ HRESULT CreateMediaSinkActivate(
     // Create an IMFActivate object for the renderer, based on the media type.
     if (MFMediaType_Audio == guidMajorType)
     {
-        // Create the audio renderer.
-        hr = MFCreateAudioRendererActivate(&pActivate);
+        if(MF_AudioDevicesCount == 0 && countStreams>1) {
+            // If the machine has no active audio devices and there're streams besides this one, we don't attempt 
+            // to create audio renderer and instead ignore this audio stream. This is needed to enable video playback 
+            // on machines without active sound device (https://github.com/smallsoft-rus/media-player/issues/23)
+            hr = S_OK;
+        }
+        else {
+            // Create the audio renderer.
+            hr = MFCreateAudioRendererActivate(&pActivate);
+        }
     }
     else if (MFMediaType_Video == guidMajorType)
     {
@@ -958,8 +981,10 @@ HRESULT CreateMediaSinkActivate(
     }
  
     // Return IMFActivate pointer to caller.
-    *ppActivate = pActivate;
-    (*ppActivate)->AddRef();
+    if(pActivate!=NULL){
+        *ppActivate = pActivate;
+        (*ppActivate)->AddRef();
+    }
 
 done:
     SafeRelease(&pHandler);
@@ -1086,7 +1111,9 @@ HRESULT AddBranchToPartialTopology(
     IMFMediaSource *pSource,        // Media source.
     IMFPresentationDescriptor *pPD, // Presentation descriptor.
     DWORD iStream,                  // Stream index.
-    HWND hVideoWnd)                 // Window for video playback.
+    HWND hVideoWnd,                 // Window for video playback.
+    DWORD countStreams
+    )                 
 {
     IMFStreamDescriptor *pSD = NULL;
     IMFActivate         *pSinkActivate = NULL;
@@ -1104,8 +1131,9 @@ HRESULT AddBranchToPartialTopology(
     if (fSelected)
     {
         // Create the media sink activation object.
-        hr = CreateMediaSinkActivate(pSD, hVideoWnd, &pSinkActivate);
-        if (FAILED(hr))
+        pSinkActivate = NULL;
+        hr = CreateMediaSinkActivate(pSD, hVideoWnd, countStreams, &pSinkActivate);
+        if (FAILED(hr) || pSinkActivate == NULL)
         {
             goto done;
         }
@@ -1164,7 +1192,7 @@ HRESULT CreatePlaybackTopology(
     // For each stream, create the topology nodes and add them to the topology.
     for (DWORD i = 0; i < cSourceStreams; i++)
     {
-        hr = AddBranchToPartialTopology(pTopology, pSource, pPD, i, hVideoWnd);
+        hr = AddBranchToPartialTopology(pTopology, pSource, pPD, i, hVideoWnd, cSourceStreams);
         if (FAILED(hr))
         {
             goto done;
@@ -1184,6 +1212,7 @@ done:
 
 BOOL        g_bRepaintClient = TRUE;            // Repaint the application client area?
 MfPlayer     *g_pPlayer = NULL;                  // Global player object.
+UINT MF_AudioDevicesCount = 0;
 
 //event that signals when async file open operation is finished
 HANDLE MF_hOpenEvent=NULL;
@@ -1234,6 +1263,7 @@ HRESULT MF_Player_OpenFile(PWSTR file)
 LRESULT MF_Player_InitWindows(HWND hVideo,HWND hEvent)
 {
     MF_hOpenEvent = CreateEventW(NULL, FALSE, FALSE, NULL);
+    MF_AudioDevicesCount = GetAudioDevicesCount();
 
     // Initialize the player object.
     HRESULT hr = MfPlayer::CreateInstance(hVideo, hEvent, &g_pPlayer); 
