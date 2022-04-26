@@ -1,4 +1,4 @@
-/* Small Media Player 
+﻿/* Small Media Player 
  * Copyright (c) 2021,  MSDN.WhiteKnight (https://github.com/smallsoft-rus/media-player) 
  * License: BSD 2.0 */
 #include <assert.h>
@@ -18,6 +18,7 @@ DWORD GetVolume();
 //forward decl
 extern HANDLE MF_hOpenEvent;
 extern HRESULT MF_OpenEvent_LastResult;
+extern UINT MF_AudioDevicesCount;
 HRESULT GetSourceDuration(IMFMediaSource *pSource, MFTIME *pDuration);
 WORD GetSourceInfo(IMFMediaSource *pSource, SMP_AUDIOINFO* pAudioInfo,SMP_VIDEOINFO* pVideoInfo,SMP_STREAM* pStreamType);
 
@@ -952,9 +953,7 @@ HRESULT CreateMediaSinkActivate(
     // Create an IMFActivate object for the renderer, based on the media type.
     if (MFMediaType_Audio == guidMajorType)
     {
-        UINT cDevices=GetAudioDevicesCount();
-        
-        if(cDevices == 0 && countStreams>1) {
+        if(MF_AudioDevicesCount == 0 && countStreams>1) {
             // If the machine has no active audio devices and there're streams besides this one, we don't attempt 
             // to create audio renderer and instead ignore this audio stream. This is needed to enable video playback 
             // on machines without active sound device (https://github.com/smallsoft-rus/media-player/issues/23)
@@ -1213,6 +1212,7 @@ done:
 
 BOOL        g_bRepaintClient = TRUE;            // Repaint the application client area?
 MfPlayer     *g_pPlayer = NULL;                  // Global player object.
+UINT MF_AudioDevicesCount = 0;
 
 //event that signals when async file open operation is finished
 HANDLE MF_hOpenEvent=NULL;
@@ -1263,6 +1263,7 @@ HRESULT MF_Player_OpenFile(PWSTR file)
 LRESULT MF_Player_InitWindows(HWND hVideo,HWND hEvent)
 {
     MF_hOpenEvent = CreateEventW(NULL, FALSE, FALSE, NULL);
+    MF_AudioDevicesCount = GetAudioDevicesCount();
 
     // Initialize the player object.
     HRESULT hr = MfPlayer::CreateInstance(hVideo, hEvent, &g_pPlayer); 
