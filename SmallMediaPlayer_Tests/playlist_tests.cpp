@@ -216,5 +216,16 @@ namespace SmallMediaPlayer_Tests
             Stop();
             ClearPlaylist();
         }
+        
+        TEST_METHOD(Test_PlayTrackByNumber_Error)
+        {
+            ClearPlaylist();
+            AddPlaylistElement(L"dummy.txt");
+            PlayTrackByNumber(0);
+            int state = (int)PlayerState;
+            ClearPlaylist();
+
+            Assert::AreEqual((int)FILE_NOT_LOADED, state);            
+        }
     };
 }
