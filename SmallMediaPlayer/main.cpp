@@ -11,7 +11,7 @@
 #include <Windows.h>
 
 //imported from ui.cpp
-extern void InitApplication();
+extern void InitApplication(BOOL useErrorGUI);
 extern void RunMessageLoop();
 extern void UnloadApplication();
 extern void EnsureSingleInstance();
@@ -35,7 +35,7 @@ int APIENTRY WinMain(HINSTANCE hInst, HINSTANCE hInstPrev, PSTR pstrCmdLine, int
     //resource module handle is for EXE in real app
     InitResources(GetModuleHandle(NULL));
 
-    InitApplication();
+    InitApplication(TRUE);
     InitPlayerState();
     ShowUI();
     RunMessageLoop();

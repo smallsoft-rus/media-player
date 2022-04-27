@@ -14,7 +14,7 @@ const int SMP_ALERT_NONBLOCKING = 0; //modeless errors window
 const int SMP_ALERT_BLOCKING = 1;    //modal message box
 const int SMP_ALERT_SILENT = 2;      //no visible UI
 
-void InitErrorHandler();
+void InitErrorHandler(BOOL enableGUI);
 void HandleError(const WCHAR* message,SMP_ALERTTYPE alerttype, const WCHAR* info);
 void HandleError(const WCHAR* message,SMP_ALERTTYPE alerttype, const WCHAR* info, CONTEXT* pContext);
 void HandlePlayError(HRESULT hr, const WCHAR* file);
