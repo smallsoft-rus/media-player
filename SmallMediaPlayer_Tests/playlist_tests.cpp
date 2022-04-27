@@ -9,7 +9,7 @@
 #include "player.h"
 
 //imported from ui.obj
-extern void InitApplication();
+extern void InitApplication(BOOL useErrorGUI);
 extern void InitResources(HMODULE h);
 
 //imported from RegistryModule.obj
@@ -28,7 +28,7 @@ void TestsMain(){
     Init_ProgramFileName();
     //tests must fetch resources from DLL instead of EXE
     InitResources(GetModuleHandle(L"SmallMediaPlayer_Tests.dll"));
-    InitApplication();
+    InitApplication(FALSE);
     
     TestsMain_Initialized=true;
 }
