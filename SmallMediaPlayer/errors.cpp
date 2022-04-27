@@ -19,6 +19,7 @@ HWND hErrorWnd = NULL; //window to print errors
 HWND hEdit = NULL; //edit control in error window
 WCHAR strLogFile[MAX_PATH]=L"";
 BOOL fLogFileInitialized=FALSE;
+BOOL fEnableGUI=FALSE;
 
 void CreateErrorWindow();
 
@@ -240,7 +241,7 @@ void HandleError(
     const WCHAR* message,SMP_ALERTTYPE alerttype, const WCHAR* info, CONTEXT* pContext
     ){ //export
 
-    InitErrorHandler();
+    InitErrorHandler(TRUE);
 
     //write error to log file
     HANDLE hFile=CreateFile(
@@ -302,15 +303,17 @@ void HandleError(
     }
 
     //show error
-	switch(alerttype){
-	case SMP_ALERT_BLOCKING:
-		MessageBoxW(NULL,message,NULL,MB_OK|MB_ICONERROR);
-		break;
-	case SMP_ALERT_SILENT:
-		break;
-	default: //non-blocking
-		AddErrorMessage(message);
-	}
+    if(fEnableGUI != FALSE){
+	    switch(alerttype){
+	    case SMP_ALERT_BLOCKING:
+		    MessageBoxW(NULL,message,NULL,MB_OK|MB_ICONERROR);
+		    break;
+	    case SMP_ALERT_SILENT:
+		    break;
+	    default: //non-blocking
+		    AddErrorMessage(message);
+	    }
+    }
 }
 
 //writes message into log file, but does not show UI or write stack trace
@@ -318,7 +321,7 @@ void LogMessage(
     const WCHAR* message, BOOL fTime
     ){ //export
 
-    InitErrorHandler();
+    InitErrorHandler(TRUE);
 
     //write error to log file
     HANDLE hFile=CreateFile(
@@ -423,9 +426,11 @@ LONG WINAPI MyUnhandledExceptionFilter( struct _EXCEPTION_POINTERS *ExceptionInf
     return EXCEPTION_CONTINUE_SEARCH;
 }
 
-void InitErrorHandler(){ //export
+void InitErrorHandler(BOOL enableGUI){ //export
 
     if(fLogFileInitialized!=FALSE)return;
+
+    fEnableGUI = enableGUI;
 
     //construct log file path
     GetDataDir(strLogFile,MAX_PATH);

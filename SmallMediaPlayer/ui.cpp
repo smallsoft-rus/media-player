@@ -1421,7 +1421,7 @@ void InitResources(HMODULE h){
 }
 
 // Initializes libraries and creates UI
-void InitApplication(){
+void InitApplication(BOOL useErrorGUI){
 wchar_t wclass_name[]=L"MyClass";
 WNDCLASSEX wc;
 RECT rc={0};
@@ -1445,7 +1445,7 @@ ic.dwSize=sizeof(ic);
 ic.dwICC=ICC_WIN95_CLASSES;
 InitCommonControlsEx(&ic);
 GdiplusStartup(&gdip_code, new GdiplusStartupInput(),NULL);
-InitErrorHandler();
+InitErrorHandler(useErrorGUI);
 
     //player event callback
     Player_SetEventCallback(OnPlaybackEvent);
