@@ -1,5 +1,5 @@
 /* Small Media Player tests 
- * Copyright (c) 2021,  MSDN.WhiteKnight (https://github.com/smallsoft-rus/media-player) 
+ * Copyright (c) 2022,  MSDN.WhiteKnight (https://github.com/smallsoft-rus/media-player) 
  * License: BSD 2.0 */
 #define _CRT_SECURE_NO_WARNINGS
 #include <vector>
@@ -46,6 +46,7 @@ namespace SmallMediaPlayer_Tests
 	
         TEST_METHOD(Test_AddPlaylistElement)
         {
+            ClearPlaylist();
             AddPlaylistElement(L"c:\\test.mp3");
 
             WCHAR buf[MAX_PATH]=L"";
@@ -58,6 +59,7 @@ namespace SmallMediaPlayer_Tests
 
         TEST_METHOD(Test_ClearPlaylist)
         {
+            ClearPlaylist();
             AddPlaylistElement(L"c:\\music\\test.mp3");
             AddPlaylistElement(L"c:\\music\\test2.mp3");
             AddPlaylistElement(L"c:\\music\\test3.mp3");
@@ -75,6 +77,7 @@ namespace SmallMediaPlayer_Tests
 
         TEST_METHOD(Test_DeletePlaylistElement)
         {
+            ClearPlaylist();
             AddPlaylistElement(L"c:\\music\\test.mp3");
             AddPlaylistElement(L"c:\\music\\test2.mp3");
             AddPlaylistElement(L"c:\\music\\test3.mp3");
@@ -98,6 +101,7 @@ namespace SmallMediaPlayer_Tests
 
         TEST_METHOD(Test_AddDirectory)
         {
+            ClearPlaylist();
             Playlist_AddDirectory(L"..\\SmallMediaPlayer_Tests\\data\\");
             Assert::AreEqual((UINT)4,CountTracks);
 
@@ -120,6 +124,7 @@ namespace SmallMediaPlayer_Tests
 
         TEST_METHOD(Test_Playlist_SaveLoad)
         {
+            ClearPlaylist();
             AddPlaylistElement(L"c:\\music\\test.mp3");
             AddPlaylistElement(L"c:\\music\\test2.mp3");
             AddPlaylistElement(L"c:\\music\\test3.mp3");
@@ -146,6 +151,7 @@ namespace SmallMediaPlayer_Tests
 
         TEST_METHOD(Test_SaveTextPlaylist)
         {
+            ClearPlaylist();
             AddPlaylistElement(L"c:\\music\\file1.mp3");
             AddPlaylistElement(L"c:\\music\\file2.mp3");
             AddPlaylistElement(L"c:\\music\\file3.mp3");
