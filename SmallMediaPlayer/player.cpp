@@ -162,8 +162,8 @@ BOOL Player_OpenFileCore(WCHAR* filename, BOOL useDirectShow, BOOL useMediaFound
                 CurrentImpl=IMPL_DSHOW;
             }
         }
-    }       
-    
+    }
+
     if(FAILED(hr)){
         HandlePlayError(hr,filename);
         WPARAM wParam=MAKEWPARAM(ID_NEXTTRACK,0);
