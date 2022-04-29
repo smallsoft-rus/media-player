@@ -145,28 +145,27 @@ BOOL Player_OpenFileCore(WCHAR* filename, BOOL useDirectShow, BOOL useMediaFound
     fShowNextImage=false;
         
     HRESULT hr=E_FAIL;
-    //try DirectShow
-    if(useDirectShow != FALSE){
-        hr = DS_Player_OpenFile(filename);
+    //try Media Foundation
+    if(useMediaFoundation != FALSE){
+        hr = MF_Player_OpenFile(filename);
     }
 
     if(SUCCEEDED(hr)){
-        CurrentImpl=IMPL_DSHOW;
+        CurrentImpl=IMPL_MF;
     }
     else{
-        //if failed, try Media Foundation
-        if(useMediaFoundation != FALSE){
-            hr = MF_Player_OpenFile(filename);
-        }
+        //if failed, try DirectShow
+        if(useDirectShow != FALSE){
+            hr = DS_Player_OpenFile(filename);
 
-        if(SUCCEEDED(hr)){
-            CurrentImpl=IMPL_MF;
+            if(SUCCEEDED(hr)){
+                CurrentImpl=IMPL_DSHOW;
+            }
         }
     }
 
     if(FAILED(hr)){
-        //HandlePlayError(hr,filename);
-        HandleMfError(hr,L"Could not open the file.",filename);
+        HandlePlayError(hr,filename);
         WPARAM wParam=MAKEWPARAM(ID_NEXTTRACK,0);
         PostMessage(hWnd,WM_COMMAND,wParam,0);
         return FALSE;

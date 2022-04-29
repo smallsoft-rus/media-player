@@ -20,6 +20,7 @@ extern RECT VRect;
 
 //exports
 
+BOOL Player_OpenFileCore(WCHAR* filename, BOOL useDirectShow, BOOL useMediaFoundation);
 BOOL Player_OpenFile(WCHAR* filename);
 void PlayFile(TCHAR* lpstrFileName);
 void Play();
