@@ -217,7 +217,7 @@ namespace SmallMediaPlayer_Tests
             Assert::AreEqual((int)PAUSED,(int)PlayerState);
 
             DWORD len = GetLength();
-            Assert::AreEqual((DWORD)2636,len); //ms
+            Assert::AreEqual(2.6f,len/1000.0f,0.25f); //seconds
 
             Stop();
             ClearPlaylist();
@@ -232,6 +232,20 @@ namespace SmallMediaPlayer_Tests
             ClearPlaylist();
 
             Assert::AreEqual((int)FILE_NOT_LOADED, state);            
+        }
+
+        BEGIN_TEST_METHOD_ATTRIBUTE(Test_OpenFile_DirectShow)
+        TEST_OWNER(L"GUI")
+        END_TEST_METHOD_ATTRIBUTE()
+	    
+        TEST_METHOD(Test_OpenFile_DirectShow)
+        {
+            BOOL res = Player_OpenFileCore(L"..\\SmallMediaPlayer_Tests\\data\\robin.mp3", TRUE, FALSE);
+            Assert::IsTrue(res!=FALSE);
+            Assert::AreEqual((int)STOPPED,(int)PlayerState);
+            
+            DWORD len = GetLength();
+            Assert::AreEqual(2.6f,len/1000.0f,0.25f); //seconds
         }
     };
 }
