@@ -350,7 +350,7 @@ switch(info.type){
 	case TAG_NO:
 	default:StringCchCat(text,5000,L"Нет");break;
 }
-MessageBox(hMainWnd,text,L"Информация о файле",MB_OK);
+MessageBox(hMainWnd,text,L"Свойства файла",MB_OK);
 }
 
 void DisplayOpenedFileTags(){
@@ -394,13 +394,13 @@ switch(OpenedFileTags.type){
 	case TAG_NO:
 	default:StringCchCat(text,5000,L"Нет");break;
 }
-MessageBox(hMainWnd,text,L"Информация о файле",MB_OK);
+MessageBox(hMainWnd,text,L"Свойства файла",MB_OK);
 }
 
 void DisplayMultimediaInfo(){
     WCHAR text[5000]=L"";
     GetMultimediaInfoString(text,5000);
-    MessageBox(hMainWnd,text,L"Информация о файле",MB_OK);
+    MessageBox(hMainWnd,text,L"Информация о форматах мультимедиа",MB_OK);
 }
 
 void GetMultimediaInfo(TCHAR* text,int len){
