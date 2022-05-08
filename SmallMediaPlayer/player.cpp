@@ -75,33 +75,34 @@ case STREAM_UNKNOWN:default:StringCchCat(text,size,L"[нет данных]\n");b
 }
 StringCchCat(text,5000,L"==АУДИО:==\n");
 if(wRes==INFORES_AUDIO||wRes==INFORES_BOTH){
-	StringCchCat(text,5000,L"Формат: ");
-	switch(ai.wFormatTag){
-		case WAVE_FORMAT_PCM:StringCchCat(text,size,L"PCM Waveform Audio");break;
-		case AUDIO_DVI_ADPCM:StringCchCat(text,size,L"DVI ADPCM");break; 
-		case AUDIO_MPEG1:StringCchCat(text,size,L"MPEG1 Layer 1/2");break;
-		case 	WAVE_FORMAT_MPEGLAYER3:StringCchCat(text,size,L"MPEG1 Layer3");break;
-		case WAVE_FORMAT_DOLBY_AC3_SPDIF:
-		case AUDIO_AC3 :StringCchCat(text,size,L"DOLBY AC3");break;
-		case WAVE_FORMAT_WMAVOICE9:		case WAVE_FORMAT_WMAVOICE10:		case WAVE_FORMAT_MSAUDIO1:             
-		case WAVE_FORMAT_WMAUDIO2:		case WAVE_FORMAT_WMAUDIO3:	case  WAVE_FORMAT_WMAUDIO_LOSSLESS:        
-		case WAVE_FORMAT_WMASPDIF: StringCchCat(text,size,L"Windows Media Audio");break; 
+    StringCchCat(text,5000,L"Формат: ");
+    switch(ai.wFormatTag){
+        case WAVE_FORMAT_PCM: StringCchCat(text,size,L"PCM Waveform Audio");break;
+        case AUDIO_DVI_ADPCM: StringCchCat(text,size,L"DVI ADPCM");break; 
+        case AUDIO_MPEG1: StringCchCat(text,size,L"MPEG1 Layer 1/2");break;
+        case WAVE_FORMAT_MPEGLAYER3: StringCchCat(text,size,L"MPEG1 Layer3");break;
+        case WAVE_FORMAT_DOLBY_AC3_SPDIF:
+        case AUDIO_AC3: StringCchCat(text,size,L"DOLBY AC3");break;
+        case WAVE_FORMAT_WMAVOICE9: case WAVE_FORMAT_WMAVOICE10: case WAVE_FORMAT_MSAUDIO1:         
+        case WAVE_FORMAT_WMAUDIO2: case WAVE_FORMAT_WMAUDIO3: case WAVE_FORMAT_WMAUDIO_LOSSLESS:   
+        case WAVE_FORMAT_WMASPDIF: StringCchCat(text,size,L"Windows Media Audio");break; 
         case AUDIO_AAC4: case AUDIO_AAC3: case AUDIO_AAC2: case AUDIO_AAC:
         case AUDIO_MPEG4AAC:
-		case  WAVE_FORMAT_MPEG_ADTS_AAC:case WAVE_FORMAT_MPEG_RAW_AAC:case WAVE_FORMAT_NOKIA_MPEG_ADTS_AAC:        
-		case WAVE_FORMAT_NOKIA_MPEG_RAW_AAC:case WAVE_FORMAT_VODAFONE_MPEG_ADTS_AAC:     
-		case WAVE_FORMAT_VODAFONE_MPEG_RAW_AAC:
+        case WAVE_FORMAT_MPEG_ADTS_AAC: case WAVE_FORMAT_MPEG_RAW_AAC: case WAVE_FORMAT_NOKIA_MPEG_ADTS_AAC:        
+        case WAVE_FORMAT_NOKIA_MPEG_RAW_AAC: case WAVE_FORMAT_VODAFONE_MPEG_ADTS_AAC: 
+        case WAVE_FORMAT_VODAFONE_MPEG_RAW_AAC:
         case WAVE_FORMAT_MPEG_HEAAC:
-			StringCchCat(text,size,L"Advanced Audio Coding (AAC)");break;
-		case AUDIO_FLAC:StringCchCat(text,size,L"Free Lossless Audio Codec (FLAC)");break; 
-		case AUDIO_WAVEPACK:StringCchCat(text,size,L"WavePack");break; 
-		case AUDIO_AMR:StringCchCat(text,size,L"VOICEAGE AMR");break; 
-		case AUDIO_MPEG2AAC:StringCchCat(text,size,L"MPEG2");break; 
-		default:StringCchCat(text,size,L"неизвестен");break;
+            StringCchCat(text,size,L"Advanced Audio Coding (AAC)");break;
+        case AUDIO_FLAC: StringCchCat(text,size,L"Free Lossless Audio Codec (FLAC)");break; 
+        case AUDIO_WAVEPACK: StringCchCat(text,size,L"WavePack");break; 
+        case AUDIO_AMR: StringCchCat(text,size,L"VOICEAGE AMR");break; 
+        case AUDIO_MPEG2AAC: StringCchCat(text,size,L"MPEG2");break;
+        case AUDIO_APE: StringCchCat(text,size,L"Monkey's Audio (APE)");break;
+        default: StringCchCat(text,size,L"неизвестен");break;
 	}
-	StringCchPrintf(buf,256,L"\nКаналов: %d\nРазрешение: %d бит\nЧастота: %d Гц\n",(int)ai.chans,(int)ai.BitsPerSample,(int)ai.nFreq);
-	StringCchCat(text,size,buf);
-	StringCchPrintf(buf,256,L"Скорость: %d кбит/с\n",(int)(ai.BitsPerSecond/1000.0));StringCchCat(text,size,buf);
+    StringCchPrintf(buf,256,L"\nКаналов: %d\nРазрешение: %d бит\nЧастота: %d Гц\n",(int)ai.chans,(int)ai.BitsPerSample,(int)ai.nFreq);
+    StringCchCat(text,size,buf);
+    StringCchPrintf(buf,256,L"Скорость: %d кбит/с\n",(int)(ai.BitsPerSecond/1000.0));StringCchCat(text,size,buf);
 }
 else{StringCchCat(text,size,L"[Нет данных]\n");}
 StringCchCat(text,size,L"==ВИДЕО:==\n");
