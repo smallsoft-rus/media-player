@@ -436,6 +436,8 @@ if(wRes==INFORES_AUDIO||wRes==INFORES_BOTH){
 	
     switch(ai.wFormatTag){
         case WAVE_FORMAT_PCM: StringCchCat(text,len,L"PCM");break;
+        case WAVE_FORMAT_ADPCM: StringCchCat(text,len,L"ADPCM");break;
+        case AUDIO_IMA4_ADPCM: StringCchCat(text,len,L"IMA4 ADPCM");break;
         case AUDIO_DVI_ADPCM: StringCchCat(text,len,L"DVI ADPCM");break; 
         case AUDIO_MPEG1: StringCchCat(text,len,L"MP1/2");break;
         case WAVE_FORMAT_MPEGLAYER3: StringCchCat(text,len,L"MP3");break;

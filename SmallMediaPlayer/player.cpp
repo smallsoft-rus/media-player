@@ -78,6 +78,8 @@ if(wRes==INFORES_AUDIO||wRes==INFORES_BOTH){
     StringCchCat(text,5000,L"Формат: ");
     switch(ai.wFormatTag){
         case WAVE_FORMAT_PCM: StringCchCat(text,size,L"PCM Waveform Audio");break;
+        case WAVE_FORMAT_ADPCM: StringCchCat(text,size,L"Adaptive Differential PCM");break;
+        case AUDIO_IMA4_ADPCM: StringCchCat(text,size,L"Apple IMA4 ADPCM");break;
         case AUDIO_DVI_ADPCM: StringCchCat(text,size,L"DVI ADPCM");break; 
         case AUDIO_MPEG1: StringCchCat(text,size,L"MPEG1 Layer 1/2");break;
         case WAVE_FORMAT_MPEGLAYER3: StringCchCat(text,size,L"MPEG1 Layer3");break;

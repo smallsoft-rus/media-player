@@ -144,6 +144,11 @@ typedef union{
 // https://github.com/jeeb/mpc-be/blob/master/include/moreuuids.h
 // MPC_GUID_ENTRY(MEDIASUBTYPE_APE, 0x20455041, 0x0000, 0x0010, 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71)
 
+// Apple IMA4 ADPCM
+#define AUDIO_IMA4_ADPCM 0x6D69
+// https://github.com/Nevcairiel/LAVFilters/blob/master/common/includes/moreuuids.h
+// DEFINE_GUID(MEDIASUBTYPE_IMA4, 0x34616D69, 0x000, 0x0010, 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71);
+
 #define INFORES_NO 0
 #define INFORES_AUDIO 1
 #define INFORES_VIDEO 2
