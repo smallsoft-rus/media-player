@@ -140,6 +140,13 @@ void PrintStackA( CONTEXT* ctx , char* dest, size_t cch)
     char strbuf[MAX_SYM_NAME*3]={0};
     PSYMBOL_INFO pSymbol = (PSYMBOL_INFO)buffer;
 
+    // Context record could be modified by StackWalk64, which causes crashes on x64 when the context comes from the
+    // SEH exception information. So we create a copy here to prevent it.
+    // https://docs.microsoft.com/en-us/windows/win32/api/dbghelp/nf-dbghelp-stackwalk64
+    // https://github.com/MSDN-WhiteKnight/ErrLib/issues/2
+    CONTEXT ctxCopy;
+    memcpy(&ctxCopy, ctx, sizeof(CONTEXT)); 
+
     StringCchCopyA(dest,cch,"");
     memset( &stack, 0, sizeof( STACKFRAME64 ) );
 
@@ -169,7 +176,7 @@ void PrintStackA( CONTEXT* ctx , char* dest, size_t cch)
             process,
             thread,
             &stack,
-            ctx,
+            &ctxCopy,
             NULL,
             SymFunctionTableAccess64,
             SymGetModuleBase64,
@@ -182,8 +189,8 @@ void PrintStackA( CONTEXT* ctx , char* dest, size_t cch)
         ZeroMemory(buffer,sizeof(buffer));
         pSymbol->SizeOfStruct = sizeof(SYMBOL_INFO);
         pSymbol->MaxNameLen = MAX_SYM_NAME;
-        result = SymFromAddr(process, ( ULONG64 )stack.AddrPC.Offset, &displacement, pSymbol);
-        if(result == FALSE){ //name not available, output address instead
+        BOOL symbolFound = SymFromAddr(process, ( ULONG64 )stack.AddrPC.Offset, &displacement, pSymbol);
+        if(symbolFound == FALSE){ //name not available, output address instead
                StringCchPrintfA(pSymbol->Name,MAX_SYM_NAME,"0x%llx",(DWORD64)stack.AddrPC.Offset);
         }
 
@@ -205,7 +212,16 @@ void PrintStackA( CONTEXT* ctx , char* dest, size_t cch)
         }
 
         //try to get line
-        if (SymGetLineFromAddr64(process, stack.AddrPC.Offset, &disp, line))
+        BOOL lineinfoFound = FALSE;
+
+        if (symbolFound != FALSE) {
+            // Only try to find line info when symbol is found - fixes crash when Win7 DbgHelp reads PDB symbols 
+            // built with /DEBUG:FASTLINK option
+            // (https://github.com/MSDN-WhiteKnight/ErrLib/issues/2)
+            lineinfoFound = SymGetLineFromAddr64(process, stack.AddrPC.Offset, &disp, line);
+        }
+
+        if (lineinfoFound != FALSE)
         {
             char* shortname="";
             shortname=FileNameFromPathA(line->FileName);
