@@ -1,5 +1,5 @@
-https://disk.yandex.ru/d/oIpoMlsBPZPRWQ [83 kb]
-http://vadim--111.narod.ru/player/SmallMediaPlayer.zip [48 kb]
+https://disk.yandex.ru/d/SHS4vYATEZCW2w [88 kb]
+http://vadim--111.narod.ru/player/SmallMediaPlayer.zip [52 kb]
 https://github.com/smallsoft-rus/smallsoft-rus.github.io/raw/main/SmallMediaPlayer.zip
 
 Легкий проигрыватель мультимедиа файлов для Windows без встроенных кодеков. Обладает простым интерфейсом, не требует установки.
