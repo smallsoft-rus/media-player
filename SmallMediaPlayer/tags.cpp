@@ -161,6 +161,70 @@ BOOL ReadTagsv2A(char* file,TAGS_GENERIC* out){
     }
 }
 
+typedef struct tagID3V22_FRAME_HEADER_RAW{
+    char id[3];
+    char size[3];
+} ID3V22_FRAME_HEADER_RAW;
+
+typedef struct tagID3V22_FRAME_HEADER{
+    char id[3];
+    DWORD size;
+} ID3V22_FRAME_HEADER;
+
+int ReadV22Frame(char* pInputData, int sizeInputData, ID3V22_FRAME_HEADER* pOutputHeader, char* pOutputData, int sizeOutputData){
+
+    if(sizeInputData<sizeof(ID3V22_FRAME_HEADER_RAW)) return 0;
+    
+    ID3V22_FRAME_HEADER_RAW header={0};
+    DWORD_UNION extractor={0};
+
+    //read frame header
+    memcpy(&header, pInputData, sizeof(ID3V22_FRAME_HEADER_RAW));
+
+    if(header.id[0] == 0) return 0;
+
+    extractor.bytes[0] = header.size[2];
+    extractor.bytes[1] = header.size[1];
+    extractor.bytes[2] = header.size[0];
+    DWORD size = extractor.dword;
+
+    if(size == 0 || size + sizeof(ID3V22_FRAME_HEADER_RAW) > sizeInputData) return 0;
+
+    //read frame data
+    if(size <= sizeOutputData) memcpy(pOutputData, pInputData + sizeof(ID3V22_FRAME_HEADER_RAW), size);
+    else StringCchCopyA(pOutputData, sizeOutputData, "");
+
+    pOutputHeader->id[0] = header.id[0];
+    pOutputHeader->id[1] = header.id[1];
+    pOutputHeader->id[2] = header.id[2];
+    pOutputHeader->size = size;
+    return size + sizeof(ID3V22_FRAME_HEADER_RAW);
+}
+
+BOOL ReadTagsV22(char* pInputData, int sizeInputData,TAGS_GENERIC* pOutput){
+    //ID3v2.2
+    //https://mutagen-specs.readthedocs.io/en/latest/id3/id3v2.2.html
+    int i=0;
+    int bytesRead;
+    ID3V22_FRAME_HEADER header;
+    char buf[2048]="";
+
+    while(1){
+
+        if(i>=sizeInputData) break;
+
+        ZeroMemory(buf, sizeof(buf));
+        bytesRead = ReadV22Frame(pInputData+i, sizeInputData-i, &header, buf, sizeof(buf));
+
+        if(bytesRead == 0) break;
+
+        //(read tag content...)
+        i+=bytesRead;
+    }
+
+    return TRUE;
+}
+
 //read ID3v2 tags (UTF16 file path)
 BOOL ReadTagsv2(WCHAR* fname,TAGS_GENERIC* out){
 HANDLE hFile=0;
@@ -236,8 +300,13 @@ pOutputTags[j]=pSourceTags[i];j++;i++;
 pOutputTags[j]=pSourceTags[i];j++;i++;
 
 OutputRealSize=j;
+HeapFree(GetProcessHeap(),0,pSourceTags);pSourceTags=NULL;
 
-HeapFree(GetProcessHeap(),0,pSourceTags);pSourceTags=0;
+if(header.ver[0] <= 2){ //ID3v2.2
+    ReadTagsV22(pOutputTags, OutputRealSize, out);
+    goto exit;
+}
+
 i=0;
 if((header.flags&ID32F_EXTHEADER)!=0){
 pextheader=(ID32_EXTHEADER*)&(pOutputTags[i]);
@@ -395,6 +464,7 @@ if(strncmp((char*)fh.ID,"COMM",4)==0){
 i+=packer.dword;
 }
 
+exit:
 HeapFree(GetProcessHeap(),0,pOutputTags);
 CloseHandle(hFile);
 out->type=TAG_ID3V2;
