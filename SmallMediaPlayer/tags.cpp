@@ -201,6 +201,31 @@ int ReadV22Frame(char* pInputData, int sizeInputData, ID3V22_FRAME_HEADER* pOutp
     return size + sizeof(ID3V22_FRAME_HEADER_RAW);
 }
 
+// Reads ID3V2 Tags text field
+BOOL ReadID3V2String(char* pInputData, int sizeInputData, WCHAR* pOutput, int cchOutput){
+
+    if(sizeInputData<1) return FALSE;
+
+    if(pInputData[0]==ID32_ENCODING_ISO){
+	    MultiByteToWideChar(28591,0,&(pInputData[1]),sizeInputData-1, pOutput, cchOutput);
+        return TRUE;
+	}
+	
+    //UTF-16
+    if(sizeInputData<3) return FALSE;
+	WORD BOM=0;
+	memcpy(&BOM,&(pInputData[1]),2);
+
+	if(BOM==UNICODE_BOM_DIRECT){
+		for(int j=3;j<sizeInputData;j+=2){
+			ReverseWCHAR((WCHAR*)&(pInputData[j]));
+		}
+	}
+
+	StringCbCopyN(pOutput, cchOutput * sizeof(WCHAR), (WCHAR*)&(pInputData[3]), sizeInputData-3);
+	return TRUE;
+}
+
 BOOL ReadTagsV22(char* pInputData, int sizeInputData,TAGS_GENERIC* pOutput){
     //ID3v2.2
     //https://mutagen-specs.readthedocs.io/en/latest/id3/id3v2.2.html
@@ -218,7 +243,23 @@ BOOL ReadTagsV22(char* pInputData, int sizeInputData,TAGS_GENERIC* pOutput){
 
         if(bytesRead == 0) break;
 
-        //(read tag content...)
+        // Read tag content
+        if(strncmp(header.id,"TT2",3)==0){ //title
+            ReadID3V2String(buf, header.size, pOutput->title, sizeof(pOutput->title) / sizeof(WCHAR));
+        }
+        else if(strncmp(header.id,"TAL",3)==0){ //album
+            ReadID3V2String(buf, header.size, pOutput->album, sizeof(pOutput->album) / sizeof(WCHAR));
+        }
+        else if(strncmp(header.id,"TP1",3)==0){ //artist
+            ReadID3V2String(buf, header.size, pOutput->artist, sizeof(pOutput->artist) / sizeof(WCHAR));
+        }
+        else if(strncmp(header.id,"TCM",3)==0){ //composer
+            ReadID3V2String(buf, header.size, pOutput->composer, sizeof(pOutput->composer) / sizeof(WCHAR));
+        }
+        else if(strncmp(header.id,"TYE",3)==0){ //year
+            ReadID3V2String(buf, header.size, pOutput->year, sizeof(pOutput->year) / sizeof(WCHAR));
+        }
+        
         i+=bytesRead;
     }
 
