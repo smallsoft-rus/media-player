@@ -209,25 +209,25 @@ BOOL ReadID3V2String(char* pInputData, int sizeInputData, WCHAR* pOutput, int cc
 
     //ANSI ISO-8859-1 (Latin)
     if(pInputData[0]==ID32_ENCODING_ISO){
-	    int bytesConverted = MultiByteToWideChar(CP_ISO88591_LATIN,0,&(pInputData[1]),sizeInputData-1, pOutput, cchOutput);
-
+        int bytesConverted = MultiByteToWideChar(CP_ISO88591_LATIN,0,&(pInputData[1]),sizeInputData-1, pOutput, cchOutput);
+        
         if(bytesConverted>0) return TRUE;
         else return FALSE;
-	}
+    }
 	
     //UTF-16
     if(sizeInputData<3) return FALSE;
-	WORD BOM=0;
-	memcpy(&BOM,&(pInputData[1]),2);
+    WORD BOM=0;
+    memcpy(&BOM,&(pInputData[1]),2);
+    
+    if(BOM==UNICODE_BOM_DIRECT){
+        for(int j=3;j<sizeInputData;j+=2){
+            ReverseWCHAR((WCHAR*)&(pInputData[j]));
+        }
+    }
 
-	if(BOM==UNICODE_BOM_DIRECT){
-		for(int j=3;j<sizeInputData;j+=2){
-			ReverseWCHAR((WCHAR*)&(pInputData[j]));
-		}
-	}
-
-	StringCbCopyN(pOutput, cchOutput * sizeof(WCHAR), (WCHAR*)&(pInputData[3]), sizeInputData-3);
-	return TRUE;
+    StringCbCopyN(pOutput, cchOutput * sizeof(WCHAR), (WCHAR*)&(pInputData[3]), sizeInputData-3);
+    return TRUE;
 }
 
 BOOL ReadTagsV22(char* pInputData, int sizeInputData,TAGS_GENERIC* pOutput){
