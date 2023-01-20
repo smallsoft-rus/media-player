@@ -172,7 +172,7 @@ typedef struct tagID3V22_FRAME_HEADER{
     DWORD size;
 } ID3V22_FRAME_HEADER;
 
-int ReadV22Frame(char* pInputData, int sizeInputData, ID3V22_FRAME_HEADER* pOutputHeader, char* pOutputData, int sizeOutputData){
+int ReadV22Frame(char* pInputData, DWORD sizeInputData, ID3V22_FRAME_HEADER* pOutputHeader, char* pOutputData, DWORD sizeOutputData){
 
     if(sizeInputData<sizeof(ID3V22_FRAME_HEADER_RAW)) return 0;
     
