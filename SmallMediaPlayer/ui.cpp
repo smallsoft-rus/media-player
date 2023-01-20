@@ -311,7 +311,7 @@ GetPlaylistElement(n,buf);
 GetFileExtension(buf,ext);
 
 //read tags
-res=ReadTagsv2(buf,&info);
+res=ReadTagsV2(buf,&info);
 if(res==FALSE&&lstrcmpi(ext,L"flac")==0){res=ReadFlacTags(buf,&info);}
 if(res==FALSE)ReadApeTags(buf,&info);
 if(res==FALSE)ReadTagsV1(buf,&info);
