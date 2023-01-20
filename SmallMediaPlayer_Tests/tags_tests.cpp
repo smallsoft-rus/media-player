@@ -32,7 +32,7 @@ namespace SmallMediaPlayer_Tests
         TEST_METHOD(Test_ID3V2)
         {
             TAGS_GENERIC data = {0};
-            BOOL res = ReadTagsv2(Robin_MP3,&data);
+            BOOL res = ReadTagsV2(Robin_MP3,&data);
             Assert::IsTrue(res!=FALSE);
             Assert::AreEqual((DWORD)TAG_ID3V2,(DWORD)data.type);
             Assert::AreEqual(L"1673",data.title);
@@ -43,7 +43,7 @@ namespace SmallMediaPlayer_Tests
         TEST_METHOD(Test_ID3V2_EmptyTags)
         {            
             TAGS_GENERIC data = {0};
-            BOOL res = ReadTagsv2(Horse_MP3,&data);
+            BOOL res = ReadTagsV2(Horse_MP3,&data);
             Assert::IsTrue(res==FALSE);            
             Assert::AreEqual(L"",data.title);
             Assert::AreEqual(L"",data.artist);
