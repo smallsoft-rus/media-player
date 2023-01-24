@@ -47,7 +47,8 @@ typedef struct {
 #define ID32_FRAME_COMPRESSED 0x0080
 #define ID32_FRAME_ENCRYPTED 0x0040
 #define ID32_ENCODING_ISO 0x00
-#define ID32_ENCODING_UNICODE 1
+#define ID32_ENCODING_UTF16 0x01
+#define ID32_ENCODING_UTF8 0x03
 #define UNICODE_BOM_DIRECT 0xFFFE
 #define UNICODE_BOM_REVERSE 0xFEFF
 
@@ -214,6 +215,14 @@ BOOL ReadID3V2String(char* pInputData, int sizeInputData, WCHAR* pOutput, int cc
         if(bytesConverted>0) return TRUE;
         else return FALSE;
     }
+
+    //UTF-8
+    if(pInputData[0]==ID32_ENCODING_UTF8){
+        int bytesConverted = MultiByteToWideChar(CP_UTF8,0,&(pInputData[1]),sizeInputData-1, pOutput, cchOutput);
+        
+        if(bytesConverted>0) return TRUE;
+        else return FALSE;
+    }
 	
     //UTF-16
     if(sizeInputData<3) return FALSE;
@@ -305,7 +314,7 @@ BOOL ReadTagsV2(WCHAR* fname,TAGS_GENERIC* out){
         return FALSE;
     }
 
-    if(header.ver[0]>0x03){CloseHandle(hFile);return FALSE;}
+    if(header.ver[0]>0x04){CloseHandle(hFile);return FALSE;}
 
     extractor.bytes[0]=header.size[0];
     extractor.bytes[1]=header.size[1];
@@ -373,7 +382,7 @@ BOOL ReadTagsV2(WCHAR* fname,TAGS_GENERIC* out){
         goto exit;
     }
 
-    //ID3v2.3
+    //ID3v2.3 or ID3v2.4
     i=0;
     if((header.flags&ID32F_EXTHEADER)!=0){
         pextheader=(ID32_EXTHEADER*)&(pOutputTags[i]);
@@ -403,108 +412,36 @@ packer.bytes[3]=extractor.bytes[0];
 if(i+packer.dword>OutputRealSize+1)break;
 i+=10;
 
+    if(strncmp((char*)fh.ID,"TALB",4)==0){
+        ReadID3V2String(&(pOutputTags[i]), packer.dword, out->album, sizeof(out->album) / sizeof(WCHAR));
+        i+=packer.dword;
+        continue;
+    }
 
-if(strncmp((char*)fh.ID,"TALB",4)==0){
-	if(pOutputTags[i]==ID32_ENCODING_ISO){
-	i++;
-	MultiByteToWideChar(CP_ACP,0,&(pOutputTags[i]),packer.dword-1,out->album,512);
-	i+=packer.dword-1;continue;
-	}
-	else{
-	i++;
-	memcpy(&BOM,&(pOutputTags[i]),2);i+=2;
-	if(BOM==UNICODE_BOM_DIRECT){
-		for(j=i;j<i+packer.dword-3;j+=2){
-			ReverseWCHAR((WCHAR*)&(pOutputTags[j]));
-		}
-	}
-	StringCbCopyN(out->album,sizeof(out->album),
-		(WCHAR*)&(pOutputTags[i]),packer.dword-3);
-	i+=packer.dword-3;
-	continue;
-	}
-}
+    if(strncmp((char*)fh.ID,"TCOM",4)==0){
+        ReadID3V2String(&(pOutputTags[i]), packer.dword, out->composer, sizeof(out->composer) / sizeof(WCHAR));
+        i+=packer.dword;
+        continue;
+    }
 
-if(strncmp((char*)fh.ID,"TCOM",4)==0){
-	if(pOutputTags[i]==ID32_ENCODING_ISO){
-	i++;
-	MultiByteToWideChar(CP_ACP,0,&(pOutputTags[i]),packer.dword-1,out->composer,512);
-	i+=packer.dword-1;continue;
-	}
-	else{
-	i++;
-	memcpy(&BOM,&(pOutputTags[i]),2);i+=2;
-	if(BOM==UNICODE_BOM_DIRECT){
-		for(j=i;j<i+packer.dword-3;j+=2){
-			ReverseWCHAR((WCHAR*)&(pOutputTags[j]));
-		}
-	}
-	StringCbCopyN(out->composer,sizeof(out->composer),
-		(WCHAR*)&(pOutputTags[i]),packer.dword-3);
-	i+=packer.dword-3;
-	continue;
-	}
-}
-if(strncmp((char*)fh.ID,"TYER",4)==0){
-	if(pOutputTags[i]==ID32_ENCODING_ISO){
-	i++;
-	MultiByteToWideChar(CP_ACP,0,&(pOutputTags[i]),packer.dword-1,out->year,10);
-	i+=packer.dword-1;continue;
-	}
-	else{
-	i++;
-	memcpy(&BOM,&(pOutputTags[i]),2);i+=2;
-	if(BOM==UNICODE_BOM_DIRECT){
-		for(j=i;j<i+packer.dword-3;j+=2){
-			ReverseWCHAR((WCHAR*)&(pOutputTags[j]));
-		}
-	}
-	StringCbCopyN(out->year,sizeof(out->year),
-		(WCHAR*)&(pOutputTags[i]),packer.dword-3);
-	i+=packer.dword-3;
-	continue;
-	}
-}
-if(strncmp((char*)fh.ID,"TPE1",4)==0){
-	if(pOutputTags[i]==ID32_ENCODING_ISO){
-	i++;
-	MultiByteToWideChar(CP_ACP,0,&(pOutputTags[i]),packer.dword-1,out->artist,512);
-	i+=packer.dword-1;continue;
-	}
-	else{
-	i++;
-	memcpy(&BOM,&(pOutputTags[i]),2);i+=2;
-	if(BOM==UNICODE_BOM_DIRECT){
-		for(j=i;j<i+packer.dword-3;j+=2){
-			ReverseWCHAR((WCHAR*)&(pOutputTags[j]));
-		}
-	}
-	StringCbCopyN(out->artist,sizeof(out->artist),
-		(WCHAR*)&(pOutputTags[i]),packer.dword-3);
-	i+=packer.dword-3;
-	continue;
-	}
-}
-if(strncmp((char*)fh.ID,"TIT2",4)==0){
-	if(pOutputTags[i]==ID32_ENCODING_ISO){
-	i++;
-	MultiByteToWideChar(CP_ACP,0,&(pOutputTags[i]),packer.dword-1,out->title,512);
-	i+=packer.dword-1;continue;
-	}
-	else{
-	i++;
-	memcpy(&BOM,&(pOutputTags[i]),2);i+=2;
-	if(BOM==UNICODE_BOM_DIRECT){
-		for(j=i;j<i+packer.dword-3;j+=2){
-			ReverseWCHAR((WCHAR*)&(pOutputTags[j]));
-		}
-	}
-	StringCbCopyN(out->title,sizeof(out->title),
-		(WCHAR*)&(pOutputTags[i]),packer.dword-3);
-	i+=packer.dword-3;
-	continue;
-	}
-}
+    if(strncmp((char*)fh.ID,"TYER",4)==0){
+        ReadID3V2String(&(pOutputTags[i]), packer.dword, out->year, sizeof(out->year) / sizeof(WCHAR));
+        i+=packer.dword;
+        continue;
+    }
+
+    if(strncmp((char*)fh.ID,"TPE1",4)==0){
+        ReadID3V2String(&(pOutputTags[i]), packer.dword, out->artist, sizeof(out->artist) / sizeof(WCHAR));
+        i+=packer.dword;
+        continue;
+    }
+
+    if(strncmp((char*)fh.ID,"TIT2",4)==0){
+        ReadID3V2String(&(pOutputTags[i]), packer.dword, out->title, sizeof(out->title) / sizeof(WCHAR));
+        i+=packer.dword;
+        continue;
+    }
+
 if(strncmp((char*)fh.ID,"TLEN",4)==0){
 	if(pOutputTags[i]==ID32_ENCODING_ISO){
 	i++;
