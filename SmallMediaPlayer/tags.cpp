@@ -39,6 +39,11 @@ typedef struct {
 }ID32_EXTHEADER;
 
 typedef struct {
+    BYTE size[4];
+    BYTE flag_bytes;
+}ID3V24_EXTHEADER;
+
+typedef struct {
     BYTE ID[4];
     DWORD size;
     BYTE flags[2];
@@ -208,9 +213,9 @@ BOOL ReadID3V2String(char* pInputData, int sizeInputData, WCHAR* pOutput, int cc
 
     if(sizeInputData<1) return FALSE;
 
-    //ANSI ISO-8859-1 (Latin)
+    //ANSI
     if(pInputData[0]==ID32_ENCODING_ISO){
-        int bytesConverted = MultiByteToWideChar(CP_ISO88591_LATIN,0,&(pInputData[1]),sizeInputData-1, pOutput, cchOutput);
+        int bytesConverted = MultiByteToWideChar(CP_ACP,0,&(pInputData[1]),sizeInputData-1, pOutput, cchOutput);
         
         if(bytesConverted>0) return TRUE;
         else return FALSE;
@@ -280,6 +285,26 @@ BOOL ReadTagsV22(char* pInputData, int sizeInputData,TAGS_GENERIC* pOutput){
     else return FALSE;
 }
 
+DWORD ReadSyncsafeInteger(BYTE arr[]){
+    //Read ID3v2 syncsafe integer from bytes
+    //https://github.com/id3/ID3v2.4/blob/master/id3v2.40-structure.txt#L610
+    DWORD_UNION extractor={0};
+    DWORD_UNION packer={0};
+
+    extractor.bytes[0]=arr[0];
+    extractor.bytes[1]=arr[1];
+    extractor.bytes[2]=arr[2];
+    extractor.bytes[3]=arr[3];
+
+    packer.bfe.byte1=extractor.bf.byte4;
+    packer.bfe.byte2=extractor.bf.byte3;
+    packer.bfe.byte3=extractor.bf.byte2;
+    packer.bfe.byte4=extractor.bf.byte1;
+    packer.bfe.dummy=0;
+
+    return packer.dword;
+}
+
 //read ID3v2 tags (UTF16 file path)
 BOOL ReadTagsV2(WCHAR* fname,TAGS_GENERIC* out){
 
@@ -292,6 +317,7 @@ BOOL ReadTagsV2(WCHAR* fname,TAGS_GENERIC* out){
     DWORD_UNION packer={0};
     ID32_EXTHEADER* pextheader=0;
     ID32_FRAME_HEADER fh={0};
+    ID3V24_EXTHEADER extheader4={0};
     char* pSourceTags=NULL;DWORD SourceSize=0;
     char* pOutputTags=NULL;DWORD OutputRealSize=0;
     char buf[1024]="";
@@ -315,20 +341,23 @@ BOOL ReadTagsV2(WCHAR* fname,TAGS_GENERIC* out){
     }
 
     if(header.ver[0]>0x04){CloseHandle(hFile);return FALSE;}
-
-    extractor.bytes[0]=header.size[0];
-    extractor.bytes[1]=header.size[1];
-    extractor.bytes[2]=header.size[2];
-    extractor.bytes[3]=header.size[3];
-
-    packer.bfe.byte1=extractor.bf.byte4;packer.bfe.byte2=extractor.bf.byte3;
-    packer.bfe.byte3=extractor.bf.byte2;packer.bfe.byte4=extractor.bf.byte1;
-    packer.bfe.dummy=0;
-
-    SourceSize=packer.dword;
+    
+    //raw tags size
+    SourceSize = ReadSyncsafeInteger(header.size);
 
     if(SourceSize<=3){
         //tags are empty or too small to contain useful data
+        CloseHandle(hFile);
+        return FALSE;
+    }
+    else if(SourceSize>200*1024*1024){
+        //too big size - exit to prevent running out of memory
+        CloseHandle(hFile);
+        return FALSE;
+    }
+
+    if((header.flags&ID32F_SYNC)>0 && header.ver[0]>=4){
+        //unsyncronization is not implemented for ID3v2.4
         CloseHandle(hFile);
         return FALSE;
     }
@@ -384,17 +413,31 @@ BOOL ReadTagsV2(WCHAR* fname,TAGS_GENERIC* out){
 
     //ID3v2.3 or ID3v2.4
     i=0;
+
     if((header.flags&ID32F_EXTHEADER)!=0){
-        pextheader=(ID32_EXTHEADER*)&(pOutputTags[i]);
-        extractor.dword=pextheader->size;
-        packer.bytes[0]=extractor.bytes[3];
-        packer.bytes[1]=extractor.bytes[2];
-        packer.bytes[2]=extractor.bytes[1];
-        packer.bytes[3]=extractor.bytes[0];
 
-        if(packer.dword>=20) packer.dword=10;
+        if(header.ver[0]>=4){
+            memcpy(&extheader4, &(pOutputTags[i]), sizeof(ID3V24_EXTHEADER));
+            DWORD extheader4_size = ReadSyncsafeInteger(extheader4.size);
 
-        i+=(4+packer.dword);
+            if(extheader4_size>=OutputRealSize) goto exit;
+
+            if(extheader4_size<sizeof(ID3V24_EXTHEADER)) extheader4_size=sizeof(ID3V24_EXTHEADER);
+
+            i+=extheader4_size;
+        }
+        else{
+            pextheader=(ID32_EXTHEADER*)&(pOutputTags[i]);
+            extractor.dword=pextheader->size;
+            packer.bytes[0]=extractor.bytes[3];
+            packer.bytes[1]=extractor.bytes[2];
+            packer.bytes[2]=extractor.bytes[1];
+            packer.bytes[3]=extractor.bytes[0];
+
+            if(packer.dword>=20) packer.dword=10;
+
+            i+=(4+packer.dword);
+        }
     }
 
 while(1){//read frames
