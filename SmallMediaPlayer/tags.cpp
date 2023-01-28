@@ -485,6 +485,19 @@ i+=10;
         continue;
     }
 
+    if(strncmp((char*)fh.ID,"TDRC",4)==0){ //recording time
+        StringCchCopy(wbuf, sizeof(wbuf) / sizeof(WCHAR), L"");
+        res = ReadID3V2String(&(pOutputTags[i]), packer.dword, wbuf, sizeof(wbuf) / sizeof(WCHAR));
+
+        //year is first 4 chars
+        if(res != FALSE && lstrlen(wbuf)>=4){
+            StringCchCopyN(out->year, sizeof(out->year) / sizeof(WCHAR), wbuf, 4);
+        }
+
+        i+=packer.dword;
+        continue;
+    }
+
 if(strncmp((char*)fh.ID,"TLEN",4)==0){
 	if(pOutputTags[i]==ID32_ENCODING_ISO){
 	i++;
