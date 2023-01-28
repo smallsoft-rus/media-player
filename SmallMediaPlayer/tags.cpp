@@ -244,6 +244,68 @@ BOOL ReadID3V2String(char* pInputData, int sizeInputData, WCHAR* pOutput, int cc
     return TRUE;
 }
 
+// Reads ID3V2 Tags embedded picture
+BOOL ReadID3V2Picture(char* pInputData, int sizeInputData, IMAGE_DATA* pOutput){
+
+    if(sizeInputData<5) return FALSE;
+
+    int pos=0;
+    char mime[20]="";
+    char ch;
+    BYTE encoding = (BYTE)pInputData[pos];
+    pos++;
+
+    for(int i=0;i<sizeInputData;i++){
+        ch=pInputData[pos];
+        if(i<sizeof(mime)-1) mime[i]=ch;
+        pos++;
+        if(ch==0) break;
+    }
+
+    BYTE pictype = (BYTE)pInputData[pos];
+    pos++;
+
+    if(pos>=sizeInputData) return FALSE;
+
+    //skip description
+    if(encoding == ID32_ENCODING_ISO || encoding == ID32_ENCODING_UTF8){
+        for(int i=0;i<sizeInputData;i++){
+            ch=pInputData[pos];
+            pos++;
+            if(ch==0) break;
+        }
+    }
+    else{
+        for(int i=0;i<sizeInputData-1;i++){
+            ch=pInputData[pos];
+            char ch_next = pInputData[pos+1];
+            pos++;
+            if(ch==0 && ch_next==0) break;
+        }
+    }
+
+    int pic_size = sizeInputData-pos;
+
+    if(pic_size <= 5) return FALSE; //too small to contain valid picture
+    else if(pic_size > 150 * 1024 * 1024) return FALSE; //too large!
+
+    /*if(pOutput->pData != nullptr && pOutput->size>0) {
+        HeapFree(GetProcessHeap(), 0, pOutput->pData);
+        ZeroMemory(pOutput, sizeof(IMAGE_DATA));
+    }*/
+
+    BYTE* pData = (BYTE*)HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,pic_size);
+
+    if(pData == nullptr) return FALSE;
+
+    memcpy(pData, &(pInputData[pos]), pic_size);
+    pOutput->pic_type = pictype;
+    pOutput->size = pic_size;
+    pOutput->pData = pData;
+    StringCchCopyA(pOutput->mime_type, sizeof(pOutput->mime_type), mime);
+    return TRUE;
+}
+
 BOOL ReadTagsV22(char* pInputData, int sizeInputData,TAGS_GENERIC* pOutput){
     //ID3v2.2
     //https://mutagen-specs.readthedocs.io/en/latest/id3/id3v2.2.html
@@ -492,6 +554,23 @@ i+=10;
         //year is first 4 chars
         if(res != FALSE && lstrlen(wbuf)>=4){
             StringCchCopyN(out->year, sizeof(out->year) / sizeof(WCHAR), wbuf, 4);
+        }
+
+        i+=packer.dword;
+        continue;
+    }
+
+    if(strncmp((char*)fh.ID,"APIC",4)==0){ //embedded picture
+        IMAGE_DATA img={0};
+        res = ReadID3V2Picture(&(pOutputTags[i]), packer.dword, &img);
+        
+        /*FILE* pf=fopen("1.jpg", "wb");
+        fwrite(img.pData, 1, img.size, pf);
+        fclose(pf);*/
+
+        if(res != FALSE) {
+            HeapFree(GetProcessHeap(),0,img.pData);
+            ZeroMemory(&img, sizeof(img));
         }
 
         i+=packer.dword;

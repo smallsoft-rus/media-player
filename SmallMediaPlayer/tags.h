@@ -21,6 +21,13 @@ typedef struct{
 }TAGS_GENERIC;
 
 typedef struct{
+    BYTE* pData;
+    size_t size;
+    BYTE pic_type;
+    char mime_type[20];
+}IMAGE_DATA;
+
+typedef struct{
 
     UINT byte1:7;
     UINT dummy1:1;
