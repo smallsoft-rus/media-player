@@ -39,6 +39,11 @@ typedef struct {
 }ID32_EXTHEADER;
 
 typedef struct {
+    BYTE size[4];
+    BYTE flag_bytes;
+}ID3V24_EXTHEADER;
+
+typedef struct {
     BYTE ID[4];
     DWORD size;
     BYTE flags[2];
@@ -47,7 +52,8 @@ typedef struct {
 #define ID32_FRAME_COMPRESSED 0x0080
 #define ID32_FRAME_ENCRYPTED 0x0040
 #define ID32_ENCODING_ISO 0x00
-#define ID32_ENCODING_UNICODE 1
+#define ID32_ENCODING_UTF16 0x01
+#define ID32_ENCODING_UTF8 0x03
 #define UNICODE_BOM_DIRECT 0xFFFE
 #define UNICODE_BOM_REVERSE 0xFEFF
 
@@ -207,9 +213,17 @@ BOOL ReadID3V2String(char* pInputData, int sizeInputData, WCHAR* pOutput, int cc
 
     if(sizeInputData<1) return FALSE;
 
-    //ANSI ISO-8859-1 (Latin)
+    //ANSI
     if(pInputData[0]==ID32_ENCODING_ISO){
-        int bytesConverted = MultiByteToWideChar(CP_ISO88591_LATIN,0,&(pInputData[1]),sizeInputData-1, pOutput, cchOutput);
+        int bytesConverted = MultiByteToWideChar(CP_ACP,0,&(pInputData[1]),sizeInputData-1, pOutput, cchOutput);
+        
+        if(bytesConverted>0) return TRUE;
+        else return FALSE;
+    }
+
+    //UTF-8
+    if(pInputData[0]==ID32_ENCODING_UTF8){
+        int bytesConverted = MultiByteToWideChar(CP_UTF8,0,&(pInputData[1]),sizeInputData-1, pOutput, cchOutput);
         
         if(bytesConverted>0) return TRUE;
         else return FALSE;
@@ -271,6 +285,26 @@ BOOL ReadTagsV22(char* pInputData, int sizeInputData,TAGS_GENERIC* pOutput){
     else return FALSE;
 }
 
+DWORD ReadSyncsafeInteger(BYTE arr[]){
+    //Read ID3v2 syncsafe integer from bytes
+    //https://github.com/id3/ID3v2.4/blob/master/id3v2.40-structure.txt#L610
+    DWORD_UNION extractor={0};
+    DWORD_UNION packer={0};
+
+    extractor.bytes[0]=arr[0];
+    extractor.bytes[1]=arr[1];
+    extractor.bytes[2]=arr[2];
+    extractor.bytes[3]=arr[3];
+
+    packer.bfe.byte1=extractor.bf.byte4;
+    packer.bfe.byte2=extractor.bf.byte3;
+    packer.bfe.byte3=extractor.bf.byte2;
+    packer.bfe.byte4=extractor.bf.byte1;
+    packer.bfe.dummy=0;
+
+    return packer.dword;
+}
+
 //read ID3v2 tags (UTF16 file path)
 BOOL ReadTagsV2(WCHAR* fname,TAGS_GENERIC* out){
 
@@ -283,6 +317,7 @@ BOOL ReadTagsV2(WCHAR* fname,TAGS_GENERIC* out){
     DWORD_UNION packer={0};
     ID32_EXTHEADER* pextheader=0;
     ID32_FRAME_HEADER fh={0};
+    ID3V24_EXTHEADER extheader4={0};
     char* pSourceTags=NULL;DWORD SourceSize=0;
     char* pOutputTags=NULL;DWORD OutputRealSize=0;
     char buf[1024]="";
@@ -305,21 +340,24 @@ BOOL ReadTagsV2(WCHAR* fname,TAGS_GENERIC* out){
         return FALSE;
     }
 
-    if(header.ver[0]>0x03){CloseHandle(hFile);return FALSE;}
-
-    extractor.bytes[0]=header.size[0];
-    extractor.bytes[1]=header.size[1];
-    extractor.bytes[2]=header.size[2];
-    extractor.bytes[3]=header.size[3];
-
-    packer.bfe.byte1=extractor.bf.byte4;packer.bfe.byte2=extractor.bf.byte3;
-    packer.bfe.byte3=extractor.bf.byte2;packer.bfe.byte4=extractor.bf.byte1;
-    packer.bfe.dummy=0;
-
-    SourceSize=packer.dword;
+    if(header.ver[0]>0x04){CloseHandle(hFile);return FALSE;}
+    
+    //raw tags size
+    SourceSize = ReadSyncsafeInteger(header.size);
 
     if(SourceSize<=3){
         //tags are empty or too small to contain useful data
+        CloseHandle(hFile);
+        return FALSE;
+    }
+    else if(SourceSize>200*1024*1024){
+        //too big size - exit to prevent running out of memory
+        CloseHandle(hFile);
+        return FALSE;
+    }
+
+    if((header.flags&ID32F_SYNC)>0 && header.ver[0]>=4){
+        //unsyncronization is not implemented for ID3v2.4
         CloseHandle(hFile);
         return FALSE;
     }
@@ -373,19 +411,33 @@ BOOL ReadTagsV2(WCHAR* fname,TAGS_GENERIC* out){
         goto exit;
     }
 
-    //ID3v2.3
+    //ID3v2.3 or ID3v2.4
     i=0;
+
     if((header.flags&ID32F_EXTHEADER)!=0){
-        pextheader=(ID32_EXTHEADER*)&(pOutputTags[i]);
-        extractor.dword=pextheader->size;
-        packer.bytes[0]=extractor.bytes[3];
-        packer.bytes[1]=extractor.bytes[2];
-        packer.bytes[2]=extractor.bytes[1];
-        packer.bytes[3]=extractor.bytes[0];
 
-        if(packer.dword>=20) packer.dword=10;
+        if(header.ver[0]>=4){
+            memcpy(&extheader4, &(pOutputTags[i]), sizeof(ID3V24_EXTHEADER));
+            DWORD extheader4_size = ReadSyncsafeInteger(extheader4.size);
 
-        i+=(4+packer.dword);
+            if(extheader4_size>=OutputRealSize) goto exit;
+
+            if(extheader4_size<sizeof(ID3V24_EXTHEADER)) extheader4_size=sizeof(ID3V24_EXTHEADER);
+
+            i+=extheader4_size;
+        }
+        else{
+            pextheader=(ID32_EXTHEADER*)&(pOutputTags[i]);
+            extractor.dword=pextheader->size;
+            packer.bytes[0]=extractor.bytes[3];
+            packer.bytes[1]=extractor.bytes[2];
+            packer.bytes[2]=extractor.bytes[1];
+            packer.bytes[3]=extractor.bytes[0];
+
+            if(packer.dword>=20) packer.dword=10;
+
+            i+=(4+packer.dword);
+        }
     }
 
 while(1){//read frames
@@ -403,108 +455,49 @@ packer.bytes[3]=extractor.bytes[0];
 if(i+packer.dword>OutputRealSize+1)break;
 i+=10;
 
+    if(strncmp((char*)fh.ID,"TALB",4)==0){
+        ReadID3V2String(&(pOutputTags[i]), packer.dword, out->album, sizeof(out->album) / sizeof(WCHAR));
+        i+=packer.dword;
+        continue;
+    }
 
-if(strncmp((char*)fh.ID,"TALB",4)==0){
-	if(pOutputTags[i]==ID32_ENCODING_ISO){
-	i++;
-	MultiByteToWideChar(CP_ACP,0,&(pOutputTags[i]),packer.dword-1,out->album,512);
-	i+=packer.dword-1;continue;
-	}
-	else{
-	i++;
-	memcpy(&BOM,&(pOutputTags[i]),2);i+=2;
-	if(BOM==UNICODE_BOM_DIRECT){
-		for(j=i;j<i+packer.dword-3;j+=2){
-			ReverseWCHAR((WCHAR*)&(pOutputTags[j]));
-		}
-	}
-	StringCbCopyN(out->album,sizeof(out->album),
-		(WCHAR*)&(pOutputTags[i]),packer.dword-3);
-	i+=packer.dword-3;
-	continue;
-	}
-}
+    if(strncmp((char*)fh.ID,"TCOM",4)==0){
+        ReadID3V2String(&(pOutputTags[i]), packer.dword, out->composer, sizeof(out->composer) / sizeof(WCHAR));
+        i+=packer.dword;
+        continue;
+    }
 
-if(strncmp((char*)fh.ID,"TCOM",4)==0){
-	if(pOutputTags[i]==ID32_ENCODING_ISO){
-	i++;
-	MultiByteToWideChar(CP_ACP,0,&(pOutputTags[i]),packer.dword-1,out->composer,512);
-	i+=packer.dword-1;continue;
-	}
-	else{
-	i++;
-	memcpy(&BOM,&(pOutputTags[i]),2);i+=2;
-	if(BOM==UNICODE_BOM_DIRECT){
-		for(j=i;j<i+packer.dword-3;j+=2){
-			ReverseWCHAR((WCHAR*)&(pOutputTags[j]));
-		}
-	}
-	StringCbCopyN(out->composer,sizeof(out->composer),
-		(WCHAR*)&(pOutputTags[i]),packer.dword-3);
-	i+=packer.dword-3;
-	continue;
-	}
-}
-if(strncmp((char*)fh.ID,"TYER",4)==0){
-	if(pOutputTags[i]==ID32_ENCODING_ISO){
-	i++;
-	MultiByteToWideChar(CP_ACP,0,&(pOutputTags[i]),packer.dword-1,out->year,10);
-	i+=packer.dword-1;continue;
-	}
-	else{
-	i++;
-	memcpy(&BOM,&(pOutputTags[i]),2);i+=2;
-	if(BOM==UNICODE_BOM_DIRECT){
-		for(j=i;j<i+packer.dword-3;j+=2){
-			ReverseWCHAR((WCHAR*)&(pOutputTags[j]));
-		}
-	}
-	StringCbCopyN(out->year,sizeof(out->year),
-		(WCHAR*)&(pOutputTags[i]),packer.dword-3);
-	i+=packer.dword-3;
-	continue;
-	}
-}
-if(strncmp((char*)fh.ID,"TPE1",4)==0){
-	if(pOutputTags[i]==ID32_ENCODING_ISO){
-	i++;
-	MultiByteToWideChar(CP_ACP,0,&(pOutputTags[i]),packer.dword-1,out->artist,512);
-	i+=packer.dword-1;continue;
-	}
-	else{
-	i++;
-	memcpy(&BOM,&(pOutputTags[i]),2);i+=2;
-	if(BOM==UNICODE_BOM_DIRECT){
-		for(j=i;j<i+packer.dword-3;j+=2){
-			ReverseWCHAR((WCHAR*)&(pOutputTags[j]));
-		}
-	}
-	StringCbCopyN(out->artist,sizeof(out->artist),
-		(WCHAR*)&(pOutputTags[i]),packer.dword-3);
-	i+=packer.dword-3;
-	continue;
-	}
-}
-if(strncmp((char*)fh.ID,"TIT2",4)==0){
-	if(pOutputTags[i]==ID32_ENCODING_ISO){
-	i++;
-	MultiByteToWideChar(CP_ACP,0,&(pOutputTags[i]),packer.dword-1,out->title,512);
-	i+=packer.dword-1;continue;
-	}
-	else{
-	i++;
-	memcpy(&BOM,&(pOutputTags[i]),2);i+=2;
-	if(BOM==UNICODE_BOM_DIRECT){
-		for(j=i;j<i+packer.dword-3;j+=2){
-			ReverseWCHAR((WCHAR*)&(pOutputTags[j]));
-		}
-	}
-	StringCbCopyN(out->title,sizeof(out->title),
-		(WCHAR*)&(pOutputTags[i]),packer.dword-3);
-	i+=packer.dword-3;
-	continue;
-	}
-}
+    if(strncmp((char*)fh.ID,"TYER",4)==0){
+        ReadID3V2String(&(pOutputTags[i]), packer.dword, out->year, sizeof(out->year) / sizeof(WCHAR));
+        i+=packer.dword;
+        continue;
+    }
+
+    if(strncmp((char*)fh.ID,"TPE1",4)==0){
+        ReadID3V2String(&(pOutputTags[i]), packer.dword, out->artist, sizeof(out->artist) / sizeof(WCHAR));
+        i+=packer.dword;
+        continue;
+    }
+
+    if(strncmp((char*)fh.ID,"TIT2",4)==0){
+        ReadID3V2String(&(pOutputTags[i]), packer.dword, out->title, sizeof(out->title) / sizeof(WCHAR));
+        i+=packer.dword;
+        continue;
+    }
+
+    if(strncmp((char*)fh.ID,"TDRC",4)==0){ //recording time
+        StringCchCopy(wbuf, sizeof(wbuf) / sizeof(WCHAR), L"");
+        res = ReadID3V2String(&(pOutputTags[i]), packer.dword, wbuf, sizeof(wbuf) / sizeof(WCHAR));
+
+        //year is first 4 chars
+        if(res != FALSE && lstrlen(wbuf)>=4){
+            StringCchCopyN(out->year, sizeof(out->year) / sizeof(WCHAR), wbuf, 4);
+        }
+
+        i+=packer.dword;
+        continue;
+    }
+
 if(strncmp((char*)fh.ID,"TLEN",4)==0){
 	if(pOutputTags[i]==ID32_ENCODING_ISO){
 	i++;
