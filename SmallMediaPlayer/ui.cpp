@@ -351,6 +351,7 @@ switch(info.type){
 	default:StringCchCat(text,5000,L"Нет");break;
 }
 MessageBox(hMainWnd,text,L"Свойства файла",MB_OK);
+TagsFree(&info);
 }
 
 void DisplayOpenedFileTags(){
@@ -628,8 +629,15 @@ void UpdateLength(){
 
 	Progress=ScrollbarControl(SB_CTL,hScrollbar,0,(int)(l+S_TRACK_SIZE),S_TRACK_SIZE);
 	GetPlaylistElement(CurrentTrack,buf);
-	GetFileCover(buf,cover);
-	LoadCover(cover);
+
+    if(OpenedFileTags.cover.pData != nullptr){
+        LoadCoverFromMemory(OpenedFileTags.cover.pData, OpenedFileTags.cover.size);
+    }
+    else{
+        GetFileCover(buf,cover);
+        LoadCover(cover);
+    }
+
 	InvalidateRect(hCoverWnd,NULL,TRUE);
 
 	GetMultimediaInfo(txtMediaInfo,1000);

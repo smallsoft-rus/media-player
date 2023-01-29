@@ -38,6 +38,7 @@ namespace SmallMediaPlayer_Tests
             Assert::AreEqual(L"1673",data.title);
             Assert::AreEqual(L"",data.artist);
             Assert::AreEqual(L"",data.album);
+            TagsFree(&data);
         }
 
         TEST_METHOD(Test_ID3V2_EmptyTags)
@@ -47,7 +48,8 @@ namespace SmallMediaPlayer_Tests
             Assert::IsTrue(res==FALSE);            
             Assert::AreEqual(L"",data.title);
             Assert::AreEqual(L"",data.artist);
-            Assert::AreEqual(L"",data.album);            
+            Assert::AreEqual(L"",data.album);
+            TagsFree(&data);
         }
 
         TEST_METHOD(Test_FlacVorbisComment)

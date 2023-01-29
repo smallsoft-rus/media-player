@@ -21,7 +21,7 @@ UINT CurrentTrack=0;
 bool fIncludeImages=false;
 TCHAR* Extensions[COUNT_EXTENSIONS];
 PLAYBACK_MODE CurrMode=NORMAL;
-TAGS_GENERIC CurrFileTags;
+TAGS_GENERIC CurrFileTags={0};
 bool fCurrFileTags=false;
 TAGS_GENERIC OpenedFileTags;
 bool fOpenedFileTags=false;
@@ -168,6 +168,7 @@ item.pszText=buf;
 res=SendMessage(PlayList,LVM_SETITEM,0,(LPARAM)&item);
 }
 	
+TagsFree(&info);
 
 //insert full path
 item.iItem=pos;
@@ -313,7 +314,7 @@ if(n<0)return;
 if(((UINT)n)>=CountTracks)return;
 		if(fOpenedFileTags==true){
 			fOpenedFileTags=false;
-			memset(&OpenedFileTags,0,sizeof(TAGS_GENERIC));
+			TagsFree(&OpenedFileTags);
 		}
 
 		//***
@@ -570,7 +571,7 @@ char* p;
 char str[512]="";
 char* context=NULL;
 
-memset(&CurrFileTags,0,sizeof(TAGS_GENERIC));
+TagsFree(&CurrFileTags);
 StringCchCopyA(str,512,_str);
 p=strtok_s(str,"~",&context);
 if(p==NULL)return;

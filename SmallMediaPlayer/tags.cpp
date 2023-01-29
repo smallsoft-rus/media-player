@@ -389,7 +389,7 @@ BOOL ReadTagsV2(WCHAR* fname,TAGS_GENERIC* out){
     DWORD i=0,j=0;
 
     memset(&extractor,0,sizeof(DWORD));memset(&packer,0,sizeof(DWORD));
-    memset(out,0,sizeof(TAGS_GENERIC));
+    TagsFree(out);
 
     hFile=CreateFile(fname,GENERIC_READ,FILE_SHARE_READ,NULL,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,0);
     if(hFile==INVALID_HANDLE_VALUE) return FALSE;
@@ -560,17 +560,12 @@ i+=10;
         continue;
     }
 
-    if(strncmp((char*)fh.ID,"APIC",4)==0){ //embedded picture
+    if(strncmp((char*)fh.ID,"APIC",4)==0 && out->cover.pData == nullptr){ //embedded picture
         IMAGE_DATA img={0};
         res = ReadID3V2Picture(&(pOutputTags[i]), packer.dword, &img);
         
-        /*FILE* pf=fopen("1.jpg", "wb");
-        fwrite(img.pData, 1, img.size, pf);
-        fclose(pf);*/
-
         if(res != FALSE) {
-            HeapFree(GetProcessHeap(),0,img.pData);
-            ZeroMemory(&img, sizeof(img));
+            out->cover = img;
         }
 
         i+=packer.dword;

@@ -9,6 +9,13 @@
 typedef enum {TAG_NO=0,TAG_ID3V1,TAG_ID3V2,TAG_APE,TAG_FLAC}TAG_TYPE;
 
 typedef struct{
+    BYTE* pData;
+    size_t size;
+    BYTE pic_type;
+    char mime_type[20];
+}IMAGE_DATA;
+
+typedef struct{
     WCHAR title[512];
     WCHAR album[512];
     WCHAR artist[512];
@@ -18,14 +25,8 @@ typedef struct{
     WCHAR URL[512];
     DWORD length;
     TAG_TYPE type;
+    IMAGE_DATA cover;
 }TAGS_GENERIC;
-
-typedef struct{
-    BYTE* pData;
-    size_t size;
-    BYTE pic_type;
-    char mime_type[20];
-}IMAGE_DATA;
 
 typedef struct{
 
@@ -68,5 +69,16 @@ BOOL ReadFlacTags(WCHAR* file,TAGS_GENERIC* out);
 BOOL ReadFlacTagsA(char* file,TAGS_GENERIC* out);
 BOOL ReadApeTagsA(char* file,TAGS_GENERIC* out);
 BOOL ReadApeTags(WCHAR* file,TAGS_GENERIC* out);
+
+// *** Inline functions ***
+
+//Free memory associated with TAGS_GENERIC struct
+void inline TagsFree(TAGS_GENERIC* pTags){
+    if(pTags->cover.pData != nullptr){
+        HeapFree(GetProcessHeap(),0,pTags->cover.pData);
+    }
+
+    ZeroMemory(pTags, sizeof(TAGS_GENERIC));
+}
 
 #endif

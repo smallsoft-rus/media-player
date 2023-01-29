@@ -2,6 +2,7 @@
  * Copyright (c) 2021,  MSDN.WhiteKnight (https://github.com/smallsoft-rus/media-player) 
  * License: BSD 2.0 */
 #include "PictureManager.h"
+#include <shlwapi.h>
 
 #define COUNT_COVER_MASKS (sizeof(arrCoverMasks)/sizeof(arrCoverMasks[0]))
 #define COUNT_PATTERN_MASKS (sizeof(arrPatternMasks)/sizeof(arrPatternMasks[0]))
@@ -9,6 +10,7 @@
 
 Bitmap* CurrentCover;
 Bitmap* CurrentPattern;
+IStream* pCoverStream=nullptr;
 bool fCoverLoaded=false;
 bool fPatternLoaded=false;
 
@@ -96,6 +98,15 @@ void LoadCover(TCHAR* file){
 	
 }
 
+void LoadCoverFromMemory(const BYTE* pImageData, UINT size){
+
+    UnloadCover();
+
+    pCoverStream = SHCreateMemStream(pImageData, size);
+    CurrentCover=new Bitmap(pCoverStream);
+    fCoverLoaded=true;
+}
+
 bool DrawCover(HDC hDC,RECT* rc){
 	Graphics* g;
 	int w,h;
@@ -122,9 +133,16 @@ return true;
 }
 
 void UnloadCover(){
-if(fCoverLoaded==false)return;
-delete CurrentCover;
-fCoverLoaded=false;
+
+    if(fCoverLoaded==false) return;
+
+    if(pCoverStream != nullptr){
+        pCoverStream->Release();
+        pCoverStream = nullptr;
+    }
+
+    delete CurrentCover;
+    fCoverLoaded=false;
 }
 
 void LoadPattern(TCHAR* file){
