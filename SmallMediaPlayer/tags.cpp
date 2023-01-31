@@ -161,7 +161,7 @@ void ReverseWCHAR(WCHAR* c){
 BOOL ReadTagsV2A(char* file,TAGS_GENERIC* out){
     TCHAR fname[MAX_PATH]=L"";
     if(MultiByteToWideChar(CP_UTF8,0,file,MAX_PATH,fname,MAX_PATH)!=0){
-        return ReadTagsV2(fname,out);
+        return ReadTagsV2(fname,out,FALSE);
     }
     else {
         return FALSE;
@@ -368,7 +368,7 @@ DWORD ReadSyncsafeInteger(BYTE arr[]){
 }
 
 //read ID3v2 tags (UTF16 file path)
-BOOL ReadTagsV2(WCHAR* fname,TAGS_GENERIC* out){
+BOOL ReadTagsV2(WCHAR* fname,TAGS_GENERIC* out, BOOL readCover){
 
     HANDLE hFile=0;
     DWORD dwCount=0;
@@ -560,7 +560,7 @@ i+=10;
         continue;
     }
 
-    if(strncmp((char*)fh.ID,"APIC",4)==0 && out->cover.pData == nullptr){ //embedded picture
+    if(readCover!=FALSE && strncmp((char*)fh.ID,"APIC",4)==0 && out->cover.pData == nullptr){ //embedded picture
         IMAGE_DATA img={0};
         res = ReadID3V2Picture(&(pOutputTags[i]), packer.dword, &img);
         

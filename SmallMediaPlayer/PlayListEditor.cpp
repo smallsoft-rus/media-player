@@ -106,7 +106,7 @@ if(fCurrFileTags==true){
 info=CurrFileTags;fCurrFileTags=false;
 goto Use_tags;
 }
-		res=ReadTagsV2(fname,&info);
+		res=ReadTagsV2(fname,&info,FALSE);
 		if(lstrcmpi(ext,L"flac")==0&&(res==FALSE)){
 		res=ReadFlacTags(fname,&info);
 		}
@@ -327,7 +327,7 @@ if(((UINT)n)>=CountTracks)return;
         GetPlaylistElement(n,str);
 		if(lstrcmp(str,L"")==0){PlayNextTrack();return;}
 		GetFileExtension(str,ext);
-		res=ReadTagsV2(str,&OpenedFileTags);
+		res=ReadTagsV2(str,&OpenedFileTags,TRUE);
 		if(lstrcmpi(ext,L"flac")==0&&res==FALSE){
 		res=ReadFlacTags(str,&OpenedFileTags);
 		}
