@@ -1,5 +1,5 @@
 /* Small Media Player 
- * Copyright (c) 2021,  MSDN.WhiteKnight (https://github.com/smallsoft-rus/media-player) 
+ * Copyright (c) 2023,  MSDN.WhiteKnight (https://github.com/smallsoft-rus/media-player) 
  * License: BSD 2.0 */
 #ifndef TAGS_H
 #define TAGS_H
@@ -72,7 +72,9 @@ BOOL ReadApeTags(WCHAR* file,TAGS_GENERIC* out);
 
 // *** Inline functions ***
 
-//Free memory associated with TAGS_GENERIC struct
+//Free memory associated with TAGS_GENERIC struct.
+//TAGS_GENERIC should be freed after use when it contains cover image (loaded by ReadTagsV2 function with readCover parameter set to TRUE).
+//Otherwise it is not required.
 void inline TagsFree(TAGS_GENERIC* pTags){
     if(pTags->cover.pData != nullptr){
         HeapFree(GetProcessHeap(),0,pTags->cover.pData);

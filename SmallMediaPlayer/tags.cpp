@@ -1,5 +1,5 @@
 /* Small Media Player 
- * Copyright (c) 2021,  MSDN.WhiteKnight (https://github.com/smallsoft-rus/media-player) 
+ * Copyright (c) 2023,  MSDN.WhiteKnight (https://github.com/smallsoft-rus/media-player) 
  * License: BSD 2.0 */
 #include "tags.h"
 #include <strsafe.h>
@@ -362,7 +362,9 @@ DWORD ReadSyncsafeInteger(BYTE arr[]){
     return packer.dword;
 }
 
-//read ID3v2 tags (UTF16 file path)
+//Read ID3v2 tags (UTF16 file path).
+//When readCover parameter is TRUE, the function tries to load embedded cover from APIC tag. In this case the output
+//structure should be freed after use by calling TagsFree.
 BOOL ReadTagsV2(WCHAR* fname,TAGS_GENERIC* out, BOOL readCover){
 
     HANDLE hFile=0;
