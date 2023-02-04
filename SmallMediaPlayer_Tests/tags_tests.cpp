@@ -1,5 +1,5 @@
 ﻿/* Small Media Player tests 
- * Copyright (c) 2021,  MSDN.WhiteKnight (https://github.com/smallsoft-rus/media-player) 
+ * Copyright (c) 2023,  MSDN.WhiteKnight (https://github.com/smallsoft-rus/media-player) 
  * License: BSD 2.0 */
 #include "CppUnitTest.h"
 #include "tags.h"
@@ -10,6 +10,7 @@ WCHAR Noise_MP3[]=L"..\\SmallMediaPlayer_Tests\\data\\noise.mp3";
 WCHAR Robin_MP3[]=L"..\\SmallMediaPlayer_Tests\\data\\robin.mp3";
 WCHAR Crow_FLAC[]=L"..\\SmallMediaPlayer_Tests\\data\\crow.flac";
 WCHAR Horse_MP3[]=L"..\\SmallMediaPlayer_Tests\\data\\horse.mp3";
+WCHAR Piha_MP3[]=L"..\\SmallMediaPlayer_Tests\\data\\piha.mp3";
 
 namespace SmallMediaPlayer_Tests
 {		
@@ -32,22 +33,44 @@ namespace SmallMediaPlayer_Tests
         TEST_METHOD(Test_ID3V2)
         {
             TAGS_GENERIC data = {0};
-            BOOL res = ReadTagsV2(Robin_MP3,&data);
+            BOOL res = ReadTagsV2(Robin_MP3,&data,FALSE);
             Assert::IsTrue(res!=FALSE);
             Assert::AreEqual((DWORD)TAG_ID3V2,(DWORD)data.type);
             Assert::AreEqual(L"1673",data.title);
             Assert::AreEqual(L"",data.artist);
             Assert::AreEqual(L"",data.album);
+            Assert::IsTrue(data.cover.pData==nullptr);
+            Assert::AreEqual(0, (int)data.cover.size);
         }
 
         TEST_METHOD(Test_ID3V2_EmptyTags)
         {            
             TAGS_GENERIC data = {0};
-            BOOL res = ReadTagsV2(Horse_MP3,&data);
+            BOOL res = ReadTagsV2(Horse_MP3,&data,FALSE);
             Assert::IsTrue(res==FALSE);            
             Assert::AreEqual(L"",data.title);
             Assert::AreEqual(L"",data.artist);
-            Assert::AreEqual(L"",data.album);            
+            Assert::AreEqual(L"",data.album);
+        }
+
+        TEST_METHOD(Test_ID3V2_Cover)
+        {            
+            TAGS_GENERIC data = {0};
+            BOOL res = ReadTagsV2(Piha_MP3,&data,TRUE);
+
+            Assert::IsTrue(res!=FALSE);            
+            Assert::AreEqual(L"1762",data.title);
+            Assert::AreEqual(L"",data.artist);
+            Assert::AreEqual(L"",data.album);
+            Assert::IsTrue(data.cover.pData!=nullptr);
+            Assert::AreEqual(1425, (int)data.cover.size);
+            Assert::AreEqual(3, (int)data.cover.pic_type);
+            Assert::AreEqual("image/jpg",data.cover.mime_type);
+
+            TagsFree(&data);
+            Assert::AreEqual(L"",data.title);
+            Assert::IsTrue(data.cover.pData==nullptr);
+            Assert::AreEqual(0, (int)data.cover.size);
         }
 
         TEST_METHOD(Test_FlacVorbisComment)

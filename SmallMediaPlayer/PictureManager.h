@@ -18,6 +18,7 @@ extern bool fCoverLoaded;
 BOOL FindPicture(TCHAR* dir,TCHAR* mask,TCHAR* out);
 
 void LoadCover(TCHAR* file);
+void LoadCoverFromMemory(const BYTE* pImageData, UINT size);
 bool DrawCover(HDC hDC,RECT* rc);
 void UnloadCover();
 void GetFileCover(TCHAR* file,TCHAR* out);
