@@ -288,12 +288,7 @@ BOOL ReadID3V2Picture(char* pInputData, int sizeInputData, IMAGE_DATA* pOutput){
 
     if(pic_size <= 5) return FALSE; //too small to contain valid picture
     else if(pic_size > 150 * 1024 * 1024) return FALSE; //too large!
-
-    /*if(pOutput->pData != nullptr && pOutput->size>0) {
-        HeapFree(GetProcessHeap(), 0, pOutput->pData);
-        ZeroMemory(pOutput, sizeof(IMAGE_DATA));
-    }*/
-
+    
     BYTE* pData = (BYTE*)HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,pic_size);
 
     if(pData == nullptr) return FALSE;

@@ -10,6 +10,7 @@ WCHAR Noise_MP3[]=L"..\\SmallMediaPlayer_Tests\\data\\noise.mp3";
 WCHAR Robin_MP3[]=L"..\\SmallMediaPlayer_Tests\\data\\robin.mp3";
 WCHAR Crow_FLAC[]=L"..\\SmallMediaPlayer_Tests\\data\\crow.flac";
 WCHAR Horse_MP3[]=L"..\\SmallMediaPlayer_Tests\\data\\horse.mp3";
+WCHAR Piha_MP3[]=L"..\\SmallMediaPlayer_Tests\\data\\piha.mp3";
 
 namespace SmallMediaPlayer_Tests
 {		
@@ -38,6 +39,8 @@ namespace SmallMediaPlayer_Tests
             Assert::AreEqual(L"1673",data.title);
             Assert::AreEqual(L"",data.artist);
             Assert::AreEqual(L"",data.album);
+            Assert::IsTrue(data.cover.pData==nullptr);
+            Assert::AreEqual(0, (int)data.cover.size);
         }
 
         TEST_METHOD(Test_ID3V2_EmptyTags)
@@ -48,6 +51,26 @@ namespace SmallMediaPlayer_Tests
             Assert::AreEqual(L"",data.title);
             Assert::AreEqual(L"",data.artist);
             Assert::AreEqual(L"",data.album);
+        }
+
+        TEST_METHOD(Test_ID3V2_Cover)
+        {            
+            TAGS_GENERIC data = {0};
+            BOOL res = ReadTagsV2(Piha_MP3,&data,TRUE);
+
+            Assert::IsTrue(res!=FALSE);            
+            Assert::AreEqual(L"1762",data.title);
+            Assert::AreEqual(L"",data.artist);
+            Assert::AreEqual(L"",data.album);
+            Assert::IsTrue(data.cover.pData!=nullptr);
+            Assert::AreEqual(1425, (int)data.cover.size);
+            Assert::AreEqual(3, (int)data.cover.pic_type);
+            Assert::AreEqual("image/jpg",data.cover.mime_type);
+
+            TagsFree(&data);
+            Assert::AreEqual(L"",data.title);
+            Assert::IsTrue(data.cover.pData==nullptr);
+            Assert::AreEqual(0, (int)data.cover.size);
         }
 
         TEST_METHOD(Test_FlacVorbisComment)

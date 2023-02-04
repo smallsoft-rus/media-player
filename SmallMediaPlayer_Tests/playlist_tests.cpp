@@ -103,7 +103,7 @@ namespace SmallMediaPlayer_Tests
         {
             ClearPlaylist();
             Playlist_AddDirectory(L"..\\SmallMediaPlayer_Tests\\data\\");
-            Assert::AreEqual((UINT)4,CountTracks);
+            Assert::AreEqual((UINT)5,CountTracks);
 
             WCHAR buf[MAX_PATH]=L"";
             BOOL res=GetPlaylistElement(0,buf);
@@ -116,6 +116,9 @@ namespace SmallMediaPlayer_Tests
             Assert::IsTrue(res!=FALSE);
             Assert::AreEqual(L"..\\SmallMediaPlayer_Tests\\data\\noise.mp3",buf,true);
             res=GetPlaylistElement(3,buf);
+            Assert::IsTrue(res!=FALSE);
+            Assert::AreEqual(L"..\\SmallMediaPlayer_Tests\\data\\piha.mp3",buf,true);
+            res=GetPlaylistElement(4,buf);
             Assert::IsTrue(res!=FALSE);
             Assert::AreEqual(L"..\\SmallMediaPlayer_Tests\\data\\robin.mp3",buf,true);
 
