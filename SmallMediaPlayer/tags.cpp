@@ -244,6 +244,37 @@ BOOL ReadID3V2String(char* pInputData, int sizeInputData, WCHAR* pOutput, int cc
     return TRUE;
 }
 
+//Returns the position after the next null terminator character in the string starting from the specified start index.
+//If the null terminator is not found, returns the string size.
+int SkipUntilNullTerminator(char* pData, int startIndex, int size, BYTE encoding){
+    int pos=startIndex;
+    char ch;
+
+    if(encoding == ID32_ENCODING_ISO || encoding == ID32_ENCODING_UTF8){
+        while(1){
+            if(pos>=size)break;
+            ch=pData[pos];
+            pos++;
+            if(ch==0) break;
+        }
+    }
+    else{
+        while(1){
+            if(pos>=size-1)break;
+            ch=pData[pos];
+            char ch_next = pData[pos+1];
+            pos++;
+
+            if(ch==0 && ch_next==0) {
+                pos++;
+                break;
+            }
+        }
+    }
+
+    return pos;
+}
+
 // Reads ID3V2 Tags embedded picture
 BOOL ReadID3V2Picture(char* pInputData, int sizeInputData, IMAGE_DATA* pOutput){
 
@@ -299,6 +330,28 @@ BOOL ReadID3V2Picture(char* pInputData, int sizeInputData, IMAGE_DATA* pOutput){
     pOutput->pData = pData;
     StringCchCopyA(pOutput->mime_type, sizeof(pOutput->mime_type), mime);
     return TRUE;
+}
+
+//Read ID3v2 User-defined URL tag (WXXX)
+BOOL ReadID3V2Url(char* pInputData, int sizeInputData, WCHAR* pOutput, int cchOutput){
+
+    if(sizeInputData<3) return FALSE;
+
+    int pos=0;
+    BYTE encoding = (BYTE)pInputData[pos];
+    pos++;
+
+    //skip URL description
+    pos = SkipUntilNullTerminator(pInputData, pos, sizeInputData, encoding);
+    int urlLength = sizeInputData - pos;
+    
+    //read URL
+    if(urlLength<=5) return FALSE;
+    
+    int bytesConverted = MultiByteToWideChar(CP_ISO88591_LATIN,0,&(pInputData[pos]),urlLength, pOutput, cchOutput);
+
+    if(bytesConverted>0) return TRUE;
+    else return FALSE;
 }
 
 BOOL ReadTagsV22(char* pInputData, int sizeInputData,TAGS_GENERIC* pOutput){
@@ -565,6 +618,12 @@ i+=10;
             out->cover = img;
         }
 
+        i+=packer.dword;
+        continue;
+    }
+
+    if(strncmp((char*)fh.ID,"WXXX",4)==0){ //User-defined URL
+        ReadID3V2Url(&(pOutputTags[i]), packer.dword, out->URL, sizeof(out->URL) / sizeof(WCHAR));
         i+=packer.dword;
         continue;
     }
