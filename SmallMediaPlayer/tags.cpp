@@ -260,7 +260,7 @@ int SkipUntilNullTerminator(char* pData, int startIndex, int size, BYTE encoding
     }
     else{
         while(1){
-            if(pos>=size-1)break;
+            if(pos>=size-1) return size;
             ch=pData[pos];
             char ch_next = pData[pos+1];
             pos++;
@@ -299,27 +299,14 @@ BOOL ReadID3V2Picture(char* pInputData, int sizeInputData, IMAGE_DATA* pOutput){
     if(pos>=sizeInputData) return FALSE;
 
     //skip description
-    if(encoding == ID32_ENCODING_ISO || encoding == ID32_ENCODING_UTF8){
-        for(int i=0;i<sizeInputData;i++){
-            ch=pInputData[pos];
-            pos++;
-            if(ch==0) break;
-        }
-    }
-    else{
-        for(int i=0;i<sizeInputData-1;i++){
-            ch=pInputData[pos];
-            char ch_next = pInputData[pos+1];
-            pos++;
-            if(ch==0 && ch_next==0) break;
-        }
-    }
+    pos=SkipUntilNullTerminator(pInputData,pos,sizeInputData,encoding);
 
     int pic_size = sizeInputData-pos;
 
     if(pic_size <= 5) return FALSE; //too small to contain valid picture
     else if(pic_size > 150 * 1024 * 1024) return FALSE; //too large!
     
+    //read image
     BYTE* pData = (BYTE*)HeapAlloc(GetProcessHeap(),HEAP_ZERO_MEMORY,pic_size);
 
     if(pData == nullptr) return FALSE;
