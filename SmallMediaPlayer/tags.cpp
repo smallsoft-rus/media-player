@@ -244,6 +244,42 @@ BOOL ReadID3V2String(char* pInputData, int sizeInputData, WCHAR* pOutput, int cc
     return TRUE;
 }
 
+//Reads ID3V2 Tags string with the specified encoding
+BOOL ReadID3V2StringImpl(char* pInputData, int sizeInputData, BYTE encoding, WCHAR* pOutput, int cchOutput){
+
+    if(sizeInputData<1) return FALSE;
+
+    //ANSI
+    if(encoding==ID32_ENCODING_ISO){
+        int bytesConverted = MultiByteToWideChar(CP_ACP,0,&(pInputData[0]),sizeInputData, pOutput, cchOutput);
+        
+        if(bytesConverted>0) return TRUE;
+        else return FALSE;
+    }
+
+    //UTF-8
+    if(encoding==ID32_ENCODING_UTF8){
+        int bytesConverted = MultiByteToWideChar(CP_UTF8,0,&(pInputData[0]),sizeInputData, pOutput, cchOutput);
+        
+        if(bytesConverted>0) return TRUE;
+        else return FALSE;
+    }
+	
+    //UTF-16
+    if(sizeInputData<2) return FALSE;
+    WORD BOM=0;
+    memcpy(&BOM,&(pInputData[0]),2);
+    
+    if(BOM==UNICODE_BOM_DIRECT){
+        for(int j=2;j<sizeInputData;j+=2){
+            ReverseWCHAR((WCHAR*)&(pInputData[j]));
+        }
+    }
+
+    StringCbCopyN(pOutput, cchOutput * sizeof(WCHAR), (WCHAR*)&(pInputData[2]), sizeInputData-2);
+    return TRUE;
+}
+
 //Returns the position after the next null terminator character in the string starting from the specified start index.
 //If the null terminator is not found, returns the string size.
 int SkipUntilNullTerminator(char* pData, int startIndex, int size, BYTE encoding){
@@ -339,6 +375,50 @@ BOOL ReadID3V2Url(char* pInputData, int sizeInputData, WCHAR* pOutput, int cchOu
 
     if(bytesConverted>0) return TRUE;
     else return FALSE;
+}
+
+//Read ID3v2 comment tag (COMM)
+BOOL ReadID3V2Comments(char* pInputData, int sizeInputData, WCHAR* pOutput, int cchOutput){
+
+    if(sizeInputData<=5) return FALSE;
+
+    int pos=0;
+    WCHAR buf[2048]=L"";
+    BOOL res = FALSE;
+    BYTE encoding = (BYTE)pInputData[pos];
+    pos++;
+
+    //skip language code
+    pos+=3;
+    
+    int pos_full = SkipUntilNullTerminator(pInputData,pos,sizeInputData,encoding);
+    int len_short = pos_full - pos - 1;
+    int len_full = sizeInputData - pos_full;
+    StringCchCopy(pOutput, cchOutput, L"");
+    
+    //read short description
+    if(len_short>0 && len_short<sizeInputData){
+        res = ReadID3V2StringImpl(&(pInputData[pos]), len_short, encoding, buf, sizeof(buf)/sizeof(WCHAR));
+    }
+
+    if(res!=FALSE && lstrlen(buf)>0) {
+        StringCchCat(pOutput, cchOutput, buf);
+        StringCchCat(pOutput, cchOutput, L"\n");
+    }
+
+    //read full description
+    res = FALSE;
+    ZeroMemory(buf, sizeof(buf));
+
+    if(len_full>0 && len_full<sizeInputData){
+        res = ReadID3V2StringImpl(&(pInputData[pos_full]), len_full, encoding, buf, sizeof(buf)/sizeof(WCHAR));
+    }
+
+    if(res!=FALSE && lstrlen(buf)>0) {
+        StringCchCat(pOutput, cchOutput, buf);
+    }
+    
+    return TRUE;
 }
 
 BOOL ReadTagsV22(char* pInputData, int sizeInputData,TAGS_GENERIC* pOutput){
@@ -615,34 +695,24 @@ i+=10;
         continue;
     }
 
-if(strncmp((char*)fh.ID,"TLEN",4)==0){
-	if(pOutputTags[i]==ID32_ENCODING_ISO){
-	i++;
-	StringCchCopyNA(buf,1024,&(pOutputTags[i]),packer.dword-1);
-	out->length=0;
-	sscanf(buf,"%u",&(out->length));
-	i+=packer.dword-1;continue;
-	}
-	i+=packer.dword;continue;
-}
+    if(strncmp((char*)fh.ID,"COMM",4)==0){ //Comment
+        ReadID3V2Comments(&(pOutputTags[i]), packer.dword, out->comments, sizeof(out->comments) / sizeof(WCHAR));
+        i+=packer.dword;
+        continue;
+    }
 
+    if(strncmp((char*)fh.ID,"TLEN",4)==0){ //Duration
+        if(pOutputTags[i]==ID32_ENCODING_ISO){
+            i++;
+            StringCchCopyNA(buf,1024,&(pOutputTags[i]),packer.dword-1);
+            out->length=0;
+            sscanf(buf,"%u",&(out->length));
+            i+=packer.dword-1;continue;
+        }
+	    i+=packer.dword;continue;
+    }
 
-if(strncmp((char*)fh.ID,"COMM",4)==0){
-	if(pOutputTags[i]==ID32_ENCODING_ISO){
-	i+=4;
-	memset(buf,0,sizeof(buf));
-	if((packer.dword-4)>1023){memcpy(buf,&(pOutputTags[i]),1023);buf[1023]=0;}
-	else{memcpy(buf,&(pOutputTags[i]),packer.dword-4);buf[packer.dword-4]=0;}
-	for(j=0;j<1023;j++){
-		if(buf[j]==0){buf[j]='\n';break;}
-		}
-	MultiByteToWideChar(CP_ACP,0,buf,1024,out->comments,1024);
-	i+=packer.dword-4;continue;
-	}
-	i+=packer.dword;continue;
-}
-
-i+=packer.dword;
+    i+=packer.dword;
 }
 
 exit:
