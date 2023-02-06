@@ -23,7 +23,6 @@
 #define VOLUME_INCREMENT 10
 
 DWORD WINAPI DirThreadFunc(TCHAR* dir);
-void DisplayOpenedFileTags();
 extern int CALLBACK CompareFunc(LPARAM lParam1, LPARAM lParam2,LPARAM lParamSort);
 extern TAGS_GENERIC OpenedFileTags;
 extern bool fOpenedFileTags;
@@ -291,111 +290,83 @@ TCHAR str[256]=L"";
 	Shell_NotifyIcon(NIM_MODIFY,&nd);
 }
 
+void DisplayFileProperties(const WCHAR* path, const TAGS_GENERIC* pInfo){
+	
+    //display info from tags
+    const int text_size = 5000;
+    WCHAR text[text_size]=L"";
+    WCHAR buf[MAX_PATH]=L"";
+    int h,sec,min;
+
+    //build display string
+    StringCchCopy(text,text_size,path);
+    StringCchCat(text,text_size,L"\n\nНазвание: ");
+    StringCchCat(text,text_size,pInfo->title);
+    StringCchCat(text,text_size,L"\nИсполнитель: ");
+    StringCchCat(text,text_size,pInfo->artist);
+    StringCchCat(text,text_size,L"\nАльбом: ");
+    StringCchCat(text,text_size,pInfo->album);
+    StringCchCat(text,text_size,L"\nГод: ");
+    StringCchCat(text,text_size,pInfo->year);
+    StringCchCat(text,text_size,L"\n\nКомпозитор: ");
+    StringCchCat(text,text_size,pInfo->composer);
+    StringCchCat(text,text_size,L"\nОписание: ");
+    StringCchCat(text,text_size,pInfo->comments);
+    StringCchCat(text,text_size,L"\nURL: ");
+    StringCchCat(text,text_size,pInfo->URL);
+
+    if(pInfo->length!=0){
+        sec=pInfo->length/1000;
+        h=sec/3600;
+        sec=sec%3600;
+        min=sec/60;sec=sec%60;
+        StringCchCat(text,text_size,L"\nДлина: ");
+        StringCchPrintf(buf,MAX_PATH,L"%02d:%02d:%02d\n",h,min,sec);
+        StringCchCat(text,text_size,buf);
+    }
+
+    StringCchCat(text,text_size,L"\n\nТип метаданных: ");
+
+    switch(pInfo->type){
+        case TAG_ID3V1:StringCchCat(text,text_size,L"ID3V1");break;
+        case TAG_ID3V2:StringCchCat(text,text_size,L"ID3V2");break;
+        case TAG_APE:StringCchCat(text,text_size,L"APE");break;
+        case TAG_FLAC:StringCchCat(text,text_size,L"FLAC (Vorbis comment)");break;
+        case TAG_NO:
+        default:StringCchCat(text,text_size,L"Нет");break;
+    }
+
+    //display tags in message box
+    MessageBox(hMainWnd,text,L"Свойства файла",MB_OK);
+}
+
 void DisplayFileInfo(int n){
 	
-	//display info from tags
+    //display info from tags
+    WCHAR buf[MAX_PATH]=L"";
+    TCHAR ext[10]=L"";
+    TAGS_GENERIC info={0};
+    BOOL res=FALSE;
 
-	if(n==CurrentTrack && PlayerState!=FILE_NOT_LOADED){
-		//if file is opened, display info from it
-		DisplayOpenedFileTags();
-		return;
-	}
+    if(n==CurrentTrack && PlayerState!=FILE_NOT_LOADED){
+        //if file is opened, display info from it
+        GetPlaylistElement(CurrentTrack,buf);
+        DisplayFileProperties(buf,&OpenedFileTags);
+    }
+    else{
+        GetPlaylistElement(n,buf);
+        GetFileExtension(buf,ext);
 
-	WCHAR text[5000]=L"";
-	TCHAR ext[10]=L"";
-	WCHAR buf[MAX_PATH]=L"";
-	TAGS_GENERIC info={0};
-	BOOL res=FALSE;
-	int h,sec,min;
-GetPlaylistElement(n,buf);
-GetFileExtension(buf,ext);
+        //read tags
+        res=ReadTagsV2(buf,&info,FALSE);
+        if(res==FALSE&&lstrcmpi(ext,L"flac")==0){res=ReadFlacTags(buf,&info);}
+        if(res==FALSE)ReadApeTags(buf,&info);
+        if(res==FALSE)ReadTagsV1(buf,&info);
 
-//read tags
-res=ReadTagsV2(buf,&info,FALSE);
-if(res==FALSE&&lstrcmpi(ext,L"flac")==0){res=ReadFlacTags(buf,&info);}
-if(res==FALSE)ReadApeTags(buf,&info);
-if(res==FALSE)ReadTagsV1(buf,&info);
-
-//display tags in message box
-StringCchCopy(text,5000,buf);
-StringCchCat(text,5000,L"\n\nНазвание: ");
-	StringCchCat(text,5000,info.title);
-	StringCchCat(text,5000,L"\nИсполнитель: ");
-	StringCchCat(text,5000,info.artist);
-	StringCchCat(text,5000,L"\nАльбом: ");
-	StringCchCat(text,5000,info.album);
-	StringCchCat(text,5000,L"\nГод: ");
-	StringCchCat(text,5000,info.year);
-	StringCchCat(text,5000,L"\n\nКомпозитор: ");
-	StringCchCat(text,5000,info.composer);
-	StringCchCat(text,5000,L"\nОписание: ");
-	StringCchCat(text,5000,info.comments);
-	StringCchCat(text,5000,L"\nURL: ");
-	StringCchCat(text,5000,info.URL);
-	if(info.length!=0){
-		sec=info.length/1000;
-		h=sec/3600;
-		sec=sec%3600;
-		min=sec/60;sec=sec%60;
-	StringCchCat(text,5000,L"\nДлина: ");
-	StringCchPrintf(buf,256,L"%02d:%02d:%02d\n",h,min,sec);
-	StringCchCat(text,5000,buf);
-	}
-	StringCchCat(text,5000,L"\n\nТип метаданных:");
-switch(info.type){
-	case TAG_ID3V1:StringCchCat(text,5000,L"ID3V1");break;
-	case TAG_ID3V2:StringCchCat(text,5000,L"ID3V2");break;
-	case TAG_APE:StringCchCat(text,5000,L"APE");break;
-	case TAG_FLAC:StringCchCat(text,5000,L"FLAC (Vorbis comment)");break;
-	case TAG_NO:
-	default:StringCchCat(text,5000,L"Нет");break;
-}
-MessageBox(hMainWnd,text,L"Свойства файла",MB_OK);
-TagsFree(&info);
-}
-
-void DisplayOpenedFileTags(){
-WCHAR text[5000]=L"";
-WCHAR buf[MAX_PATH]=L"";
-int min,h,sec;
-GetPlaylistElement(CurrentTrack,buf);
-StringCchCopy(text,5000,buf);
-if(fOpenedFileTags==true){
-	StringCchCat(text,5000,L"\n\nНазвание: ");
-	StringCchCat(text,5000,OpenedFileTags.title);
-	StringCchCat(text,5000,L"\nИсполнитель: ");
-	StringCchCat(text,5000,OpenedFileTags.artist);
-	StringCchCat(text,5000,L"\nАльбом: ");
-	StringCchCat(text,5000,OpenedFileTags.album);
-	StringCchCat(text,5000,L"\nГод: ");
-	StringCchCat(text,5000,OpenedFileTags.year);
-	StringCchCat(text,5000,L"\n\nКомпозитор: ");
-	StringCchCat(text,5000,OpenedFileTags.composer);
-	StringCchCat(text,5000,L"\nОписание: ");
-	StringCchCat(text,5000,OpenedFileTags.comments);
-	StringCchCat(text,5000,L"\nURL: ");
-	StringCchCat(text,5000,OpenedFileTags.URL);
-	if(OpenedFileTags.length!=0){
-		sec=OpenedFileTags.length/1000;
-		h=sec/3600;
-		sec=sec%3600;
-		min=sec/60;sec=sec%60;
-	StringCchCat(text,5000,L"\nДлина: ");
-	StringCchPrintf(buf,256,L"%02d:%02d:%02d\n",h,min,sec);
-	StringCchCat(text,5000,buf);
-	}
-}
-
-StringCchCat(text,5000,L"\n\nТип метаданных:");
-switch(OpenedFileTags.type){
-	case TAG_ID3V1:StringCchCat(text,5000,L"ID3V1");break;
-	case TAG_ID3V2:StringCchCat(text,5000,L"ID3V2");break;
-	case TAG_APE:StringCchCat(text,5000,L"APE");break;
-	case TAG_FLAC:StringCchCat(text,5000,L"FLAC (Vorbis comment)");break;
-	case TAG_NO:
-	default:StringCchCat(text,5000,L"Нет");break;
-}
-MessageBox(hMainWnd,text,L"Свойства файла",MB_OK);
+        //display tags in message box
+        DisplayFileProperties(buf,&info);
+        TagsFree(&info);
+    }
 }
 
 void DisplayMultimediaInfo(){

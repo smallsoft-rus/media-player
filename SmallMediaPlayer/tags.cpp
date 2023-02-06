@@ -208,42 +208,6 @@ int ReadV22Frame(char* pInputData, DWORD sizeInputData, ID3V22_FRAME_HEADER* pOu
     return size + sizeof(ID3V22_FRAME_HEADER_RAW);
 }
 
-// Reads ID3V2 Tags text field
-BOOL ReadID3V2String(char* pInputData, int sizeInputData, WCHAR* pOutput, int cchOutput){
-
-    if(sizeInputData<1) return FALSE;
-
-    //ANSI
-    if(pInputData[0]==ID32_ENCODING_ISO){
-        int bytesConverted = MultiByteToWideChar(CP_ACP,0,&(pInputData[1]),sizeInputData-1, pOutput, cchOutput);
-        
-        if(bytesConverted>0) return TRUE;
-        else return FALSE;
-    }
-
-    //UTF-8
-    if(pInputData[0]==ID32_ENCODING_UTF8){
-        int bytesConverted = MultiByteToWideChar(CP_UTF8,0,&(pInputData[1]),sizeInputData-1, pOutput, cchOutput);
-        
-        if(bytesConverted>0) return TRUE;
-        else return FALSE;
-    }
-	
-    //UTF-16
-    if(sizeInputData<3) return FALSE;
-    WORD BOM=0;
-    memcpy(&BOM,&(pInputData[1]),2);
-    
-    if(BOM==UNICODE_BOM_DIRECT){
-        for(int j=3;j<sizeInputData;j+=2){
-            ReverseWCHAR((WCHAR*)&(pInputData[j]));
-        }
-    }
-
-    StringCbCopyN(pOutput, cchOutput * sizeof(WCHAR), (WCHAR*)&(pInputData[3]), sizeInputData-3);
-    return TRUE;
-}
-
 //Reads ID3V2 Tags string with the specified encoding
 BOOL ReadID3V2StringImpl(char* pInputData, int sizeInputData, BYTE encoding, WCHAR* pOutput, int cchOutput){
 
@@ -278,6 +242,15 @@ BOOL ReadID3V2StringImpl(char* pInputData, int sizeInputData, BYTE encoding, WCH
 
     StringCbCopyN(pOutput, cchOutput * sizeof(WCHAR), (WCHAR*)&(pInputData[2]), sizeInputData-2);
     return TRUE;
+}
+
+// Reads ID3V2 Tags text field
+BOOL ReadID3V2Text(char* pInputData, int sizeInputData, WCHAR* pOutput, int cchOutput){
+
+    if(sizeInputData<1) return FALSE;
+
+    BYTE encoding = pInputData[0];
+    return ReadID3V2StringImpl(&(pInputData[1]), sizeInputData-1, encoding, pOutput, cchOutput);
 }
 
 //Returns the position after the next null terminator character in the string starting from the specified start index.
@@ -440,19 +413,19 @@ BOOL ReadTagsV22(char* pInputData, int sizeInputData,TAGS_GENERIC* pOutput){
 
         // Read tag content
         if(strncmp(header.id,"TT2",3)==0){ //title
-            ReadID3V2String(buf, header.size, pOutput->title, sizeof(pOutput->title) / sizeof(WCHAR));
+            ReadID3V2Text(buf, header.size, pOutput->title, sizeof(pOutput->title) / sizeof(WCHAR));
         }
         else if(strncmp(header.id,"TAL",3)==0){ //album
-            ReadID3V2String(buf, header.size, pOutput->album, sizeof(pOutput->album) / sizeof(WCHAR));
+            ReadID3V2Text(buf, header.size, pOutput->album, sizeof(pOutput->album) / sizeof(WCHAR));
         }
         else if(strncmp(header.id,"TP1",3)==0){ //artist
-            ReadID3V2String(buf, header.size, pOutput->artist, sizeof(pOutput->artist) / sizeof(WCHAR));
+            ReadID3V2Text(buf, header.size, pOutput->artist, sizeof(pOutput->artist) / sizeof(WCHAR));
         }
         else if(strncmp(header.id,"TCM",3)==0){ //composer
-            ReadID3V2String(buf, header.size, pOutput->composer, sizeof(pOutput->composer) / sizeof(WCHAR));
+            ReadID3V2Text(buf, header.size, pOutput->composer, sizeof(pOutput->composer) / sizeof(WCHAR));
         }
         else if(strncmp(header.id,"TYE",3)==0){ //year
-            ReadID3V2String(buf, header.size, pOutput->year, sizeof(pOutput->year) / sizeof(WCHAR));
+            ReadID3V2Text(buf, header.size, pOutput->year, sizeof(pOutput->year) / sizeof(WCHAR));
         }
         
         i+=bytesRead;
@@ -635,38 +608,38 @@ if(i+packer.dword>OutputRealSize+1)break;
 i+=10;
 
     if(strncmp((char*)fh.ID,"TALB",4)==0){
-        ReadID3V2String(&(pOutputTags[i]), packer.dword, out->album, sizeof(out->album) / sizeof(WCHAR));
+        ReadID3V2Text(&(pOutputTags[i]), packer.dword, out->album, sizeof(out->album) / sizeof(WCHAR));
         i+=packer.dword;
         continue;
     }
 
     if(strncmp((char*)fh.ID,"TCOM",4)==0){
-        ReadID3V2String(&(pOutputTags[i]), packer.dword, out->composer, sizeof(out->composer) / sizeof(WCHAR));
+        ReadID3V2Text(&(pOutputTags[i]), packer.dword, out->composer, sizeof(out->composer) / sizeof(WCHAR));
         i+=packer.dword;
         continue;
     }
 
     if(strncmp((char*)fh.ID,"TYER",4)==0){
-        ReadID3V2String(&(pOutputTags[i]), packer.dword, out->year, sizeof(out->year) / sizeof(WCHAR));
+        ReadID3V2Text(&(pOutputTags[i]), packer.dword, out->year, sizeof(out->year) / sizeof(WCHAR));
         i+=packer.dword;
         continue;
     }
 
     if(strncmp((char*)fh.ID,"TPE1",4)==0){
-        ReadID3V2String(&(pOutputTags[i]), packer.dword, out->artist, sizeof(out->artist) / sizeof(WCHAR));
+        ReadID3V2Text(&(pOutputTags[i]), packer.dword, out->artist, sizeof(out->artist) / sizeof(WCHAR));
         i+=packer.dword;
         continue;
     }
 
     if(strncmp((char*)fh.ID,"TIT2",4)==0){
-        ReadID3V2String(&(pOutputTags[i]), packer.dword, out->title, sizeof(out->title) / sizeof(WCHAR));
+        ReadID3V2Text(&(pOutputTags[i]), packer.dword, out->title, sizeof(out->title) / sizeof(WCHAR));
         i+=packer.dword;
         continue;
     }
 
     if(strncmp((char*)fh.ID,"TDRC",4)==0){ //recording time
         StringCchCopy(wbuf, sizeof(wbuf) / sizeof(WCHAR), L"");
-        res = ReadID3V2String(&(pOutputTags[i]), packer.dword, wbuf, sizeof(wbuf) / sizeof(WCHAR));
+        res = ReadID3V2Text(&(pOutputTags[i]), packer.dword, wbuf, sizeof(wbuf) / sizeof(WCHAR));
 
         //year is first 4 chars
         if(res != FALSE && lstrlen(wbuf)>=4){
