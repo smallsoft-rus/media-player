@@ -173,6 +173,9 @@ BOOL SMP_GetModuleFromObject(IUnknown* pObject, WCHAR* output, DWORD cchOutput);
 //Gets the version info for the specified module as text
 BOOL SMP_GetFileVersionInfo(const WCHAR* file, WCHAR* output, int cchOutput);
 
+//Shows version info for a module where the implementation of the specified COM object is located
+BOOL SMP_ShowObjectInfo(IUnknown* pObject, const WCHAR* strType, const WCHAR* strTitle);
+
 BOOL inline IsCursorShown(){
 	CURSORINFO ci={0};
 	ci.cbSize=sizeof(CURSORINFO);

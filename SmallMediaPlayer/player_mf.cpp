@@ -843,34 +843,8 @@ BOOL MfPlayer::ShowCodecProperties(TOPOLOGY_NODE node){
         //can't show property page
         return FALSE;
     }
-
-    WCHAR module[MAX_PATH]={0};
-    const int text_size = 10000;
-    WCHAR text[text_size]={0};
-    const int buf_size = 5000;
-    WCHAR buf[buf_size]={0};
-
-    BOOL res = SMP_GetModuleFromObject(pNode, module, MAX_PATH);
-    if(res == FALSE) return FALSE;
-
-    WCHAR* shortName = GetShortName(module);
-    StringCchCopy(text, text_size, L"Файл: ");
-    StringCchCat(text, text_size, shortName);
-    StringCchCat(text, text_size, L"\r\nТип: Источник Media Foundation\r\n");    
-
-    res = SMP_GetFileVersionInfo(module, buf, buf_size);
-
-    if(res != FALSE){
-        StringCchCat(text, text_size, L"\r\n");
-        StringCchCat(text, text_size, buf);
-        StringCchCat(text, text_size, L"\r\n");
-    }
-
-    StringCchCat(text, text_size, L"\r\nПуть к файлу: ");
-    StringCchCat(text, text_size, module);
-
-    MessageBox(NULL, text, L"Свойства источника", MB_OK);
-    return TRUE;
+    
+    return SMP_ShowObjectInfo(pNode, L"Источник Media Foundation", L"Свойства источника");
 }
 
 //  Create a media source from a URL.

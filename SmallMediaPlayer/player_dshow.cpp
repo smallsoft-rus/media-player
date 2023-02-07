@@ -1,3 +1,6 @@
+﻿/* Small Media Player 
+ * Copyright (c) 2023,  MSDN.WhiteKnight (https://github.com/smallsoft-rus/media-player) 
+ * License: BSD 2.0 */
 #include "player_dshow.h"
 #include "errors.h"
 #include "resource.h"
@@ -866,23 +869,30 @@ void DS_ProcessNotify(WPARAM NotifyValue){
 void DS_ShowPropertyPage(TOPOLOGY_NODE node){
 
     IBaseFilter* pFilter=NULL;
+    const WCHAR* strTitle = L"Свойства кодека";
 
     switch(node){
         case TN_SPLITTER:
             if(pSplitter==NULL)pFilter=pSource;
             else pFilter=pSplitter;
+
+            strTitle = L"Свойства источника";
             break;
         case TN_AUDIO_DECODER:
             pFilter=pAudioDecoder;
+            strTitle = L"Свойства аудио-декодера";
             break;
         case TN_VIDEO_DECODER:
             pFilter=pVideoDecoder;
+            strTitle = L"Свойства видео-декодера";
             break;
         case TN_AUDIO_OUT:
             pFilter=pAudioRenderer;
+            strTitle = L"Свойства аудио-вывода";
             break;
         case TN_VIDEO_OUT:
             pFilter=pVideoRenderer;
+            strTitle = L"Свойства видео-декодера";
             break;
     }
 
@@ -893,7 +903,14 @@ void DS_ShowPropertyPage(TOPOLOGY_NODE node){
     }
 
     //show property page
-    if(ShowFilterProperties(pFilter)==FALSE){
+    BOOL res = ShowFilterProperties(pFilter);
+
+    if(res==FALSE){
+        //if failed, try to show version info
+        res = SMP_ShowObjectInfo(pFilter, L"Фильтр DirectShow", strTitle);
+    }
+
+    if(res==FALSE){
         //no property page
         ShowError(0,ERROR_NOPROPERTIES);
     }
