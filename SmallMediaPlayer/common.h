@@ -149,6 +149,11 @@ typedef union{
 // https://github.com/Nevcairiel/LAVFilters/blob/master/common/includes/moreuuids.h
 // DEFINE_GUID(MEDIASUBTYPE_IMA4, 0x34616D69, 0x000, 0x0010, 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71);
 
+// *** From Windows 10.0.14393.0 SDK, MMReg.h ***
+
+#define AUDIO_AMR_NB 0x7361 /* AMR Narrowband */
+#define AUDIO_AMR_WB 0x7362 /* AMR Wideband */
+
 #define INFORES_NO 0
 #define INFORES_AUDIO 1
 #define INFORES_VIDEO 2

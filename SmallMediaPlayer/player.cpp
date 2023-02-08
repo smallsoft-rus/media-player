@@ -97,7 +97,9 @@ if(wRes==INFORES_AUDIO||wRes==INFORES_BOTH){
             StringCchCat(text,size,L"Advanced Audio Coding (AAC)");break;
         case AUDIO_FLAC: StringCchCat(text,size,L"Free Lossless Audio Codec (FLAC)");break; 
         case AUDIO_WAVEPACK: StringCchCat(text,size,L"WavePack");break; 
-        case AUDIO_AMR: StringCchCat(text,size,L"VOICEAGE AMR");break; 
+        case AUDIO_AMR: StringCchCat(text,size,L"VOICEAGE AMR");break;
+        case AUDIO_AMR_NB: StringCchCat(text,size,L"AMR Narrowband");break;
+        case AUDIO_AMR_WB: StringCchCat(text,size,L"AMR Wideband");break;
         case AUDIO_MPEG2AAC: StringCchCat(text,size,L"MPEG2");break;
         case AUDIO_APE: StringCchCat(text,size,L"Monkey's Audio (APE)");break;
         default: StringCchCat(text,size,L"неизвестен");break;

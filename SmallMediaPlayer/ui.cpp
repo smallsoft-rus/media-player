@@ -427,7 +427,9 @@ if(wRes==INFORES_AUDIO||wRes==INFORES_BOTH){
             StringCchCat(text,len,L"AAC");break; 
         case AUDIO_FLAC: StringCchCat(text,len,L"FLAC");break; 
         case AUDIO_WAVEPACK: StringCchCat(text,len,L"WavePack");break; 
-        case AUDIO_AMR: StringCchCat(text,len,L"AMR");break; 
+        case AUDIO_AMR: StringCchCat(text,len,L"AMR");break;
+        case AUDIO_AMR_NB: StringCchCat(text,len,L"AMR NB");break;
+        case AUDIO_AMR_WB: StringCchCat(text,len,L"AMR WB");break;
         case AUDIO_MPEG2AAC: StringCchCat(text,len,L"MPEG2");break;
         case AUDIO_APE: StringCchCat(text,len,L"APE");break;
         default: StringCchCat(text,len,L"неизвестно");break;
