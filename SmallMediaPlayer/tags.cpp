@@ -668,6 +668,12 @@ i+=10;
         continue;
     }
 
+    if(fh.ID[0]=='W' && fh.ID[1]!='X'){ //Predefined URL
+        ReadID3V2StringImpl(&(pOutputTags[i]), packer.dword, ID32_ENCODING_ISO, out->URL, sizeof(out->URL) / sizeof(WCHAR));
+        i+=packer.dword;
+        continue;
+    }
+
     if(strncmp((char*)fh.ID,"COMM",4)==0){ //Comment
         ReadID3V2Comments(&(pOutputTags[i]), packer.dword, out->comments, sizeof(out->comments) / sizeof(WCHAR));
         i+=packer.dword;
