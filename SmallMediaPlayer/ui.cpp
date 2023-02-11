@@ -308,12 +308,16 @@ void DisplayFileProperties(const WCHAR* path, const TAGS_GENERIC* pInfo){
     StringCchCat(text,text_size,pInfo->album);
     StringCchCat(text,text_size,L"\nГод: ");
     StringCchCat(text,text_size,pInfo->year);
-    StringCchCat(text,text_size,L"\n\nКомпозитор: ");
-    StringCchCat(text,text_size,pInfo->composer);
-    StringCchCat(text,text_size,L"\nОписание: ");
-    StringCchCat(text,text_size,pInfo->comments);
-    StringCchCat(text,text_size,L"\nURL: ");
-    StringCchCat(text,text_size,pInfo->URL);
+
+    if(lstrlen(pInfo->composer)>0){
+        StringCchCat(text,text_size,L"\nКомпозитор: ");
+        StringCchCat(text,text_size,pInfo->composer);
+    }
+
+    if(lstrlen(pInfo->URL)>0){
+        StringCchCat(text,text_size,L"\nURL: ");
+        StringCchCat(text,text_size,pInfo->URL);
+    }
 
     if(pInfo->length!=0){
         sec=pInfo->length/1000;
@@ -321,8 +325,13 @@ void DisplayFileProperties(const WCHAR* path, const TAGS_GENERIC* pInfo){
         sec=sec%3600;
         min=sec/60;sec=sec%60;
         StringCchCat(text,text_size,L"\nДлина: ");
-        StringCchPrintf(buf,MAX_PATH,L"%02d:%02d:%02d\n",h,min,sec);
+        StringCchPrintf(buf,MAX_PATH,L"%02d:%02d:%02d",h,min,sec);
         StringCchCat(text,text_size,buf);
+    }
+
+    if(lstrlen(pInfo->comments)>0){
+        StringCchCat(text,text_size,L"\n\nОписание:\n");
+        StringCchCat(text,text_size,pInfo->comments);
     }
 
     StringCchCat(text,text_size,L"\n\nТип метаданных: ");
