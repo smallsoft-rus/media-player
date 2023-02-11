@@ -594,18 +594,28 @@ BOOL ReadTagsV2(WCHAR* fname,TAGS_GENERIC* out, BOOL readCover){
 
 while(1){//read frames
 
-if(i>=OutputRealSize)break;
-memcpy(&fh,&(pOutputTags[i]),sizeof(ID32_FRAME_HEADER));
-StringCchCopyNA(buf,1024,(char*)fh.ID,4);
-//fprintf(f,"Frame:%s\n",fh.ID);
-if(lstrcmpA((char*)fh.ID,"")==0)break;
-extractor.dword=fh.size;
-packer.bytes[0]=extractor.bytes[3];
-packer.bytes[1]=extractor.bytes[2];
-packer.bytes[2]=extractor.bytes[1];
-packer.bytes[3]=extractor.bytes[0];
-if(i+packer.dword>OutputRealSize+1)break;
-i+=10;
+    if(i>=OutputRealSize) break;
+
+    memcpy(&fh,&(pOutputTags[i]),sizeof(ID32_FRAME_HEADER));
+
+    if(lstrcmpA((char*)fh.ID,"")==0) break;
+
+    //read tag size
+    extractor.dword=fh.size;
+    
+    if(header.ver[0] >= 4){
+        packer.dword = ReadSyncsafeInteger(extractor.bytes);
+    }
+    else{
+        packer.bytes[0]=extractor.bytes[3];
+        packer.bytes[1]=extractor.bytes[2];
+        packer.bytes[2]=extractor.bytes[1];
+        packer.bytes[3]=extractor.bytes[0];
+    }
+
+    if(i+packer.dword>OutputRealSize+1) break;
+
+    i+=10;
 
     if(strncmp((char*)fh.ID,"TALB",4)==0){
         ReadID3V2Text(&(pOutputTags[i]), packer.dword, out->album, sizeof(out->album) / sizeof(WCHAR));
