@@ -8,6 +8,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SmallMediaPlayer_Tests", "S
 		{BC55783B-BD4F-4314-B27A-C590FFBE46A9} = {BC55783B-BD4F-4314-B27A-C590FFBE46A9}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SmallMediaPlayer_Stress", "SmallMediaPlayer_Stress\SmallMediaPlayer_Stress.vcxproj", "{A1484CD7-0CAC-49CC-8236-F93BFB8A1438}"
+	ProjectSection(ProjectDependencies) = postProject
+		{BC55783B-BD4F-4314-B27A-C590FFBE46A9} = {BC55783B-BD4F-4314-B27A-C590FFBE46A9}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -22,6 +27,10 @@ Global
 		{8F232F91-69E3-44DB-A066-B9821EB7EF17}.Debug|Win32.Build.0 = Debug|Win32
 		{8F232F91-69E3-44DB-A066-B9821EB7EF17}.Release|Win32.ActiveCfg = Release|Win32
 		{8F232F91-69E3-44DB-A066-B9821EB7EF17}.Release|Win32.Build.0 = Release|Win32
+		{A1484CD7-0CAC-49CC-8236-F93BFB8A1438}.Debug|Win32.ActiveCfg = Debug|Win32
+		{A1484CD7-0CAC-49CC-8236-F93BFB8A1438}.Debug|Win32.Build.0 = Debug|Win32
+		{A1484CD7-0CAC-49CC-8236-F93BFB8A1438}.Release|Win32.ActiveCfg = Release|Win32
+		{A1484CD7-0CAC-49CC-8236-F93BFB8A1438}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
