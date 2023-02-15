@@ -945,7 +945,12 @@ case LVN_COLUMNCLICK://click column to sort
 LPNMLISTVIEW pclick=(LPNMLISTVIEW) lParam;
 TCHAR buf[MAX_PATH]=L"";
 GetPlaylistElement(CurrentTrack,buf);
-if(pls_LastSortColumn==pclick->iSubItem){pls_SortReverse=!pls_SortReverse;}
+
+if(pls_LastSortColumn==pclick->iSubItem){
+    pls_SortReverse=!pls_SortReverse;
+    Playlist_SetSortReverseFlag(pls_SortReverse);
+}
+
 pls_LastSortColumn=pclick->iSubItem;
 ListView_SortItemsEx(PlayList,CompareFunc,pclick->iSubItem);
 

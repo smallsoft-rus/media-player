@@ -11,8 +11,6 @@
 
 extern void ProcessMessages();
 extern void GetFileDirectoryA(char* path,char* out);
-extern bool pls_SortReverse;
-extern HWND hPlaybackDlg;
 
 HWND PlayList;
 HWND hlstBuffer=NULL;
@@ -30,6 +28,7 @@ HICON hMusicIcon=NULL;
 int indexDirIcon=0;
 int indexMusicIcon=0;
 HIMAGELIST ImageList=NULL;
+bool Playlist_SortReverse=false;
 
 TCHAR* ImageExtensions[]={
 	L"jpg",	L"jpeg",L"bmp",L"png",L"gif"};
@@ -44,8 +43,10 @@ TCHAR* ImageExtensions[]={
 
     const char strPlaylistHeader[]="#~Small Media Player playlist (https://github.com/smallsoft-rus/media-player)\r\n";
     const char strEncoding[]="#~ENCODING: UTF8\r\n";
-
-
+    
+    void Playlist_SetSortReverseFlag(bool sortReverse){
+        Playlist_SortReverse = sortReverse;
+    }
 
 BOOL GetPlaylistElement(int n,TCHAR* out){
 BOOL res;
@@ -337,7 +338,6 @@ if(((UINT)n)>=CountTracks)return;
 		
 		
         PlayFile(str);
-		EnableWindow(hVolume,TRUE);
 		UpdateLength();
 
 		//***
@@ -702,14 +702,15 @@ CloseHandle(hFile);
 }
 
 int CALLBACK CompareFunc(LPARAM lParam1, LPARAM lParam2,LPARAM lParamSort){
-TCHAR str1[280]=L"";
-TCHAR str2[280]=L"";
-bool rev=false;
+    TCHAR str1[280]=L"";
+    TCHAR str2[280]=L"";
+    bool rev=false;
 
-ListView_GetItemText (PlayList,lParam1,lParamSort,str1,280);
-ListView_GetItemText (PlayList,lParam2,lParamSort,str2,280);
-if(pls_SortReverse==true){return -lstrcmp(str1,str2);}
-else return lstrcmp(str1,str2);
+    ListView_GetItemText(PlayList,lParam1,lParamSort,str1,280);
+    ListView_GetItemText(PlayList,lParam2,lParamSort,str2,280);
+
+    if(Playlist_SortReverse==true) return -lstrcmp(str1,str2);
+    else return lstrcmp(str1,str2);
 }
 
 int FindTrack(TCHAR* fname){

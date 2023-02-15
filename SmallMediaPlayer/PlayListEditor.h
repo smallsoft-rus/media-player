@@ -45,12 +45,9 @@ extern void UpdateLength();
 extern void RunTimer();
 extern void StopTimer();
 extern void GetFileDirectory(wchar_t* path,wchar_t* out);
-extern BOOL ReadTagsV1(TCHAR* file,TAGS_GENERIC* out);
-extern BOOL ReadTagsV1A(char* file,TAGS_GENERIC* out);
 
 //EXTERN VARS
 extern ScrollbarControl Progress;
-extern HWND hVolume;
 
 //THIS MODULE DECL.
 extern HWND PlayList;
@@ -90,6 +87,7 @@ BOOL ReadApeTagsA(char* file,TAGS_GENERIC* out);
 void InsertPlaylistElement(WCHAR* fname,UINT pos);
 void Playlist_Paste();void Playlist_Cut();void Playlist_Copy();
 void Playlist_SelectAll();
+void Playlist_SetSortReverseFlag(bool sortReverse);
 
 void InitImageList();
 int GetTypeIcon(TCHAR* ext);
