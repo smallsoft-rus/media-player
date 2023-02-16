@@ -1364,31 +1364,45 @@ return 0;
 }
 
 LRESULT CALLBACK CoverWndProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam){
-HDC hDC;PAINTSTRUCT ps;RECT rc;
-switch(uMsg){
-		case WM_CLOSE:
-		ShowWindow(hWnd,SW_HIDE);
-		Settings.fShowCover=false;
-		UpdateView();
-		break;
+    HDC hDC;PAINTSTRUCT ps;RECT rc;
+    const WCHAR* pCoverPath;
+
+    switch(uMsg){
+    case WM_CLOSE:
+        ShowWindow(hWnd,SW_HIDE);
+        Settings.fShowCover=false;
+        UpdateView();
+        break;
 		
-		case WM_CHILDACTIVATE:case WM_SIZE:
-	RedrawWindow(hWnd,NULL,NULL,RDW_ERASE|RDW_FRAME|RDW_INVALIDATE|RDW_UPDATENOW);
-	//ShowWindow(hWnd,SW_SHOW);
-	break;
+    case WM_CHILDACTIVATE:case WM_SIZE:
+        RedrawWindow(hWnd,NULL,NULL,RDW_ERASE|RDW_FRAME|RDW_INVALIDATE|RDW_UPDATENOW);
+        break;
 			
-	case WM_PAINT:
-hDC=BeginPaint(hWnd,&ps);		
-		GetClientRect(hWnd,&rc);		
-		//drawing...
-		if(DrawCover(hDC,&rc)==false)
-		{
-			DrawPattern(hDC,&rc);//if no cover, draw image
-		}		
-		EndPaint(hWnd,&ps);break;
+    case WM_PAINT:
+        hDC=BeginPaint(hWnd,&ps);		
+        GetClientRect(hWnd,&rc);
+
+        //drawing...
+        if(DrawCover(hDC,&rc)==false)
+        {
+            DrawPattern(hDC,&rc); //if no cover, draw image
+        }
+
+        EndPaint(hWnd,&ps);
+        break;
+
+    case WM_LBUTTONDBLCLK: //open cover image file
+        pCoverPath = PictureManager_GetCurrentCoverPath();
+
+        if(lstrlen(pCoverPath)>0) ShellExecute(NULL, L"open", pCoverPath,L"",L"",SW_SHOW);
+
+        break;
 	
-	default: return DefWindowProc(hWnd,uMsg,wParam,lParam);}
-return 0;}
+    default: return DefWindowProc(hWnd,uMsg,wParam,lParam);
+    }
+
+    return 0;
+}
 
 // Check for running instance and, if one exists, pass command line and exit
 void EnsureSingleInstance(){
@@ -1496,7 +1510,7 @@ wc.hIcon=hSMPIcon;
 		ExitProcess( -1);}
 	//create wclass structure COVER WINDOW
 	wc.cbSize=sizeof(wc);
-	wc.style=CS_HREDRAW|CS_VREDRAW;
+	wc.style=CS_HREDRAW|CS_VREDRAW|CS_DBLCLKS;
 	wc.lpfnWndProc=CoverWndProc;
 	wc.cbClsExtra=0;
 	wc.cbWndExtra=0;

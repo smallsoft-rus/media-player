@@ -1,18 +1,18 @@
 ﻿/* Small Media Player 
- * Copyright (c) 2021,  MSDN.WhiteKnight (https://github.com/smallsoft-rus/media-player) 
+ * Copyright (c) 2023,  MSDN.WhiteKnight (https://github.com/smallsoft-rus/media-player) 
  * License: BSD 2.0 */
 #include "PictureManager.h"
 #include <shlwapi.h>
 
 #define COUNT_COVER_MASKS (sizeof(arrCoverMasks)/sizeof(arrCoverMasks[0]))
 #define COUNT_PATTERN_MASKS (sizeof(arrPatternMasks)/sizeof(arrPatternMasks[0]))
-#define COUNT_WALL_MASKS (sizeof(arrWallMasks)/sizeof(arrWallMasks[0]))
 
 Bitmap* CurrentCover;
 Bitmap* CurrentPattern;
 IStream* pCoverStream=nullptr;
 bool fCoverLoaded=false;
 bool fPatternLoaded=false;
+WCHAR CurrentCoverPath[MAX_PATH]=L"";
 
 TCHAR* arrCoverMasks[]={
 	L"cover.jpg",
@@ -88,14 +88,15 @@ void GetFileDirectoryA(char* path,char* out){
 }
 
 
-void LoadCover(TCHAR* file){
+void LoadCover(WCHAR* file){
 
-	UnloadCover();
-	if(lstrcmp(file,L"")==0){return;}
+    UnloadCover();
+
+    if(lstrcmp(file,L"")==0){return;}
 	
-	CurrentCover=new Bitmap(file);
-	fCoverLoaded=true;
-	
+    CurrentCover=new Bitmap(file);
+    fCoverLoaded=true;
+    StringCchCopy(CurrentCoverPath,MAX_PATH,file);
 }
 
 void LoadCoverFromMemory(const BYTE* pImageData, UINT size){
@@ -142,6 +143,7 @@ void UnloadCover(){
     }
 
     delete CurrentCover;
+    StringCchCopy(CurrentCoverPath,MAX_PATH,L"");
     fCoverLoaded=false;
 }
 
@@ -254,4 +256,8 @@ void GetPattern(TCHAR* out){
     if(res==FALSE)return;
 
 end:lstrcpy(out,path);
+}
+
+const WCHAR* PictureManager_GetCurrentCoverPath(){
+    return CurrentCoverPath;
 }

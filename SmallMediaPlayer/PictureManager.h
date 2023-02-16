@@ -1,5 +1,5 @@
 /* Small Media Player 
- * Copyright (c) 2021,  MSDN.WhiteKnight (https://github.com/smallsoft-rus/media-player) 
+ * Copyright (c) 2023,  MSDN.WhiteKnight (https://github.com/smallsoft-rus/media-player) 
  * License: BSD 2.0 */
 #ifndef UNICODE
 #define UNICODE
@@ -26,3 +26,4 @@ void GetPattern(TCHAR* out);
 void DrawPattern(HDC hDC,RECT* rc);
 void UnloadPattern();
 void LoadPattern(TCHAR* file);
+const WCHAR* PictureManager_GetCurrentCoverPath();

@@ -115,6 +115,6 @@ int wmain(int argc, WCHAR* argv[])
     }
 
     RunStressTests(argv[1]);
-	return 0;
+    return 0;
 }
 
