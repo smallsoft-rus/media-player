@@ -9,6 +9,7 @@
 #include <Strsafe.h>
 #include <GdiPlus.h>
 #include <shlobj.h>
+#include "common.h"
 using namespace Gdiplus;
 
 //this module!!!

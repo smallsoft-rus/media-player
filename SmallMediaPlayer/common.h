@@ -20,7 +20,7 @@ typedef enum {
 } PLAYER_EVENT;
 
 typedef enum {
-    SMP_EVENT_UNKNOWN=0, SMP_EVENT_MSGLOOP, SMP_EVENT_NEWTRACK
+    SMP_EVENT_UNKNOWN=0, SMP_EVENT_MSGLOOP, SMP_EVENT_NEWTRACK, SMP_EVENT_PLAYLIST_END
 } SMP_EVENT;
 
 typedef void (*PLAYER_EVENT_CALLBACK)(PLAYER_EVENT evt);
@@ -187,6 +187,8 @@ BOOL SMP_GetFileVersionInfo(const WCHAR* file, WCHAR* output, int cchOutput);
 
 //Shows version info for a module where the implementation of the specified COM object is located
 BOOL SMP_ShowObjectInfo(IUnknown* pObject, const WCHAR* strType, const WCHAR* strTitle);
+
+void GetFileDirectory(wchar_t* path,wchar_t* out);
 
 BOOL inline IsCursorShown(){
 	CURSORINFO ci={0};

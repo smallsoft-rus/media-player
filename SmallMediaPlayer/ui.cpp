@@ -626,6 +626,7 @@ void UpdateLength(){
     InvalidateRect(hMainWnd,&rcInfoBox,TRUE);
 
     RunTimer();
+    Progress.SetTrackPosition(0);
 }
 
 void UpdatePosition(){
@@ -1611,17 +1612,11 @@ CheckMenuRadioItem(GetMenu(hMainWnd),ID_MODE_NORMAL,ID_MODE_RANDOM,ID_MODE_NORMA
 
 CountTracks=0;
 PlayerState=FILE_NOT_LOADED;
-Extensions[0]=TEXT("mp3");Extensions[1]=TEXT("mid");Extensions[2]=TEXT("wav");
-Extensions[3]=TEXT("midi");Extensions[4]=TEXT("avi");Extensions[5]=TEXT("mpeg");
-Extensions[6]=TEXT("wma");Extensions[7]=TEXT("wmv");Extensions[8]=TEXT("mpg");
-Extensions[9]=TEXT("ogg");Extensions[10]=TEXT("cda");Extensions[11]=TEXT("aac");
-Extensions[12]=TEXT("mkv");Extensions[13]=TEXT("flac");Extensions[14]=TEXT("mov");
-Extensions[15]=TEXT("wv");Extensions[16]=TEXT("ape");Extensions[17]=TEXT("m4a");
 
 Player_InitWindows(hVideoWindow,hMainWnd);
 Playlist_SetEventCallback(SMP_EVENT_MSGLOOP, ProcessMessages);
 Playlist_SetEventCallback(SMP_EVENT_NEWTRACK, UpdateLength);
-
+Playlist_SetEventCallback(SMP_EVENT_PLAYLIST_END, StopTimer);
 }
 
 //Initializes player state based on command line and settings

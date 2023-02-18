@@ -1,5 +1,5 @@
 ﻿/* Small Media Player 
- * Copyright (c) 2022,  MSDN.WhiteKnight (https://github.com/smallsoft-rus/media-player) 
+ * Copyright (c) 2023,  MSDN.WhiteKnight (https://github.com/smallsoft-rus/media-player) 
  * License: BSD 2.0 */
 #include "common.h"
 #include <stdint.h>
@@ -9,6 +9,24 @@ typedef struct LANGANDCODEPAGE {
       WORD wLanguage;
       WORD wCodePage;
 } STRUCT_LANGANDCODEPAGE;
+
+void GetFileDirectory(wchar_t* path,wchar_t* out){
+    int i=0;
+    int k=0;
+    int LastIndex=0;
+	TCHAR buf[MAX_PATH];
+	StringCchCopy(buf,MAX_PATH,path);
+
+    while(1){
+       if(buf[i]==L'\\') LastIndex=i;
+       if(buf[i]==0) break;
+       i++;
+   }
+
+   lstrcpy(out,L"");
+   buf[LastIndex+1]=0;
+   lstrcat(out,buf);
+}
 
 BOOL SMP_GetModuleFromObject(IUnknown* pObject, WCHAR* output, DWORD cchOutput){
     HMODULE hModule = NULL;

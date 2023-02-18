@@ -14,7 +14,6 @@ HWND hlstBuffer=NULL;
 UINT CountTracks=0;
 UINT CurrentTrack=0;
 bool fIncludeImages=false;
-TCHAR* Extensions[COUNT_EXTENSIONS];
 PLAYBACK_MODE CurrMode=NORMAL;
 TAGS_GENERIC CurrFileTags={0};
 bool fCurrFileTags=false;
@@ -28,9 +27,16 @@ HIMAGELIST ImageList=NULL;
 bool Playlist_SortReverse=false;
 SMP_ACTION Playlist_MsgLoopAction=NULL;
 SMP_ACTION Playlist_NewTrackAction=NULL;
+SMP_ACTION Playlist_EndAction=NULL;
 
-TCHAR* ImageExtensions[]={
-	L"jpg",	L"jpeg",L"bmp",L"png",L"gif"};
+WCHAR* Extensions[COUNT_EXTENSIONS]={
+    L"mp3", L"aac", L"m4a", L"ogg", L"wma", L"ape", L"flac", L"wav", L"wv", L"mid", L"midi", L"cda", 
+    L"avi", L"mpeg", L"mpg", L"mkv", L"mov", L"wmv"
+};
+
+WCHAR* ImageExtensions[]={
+    L"jpg", L"jpeg", L"bmp", L"png", L"gif"
+};
 
 	TYPE_ICON_INFO arrTypeIcons[COUNT_TYPE_ICONS]={
 		{L"mp3",0,0},{L"flac",0,0},{L"wv",0,0},{L"wma"},
@@ -51,6 +57,7 @@ TCHAR* ImageExtensions[]={
         switch(evt){
         case SMP_EVENT_MSGLOOP: Playlist_MsgLoopAction = callback; break;
         case SMP_EVENT_NEWTRACK: Playlist_NewTrackAction = callback; break;
+        case SMP_EVENT_PLAYLIST_END: Playlist_EndAction = callback; break;
         }
     }
 
@@ -61,6 +68,7 @@ TCHAR* ImageExtensions[]={
         switch(evt){
         case SMP_EVENT_MSGLOOP: callback = Playlist_MsgLoopAction; break;
         case SMP_EVENT_NEWTRACK: callback = Playlist_NewTrackAction; break;
+        case SMP_EVENT_PLAYLIST_END: callback = Playlist_EndAction; break;
         }
 
         if(callback!=NULL) callback();
@@ -360,8 +368,6 @@ if(((UINT)n)>=CountTracks)return;
         //***
         SetCurrentTrackIndicator(TRUE);
         //***
-
-        Progress.SetTrackPosition(0);
 }
 
 void PlayNextTrack(){
@@ -383,14 +389,19 @@ case RANDOM:CurrentTrack=rand()%CountTracks;break;
 	}
 
 
- if(CurrentTrack>=CountTracks){
-
+    if(CurrentTrack>=CountTracks){ //end of playlist
         CurrentTrack=0;
-		if(CurrMode==REPEAT_LIST){PlayTrackByNumber(CurrentTrack);}
-		else {StopTimer();
-		DisableFullScreen();
-		}
-        return;}
+
+        if(CurrMode==REPEAT_LIST){
+            PlayTrackByNumber(CurrentTrack);
+        }
+        else {
+            Playlist_OnEvent(SMP_EVENT_PLAYLIST_END);
+            DisableFullScreen();
+        }
+
+        return;
+    }
 
 	//scroll playlist
  ListView_GetItemRect(PlayList,0,&rc,LVIR_SELECTBOUNDS);
