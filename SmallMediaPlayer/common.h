@@ -19,7 +19,14 @@ typedef enum {
     EVT_UNKNOWN=0,EVT_USERABORT,EVT_FILE_CLOSED,EVT_ERRORABORT,EVT_COMPLETE
 } PLAYER_EVENT;
 
+typedef enum {
+    SMP_EVENT_UNKNOWN=0, SMP_EVENT_MSGLOOP, SMP_EVENT_NEWTRACK
+} SMP_EVENT;
+
 typedef void (*PLAYER_EVENT_CALLBACK)(PLAYER_EVENT evt);
+
+// Represents a callback without parameters
+typedef void (*SMP_ACTION)();
 
 typedef enum {
     TN_UNKNOWN=0,

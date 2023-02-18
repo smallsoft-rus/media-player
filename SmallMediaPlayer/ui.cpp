@@ -620,10 +620,12 @@ void UpdateLength(){
         LoadCover(cover);
     }
 
-	InvalidateRect(hCoverWnd,NULL,TRUE);
+    InvalidateRect(hCoverWnd,NULL,TRUE);
 
-	GetMultimediaInfo(txtMediaInfo,1000);
-	InvalidateRect(hMainWnd,&rcInfoBox,TRUE);
+    GetMultimediaInfo(txtMediaInfo,1000);
+    InvalidateRect(hMainWnd,&rcInfoBox,TRUE);
+
+    RunTimer();
 }
 
 void UpdatePosition(){
@@ -1617,6 +1619,8 @@ Extensions[12]=TEXT("mkv");Extensions[13]=TEXT("flac");Extensions[14]=TEXT("mov"
 Extensions[15]=TEXT("wv");Extensions[16]=TEXT("ape");Extensions[17]=TEXT("m4a");
 
 Player_InitWindows(hVideoWindow,hMainWnd);
+Playlist_SetEventCallback(SMP_EVENT_MSGLOOP, ProcessMessages);
+Playlist_SetEventCallback(SMP_EVENT_NEWTRACK, UpdateLength);
 
 }
 

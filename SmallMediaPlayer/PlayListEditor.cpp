@@ -1,5 +1,5 @@
 ﻿/* Small Media Player 
- * Copyright (c) 2021,  MSDN.WhiteKnight (https://github.com/smallsoft-rus/media-player) 
+ * Copyright (c) 2023,  MSDN.WhiteKnight (https://github.com/smallsoft-rus/media-player) 
  * License: BSD 2.0 */
 
 #include "PlayListEditor.h"
@@ -8,9 +8,6 @@
 /*
 10.09.2017 - Выделение текущего элемента в списке воспроизведения '>'
 */
-
-extern void ProcessMessages();
-extern void GetFileDirectoryA(char* path,char* out);
 
 HWND PlayList;
 HWND hlstBuffer=NULL;
@@ -29,6 +26,8 @@ int indexDirIcon=0;
 int indexMusicIcon=0;
 HIMAGELIST ImageList=NULL;
 bool Playlist_SortReverse=false;
+SMP_ACTION Playlist_MsgLoopAction=NULL;
+SMP_ACTION Playlist_NewTrackAction=NULL;
 
 TCHAR* ImageExtensions[]={
 	L"jpg",	L"jpeg",L"bmp",L"png",L"gif"};
@@ -46,6 +45,25 @@ TCHAR* ImageExtensions[]={
     
     void Playlist_SetSortReverseFlag(bool sortReverse){
         Playlist_SortReverse = sortReverse;
+    }
+
+    void Playlist_SetEventCallback(SMP_EVENT evt, SMP_ACTION callback){
+        switch(evt){
+        case SMP_EVENT_MSGLOOP: Playlist_MsgLoopAction = callback; break;
+        case SMP_EVENT_NEWTRACK: Playlist_NewTrackAction = callback; break;
+        }
+    }
+
+    void Playlist_OnEvent(SMP_EVENT evt){
+
+        SMP_ACTION callback = NULL;
+
+        switch(evt){
+        case SMP_EVENT_MSGLOOP: callback = Playlist_MsgLoopAction; break;
+        case SMP_EVENT_NEWTRACK: callback = Playlist_NewTrackAction; break;
+        }
+
+        if(callback!=NULL) callback();
     }
 
 BOOL GetPlaylistElement(int n,TCHAR* out){
@@ -335,19 +353,15 @@ if(((UINT)n)>=CountTracks)return;
 		if(res==FALSE)res=ReadApeTags(str,&OpenedFileTags);	
 		if(res==FALSE){ res=ReadTagsV1(str,&OpenedFileTags);}
 		if(res!=FALSE){fOpenedFileTags=true;} else {fOpenedFileTags=false;}
-		
-		
+
         PlayFile(str);
-		UpdateLength();
+        Playlist_OnEvent(SMP_EVENT_NEWTRACK);
 
-		//***
-		SetCurrentTrackIndicator(TRUE);
-		//***
+        //***
+        SetCurrentTrackIndicator(TRUE);
+        //***
 
-		RunTimer();
-		
-		Progress.SetTrackPosition(0);
-
+        Progress.SetTrackPosition(0);
 }
 
 void PlayNextTrack(){
@@ -358,7 +372,9 @@ void PlayNextTrack(){
 	//***
 	SetCurrentTrackIndicator(FALSE);
 	//***
-	ProcessMessages();
+	
+    //process pending messages in Windows message loop
+    Playlist_OnEvent(SMP_EVENT_MSGLOOP);
 	
 	switch(CurrMode){
 case NORMAL:case REPEAT_LIST:InterlockedIncrement((volatile LONG*)&CurrentTrack);break;

@@ -1,5 +1,5 @@
 /* Small Media Player 
- * Copyright (c) 2021,  MSDN.WhiteKnight (https://github.com/smallsoft-rus/media-player) 
+ * Copyright (c) 2023,  MSDN.WhiteKnight (https://github.com/smallsoft-rus/media-player) 
  * License: BSD 2.0 */
 #ifndef PLAYLISTEDITOR_H
 #define PLAYLISTEDITOR_H
@@ -41,8 +41,6 @@ typedef struct{
 #define COUNT_TYPE_ICONS 16
 
 //EXTERN FUNCTIONS
-extern void UpdateLength();
-extern void RunTimer();
 extern void StopTimer();
 extern void GetFileDirectory(wchar_t* path,wchar_t* out);
 
@@ -88,6 +86,7 @@ void InsertPlaylistElement(WCHAR* fname,UINT pos);
 void Playlist_Paste();void Playlist_Cut();void Playlist_Copy();
 void Playlist_SelectAll();
 void Playlist_SetSortReverseFlag(bool sortReverse);
+void Playlist_SetEventCallback(SMP_EVENT evt, SMP_ACTION callback);
 
 void InitImageList();
 int GetTypeIcon(TCHAR* ext);
