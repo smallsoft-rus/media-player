@@ -695,7 +695,7 @@ while(1){//read frames
             i++;
             StringCchCopyNA(buf,1024,&(pOutputTags[i]),packer.dword-1);
             out->length=0;
-            sscanf(buf,"%u",&(out->length));
+            sscanf_s(buf,"%u",&(out->length));
             i+=packer.dword-1;continue;
         }
 	    i+=packer.dword;continue;
