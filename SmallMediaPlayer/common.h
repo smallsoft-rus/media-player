@@ -161,6 +161,10 @@ typedef union{
 #define AUDIO_AMR_NB 0x7361 /* AMR Narrowband */
 #define AUDIO_AMR_WB 0x7362 /* AMR Wideband */
 
+// *** From ksuuids.h ***
+
+#define AUDIO_DOLBY_AC3 0x802c /* MEDIASUBTYPE_DOLBY_AC3: e06d802c-db46-11cf-b4d1-00805f6cbbea*/
+
 #define INFORES_NO 0
 #define INFORES_AUDIO 1
 #define INFORES_VIDEO 2

@@ -422,7 +422,7 @@ if(wRes==INFORES_AUDIO||wRes==INFORES_BOTH){
         case AUDIO_DVI_ADPCM: StringCchCat(text,len,L"DVI ADPCM");break; 
         case AUDIO_MPEG1: StringCchCat(text,len,L"MP1/2");break;
         case WAVE_FORMAT_MPEGLAYER3: StringCchCat(text,len,L"MP3");break;
-        case WAVE_FORMAT_DOLBY_AC3_SPDIF:
+        case WAVE_FORMAT_DOLBY_AC3_SPDIF: case AUDIO_DOLBY_AC3:
         case AUDIO_AC3: 
             StringCchCat(text,len,L"AC3");break;
         case WAVE_FORMAT_WMAVOICE9: case WAVE_FORMAT_WMAVOICE10: case WAVE_FORMAT_MSAUDIO1: 
