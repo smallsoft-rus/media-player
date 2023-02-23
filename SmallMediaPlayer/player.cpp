@@ -12,6 +12,12 @@ extern SMPSETTINGS Settings;
 extern TAGS_GENERIC OpenedFileTags;
 extern bool fOpenedFileTags;
 
+typedef struct tagAUDIO_FORMAT_ENTRY{
+    WORD wFormatTag;
+    const WCHAR* pShortName;
+    const WCHAR* pFullName;
+}AUDIO_FORMAT_ENTRY;
+
 PLAYER_IMPL CurrentImpl=IMPL_DSHOW;
 
 HWND hWnd;//for notify
@@ -27,6 +33,46 @@ bool FullScreen=false;
 // Pointer to function that receives playback event notifications.
 // Set by Player_SetEventCallback, invoked by OnPlayerEvent.
 PLAYER_EVENT_CALLBACK pfnEventCallback=NULL;
+
+#define AUDIO_FORMATS_TABLE_COUNT (sizeof(AudioFormatsTable)/sizeof(AudioFormatsTable[0]))
+
+AUDIO_FORMAT_ENTRY AudioFormatsTable[] = {
+    {WAVE_FORMAT_PCM,                    L"PCM",        L"PCM Waveform Audio"},
+    {WAVE_FORMAT_ADPCM,                  L"ADPCM",      L"Adaptive Differential PCM"},
+    {AUDIO_IMA4_ADPCM,                   L"IMA4 ADPCM", L"Apple IMA4 ADPCM"},
+    {AUDIO_DVI_ADPCM,                    L"DVI ADPCM",  L"DVI ADPCM"},
+    {AUDIO_MPEG1,                        L"MP1/2",      L"MPEG1 Layer 1/2"},
+    {WAVE_FORMAT_MPEGLAYER3,             L"MP3",        L"MPEG1 Layer 3"},
+    {WAVE_FORMAT_DOLBY_AC3_SPDIF,        L"AC3",        L"DOLBY AC3"},
+    {AUDIO_DOLBY_AC3,                    L"AC3",        L"DOLBY AC3"},
+    {AUDIO_AC3,                          L"AC3",        L"DOLBY AC3"},
+    {WAVE_FORMAT_WMAVOICE9,              L"WMA",        L"Windows Media Audio"},
+    {WAVE_FORMAT_WMAVOICE10,             L"WMA",        L"Windows Media Audio"},
+    {WAVE_FORMAT_MSAUDIO1,               L"WMA",        L"Windows Media Audio"},
+    {WAVE_FORMAT_WMAUDIO2,               L"WMA",        L"Windows Media Audio"},
+    {WAVE_FORMAT_WMAUDIO3,               L"WMA",        L"Windows Media Audio"},
+    {WAVE_FORMAT_WMAUDIO_LOSSLESS,       L"WMA",        L"Windows Media Audio"},
+    {WAVE_FORMAT_WMASPDIF,               L"WMA",        L"Windows Media Audio"},
+    {AUDIO_AAC,                          L"AAC",        L"Advanced Audio Coding (AAC)"},
+    {AUDIO_AAC2,                         L"AAC",        L"Advanced Audio Coding (AAC)"},
+    {AUDIO_AAC3,                         L"AAC",        L"Advanced Audio Coding (AAC)"},
+    {AUDIO_AAC4,                         L"AAC",        L"Advanced Audio Coding (AAC)"},
+    {AUDIO_MPEG4AAC,                     L"AAC",        L"Advanced Audio Coding (AAC)"},
+    {WAVE_FORMAT_MPEG_ADTS_AAC,          L"AAC",        L"Advanced Audio Coding (AAC)"},
+    {WAVE_FORMAT_MPEG_RAW_AAC,           L"AAC",        L"Advanced Audio Coding (AAC)"},
+    {WAVE_FORMAT_NOKIA_MPEG_ADTS_AAC,    L"AAC",        L"Advanced Audio Coding (AAC)"},
+    {WAVE_FORMAT_NOKIA_MPEG_RAW_AAC,     L"AAC",        L"Advanced Audio Coding (AAC)"},
+    {WAVE_FORMAT_VODAFONE_MPEG_ADTS_AAC, L"AAC",        L"Advanced Audio Coding (AAC)"},
+    {WAVE_FORMAT_VODAFONE_MPEG_RAW_AAC,  L"AAC",        L"Advanced Audio Coding (AAC)"},
+    {WAVE_FORMAT_MPEG_HEAAC,             L"AAC",        L"Advanced Audio Coding (AAC)"},
+    {AUDIO_FLAC,                         L"FLAC",       L"Free Lossless Audio Codec (FLAC)"},
+    {AUDIO_WAVEPACK,                     L"WavePack",   L"WavePack"},
+    {AUDIO_AMR,                          L"AMR",        L"VOICEAGE AMR"},
+    {AUDIO_AMR_NB,                       L"AMR NB",     L"AMR Narrowband"},
+    {AUDIO_AMR_WB,                       L"AMR WB",     L"AMR Wideband"},
+    {AUDIO_MPEG2AAC,                     L"MPEG2",      L"MPEG2"},
+    {AUDIO_APE,                          L"APE",        L"Monkey's Audio (APE)"}
+};
 
 void Player_SetEventCallback(PLAYER_EVENT_CALLBACK callback){
     pfnEventCallback=callback;
@@ -52,6 +98,17 @@ WORD GetMultimediaInfo(SMP_AUDIOINFO* pAudioInfo,SMP_VIDEOINFO* pVideoInfo,SMP_S
     }
 }
 
+const WCHAR* Player_GetAudioFormatString(WORD wFormatTag, BOOL full){
+    for(int i=0;i<AUDIO_FORMATS_TABLE_COUNT;i++){
+        if(AudioFormatsTable[i].wFormatTag != wFormatTag) continue;
+
+        if(full) return AudioFormatsTable[i].pFullName;
+        else return AudioFormatsTable[i].pShortName;
+    }
+
+    return L"неизвестно";
+}
+
 void GetMultimediaInfoString(WCHAR* text,size_t size){
 WORD wRes=0;
 SMP_AUDIOINFO ai={0};
@@ -74,41 +131,18 @@ case STREAM_QUICKTIME:StringCchCat(text,size,L"Apple(tm) Quick Time Movie\n");br
 case STREAM_UNKNOWN:default:StringCchCat(text,size,L"[нет данных]\n");break;
 }
 StringCchCat(text,5000,L"==АУДИО:==\n");
+
 if(wRes==INFORES_AUDIO||wRes==INFORES_BOTH){
-    StringCchCat(text,5000,L"Формат: ");
-    switch(ai.wFormatTag){
-        case WAVE_FORMAT_PCM: StringCchCat(text,size,L"PCM Waveform Audio");break;
-        case WAVE_FORMAT_ADPCM: StringCchCat(text,size,L"Adaptive Differential PCM");break;
-        case AUDIO_IMA4_ADPCM: StringCchCat(text,size,L"Apple IMA4 ADPCM");break;
-        case AUDIO_DVI_ADPCM: StringCchCat(text,size,L"DVI ADPCM");break; 
-        case AUDIO_MPEG1: StringCchCat(text,size,L"MPEG1 Layer 1/2");break;
-        case WAVE_FORMAT_MPEGLAYER3: StringCchCat(text,size,L"MPEG1 Layer3");break;
-        case WAVE_FORMAT_DOLBY_AC3_SPDIF: case AUDIO_DOLBY_AC3:
-        case AUDIO_AC3: StringCchCat(text,size,L"DOLBY AC3");break;
-        case WAVE_FORMAT_WMAVOICE9: case WAVE_FORMAT_WMAVOICE10: case WAVE_FORMAT_MSAUDIO1:         
-        case WAVE_FORMAT_WMAUDIO2: case WAVE_FORMAT_WMAUDIO3: case WAVE_FORMAT_WMAUDIO_LOSSLESS:   
-        case WAVE_FORMAT_WMASPDIF: StringCchCat(text,size,L"Windows Media Audio");break; 
-        case AUDIO_AAC4: case AUDIO_AAC3: case AUDIO_AAC2: case AUDIO_AAC:
-        case AUDIO_MPEG4AAC:
-        case WAVE_FORMAT_MPEG_ADTS_AAC: case WAVE_FORMAT_MPEG_RAW_AAC: case WAVE_FORMAT_NOKIA_MPEG_ADTS_AAC:        
-        case WAVE_FORMAT_NOKIA_MPEG_RAW_AAC: case WAVE_FORMAT_VODAFONE_MPEG_ADTS_AAC: 
-        case WAVE_FORMAT_VODAFONE_MPEG_RAW_AAC:
-        case WAVE_FORMAT_MPEG_HEAAC:
-            StringCchCat(text,size,L"Advanced Audio Coding (AAC)");break;
-        case AUDIO_FLAC: StringCchCat(text,size,L"Free Lossless Audio Codec (FLAC)");break; 
-        case AUDIO_WAVEPACK: StringCchCat(text,size,L"WavePack");break; 
-        case AUDIO_AMR: StringCchCat(text,size,L"VOICEAGE AMR");break;
-        case AUDIO_AMR_NB: StringCchCat(text,size,L"AMR Narrowband");break;
-        case AUDIO_AMR_WB: StringCchCat(text,size,L"AMR Wideband");break;
-        case AUDIO_MPEG2AAC: StringCchCat(text,size,L"MPEG2");break;
-        case AUDIO_APE: StringCchCat(text,size,L"Monkey's Audio (APE)");break;
-        default: StringCchCat(text,size,L"неизвестен");break;
-	}
+    StringCchCat(text,size,L"Формат: ");
+    const WCHAR* pFormatName = Player_GetAudioFormatString(ai.wFormatTag, TRUE);
+    StringCchCat(text, size, pFormatName);
+
     StringCchPrintf(buf,256,L"\nКаналов: %d\nРазрешение: %d бит\nЧастота: %d Гц\n",(int)ai.chans,(int)ai.BitsPerSample,(int)ai.nFreq);
     StringCchCat(text,size,buf);
     StringCchPrintf(buf,256,L"Скорость: %d кбит/с\n",(int)(ai.BitsPerSecond/1000.0));StringCchCat(text,size,buf);
 }
 else{StringCchCat(text,size,L"[Нет данных]\n");}
+
 StringCchCat(text,size,L"==ВИДЕО:==\n");
 if(wRes==INFORES_VIDEO||wRes==INFORES_BOTH){
 fcc=(FOURCC_EXTRACTOR*)&vi.dwVideoCodec;

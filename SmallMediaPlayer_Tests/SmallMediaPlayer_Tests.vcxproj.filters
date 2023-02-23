@@ -21,5 +21,8 @@
     <ClCompile Include="playlist_tests.cpp">
       <Filter>Файлы исходного кода</Filter>
     </ClCompile>
+    <ClCompile Include="player_tests.cpp">
+      <Filter>Файлы исходного кода</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

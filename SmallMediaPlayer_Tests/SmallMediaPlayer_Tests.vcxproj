@@ -86,6 +86,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="player_tests.cpp" />
     <ClCompile Include="playlist_tests.cpp" />
     <ClCompile Include="tags_tests.cpp" />
   </ItemGroup>

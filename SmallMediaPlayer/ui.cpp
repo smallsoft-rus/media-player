@@ -414,35 +414,8 @@ if(stream != STREAM_UNKNOWN){
 
 StringCchCat(text,len,L"Аудио: ");
 if(wRes==INFORES_AUDIO||wRes==INFORES_BOTH){
-	
-    switch(ai.wFormatTag){
-        case WAVE_FORMAT_PCM: StringCchCat(text,len,L"PCM");break;
-        case WAVE_FORMAT_ADPCM: StringCchCat(text,len,L"ADPCM");break;
-        case AUDIO_IMA4_ADPCM: StringCchCat(text,len,L"IMA4 ADPCM");break;
-        case AUDIO_DVI_ADPCM: StringCchCat(text,len,L"DVI ADPCM");break; 
-        case AUDIO_MPEG1: StringCchCat(text,len,L"MP1/2");break;
-        case WAVE_FORMAT_MPEGLAYER3: StringCchCat(text,len,L"MP3");break;
-        case WAVE_FORMAT_DOLBY_AC3_SPDIF: case AUDIO_DOLBY_AC3:
-        case AUDIO_AC3: 
-            StringCchCat(text,len,L"AC3");break;
-        case WAVE_FORMAT_WMAVOICE9: case WAVE_FORMAT_WMAVOICE10: case WAVE_FORMAT_MSAUDIO1: 
-        case WAVE_FORMAT_WMAUDIO2: case WAVE_FORMAT_WMAUDIO3: case WAVE_FORMAT_WMAUDIO_LOSSLESS: 
-        case WAVE_FORMAT_WMASPDIF: 
-            StringCchCat(text,len,L"WMA");break; 
-        case AUDIO_AAC: case AUDIO_AAC2: case AUDIO_AAC3: case AUDIO_AAC4: case AUDIO_MPEG4AAC: 
-        case WAVE_FORMAT_MPEG_ADTS_AAC: case WAVE_FORMAT_MPEG_RAW_AAC: case WAVE_FORMAT_NOKIA_MPEG_ADTS_AAC: 
-        case WAVE_FORMAT_NOKIA_MPEG_RAW_AAC: case WAVE_FORMAT_VODAFONE_MPEG_ADTS_AAC: 
-        case WAVE_FORMAT_VODAFONE_MPEG_RAW_AAC: case WAVE_FORMAT_MPEG_HEAAC:
-            StringCchCat(text,len,L"AAC");break; 
-        case AUDIO_FLAC: StringCchCat(text,len,L"FLAC");break; 
-        case AUDIO_WAVEPACK: StringCchCat(text,len,L"WavePack");break; 
-        case AUDIO_AMR: StringCchCat(text,len,L"AMR");break;
-        case AUDIO_AMR_NB: StringCchCat(text,len,L"AMR NB");break;
-        case AUDIO_AMR_WB: StringCchCat(text,len,L"AMR WB");break;
-        case AUDIO_MPEG2AAC: StringCchCat(text,len,L"MPEG2");break;
-        case AUDIO_APE: StringCchCat(text,len,L"APE");break;
-        default: StringCchCat(text,len,L"неизвестно");break;
-    }
+    const WCHAR* pFormatName = Player_GetAudioFormatString(ai.wFormatTag, FALSE);
+    StringCchCat(text, len, pFormatName);
 
 	StringCchPrintf(buf,256,L" | %d кан. | %d Гц |",(int)ai.chans,(int)ai.nFreq);
 	StringCchCat(text,len,buf);

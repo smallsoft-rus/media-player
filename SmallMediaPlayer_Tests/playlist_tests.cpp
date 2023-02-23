@@ -1,4 +1,4 @@
-/* Small Media Player tests 
+﻿/* Small Media Player tests 
  * Copyright (c) 2022,  MSDN.WhiteKnight (https://github.com/smallsoft-rus/media-player) 
  * License: BSD 2.0 */
 #define _CRT_SECURE_NO_WARNINGS
@@ -31,6 +31,11 @@ void TestsMain(){
     InitApplication(FALSE);
     
     TestsMain_Initialized=true;
+}
+
+void Assert_Contains(const WCHAR* str, const WCHAR* substr){
+    const WCHAR* match = wcsstr(str, substr);
+    Assert::IsTrue(match != NULL);
 }
 
 namespace SmallMediaPlayer_Tests
@@ -212,6 +217,7 @@ namespace SmallMediaPlayer_Tests
 	    
         TEST_METHOD(Test_PlayTrackByNumber)
         {
+            WCHAR buf[5000]=L"";
             ClearPlaylist();
             AddPlaylistElement(L"..\\SmallMediaPlayer_Tests\\data\\robin.mp3");
             PlayTrackByNumber(0);
@@ -222,8 +228,11 @@ namespace SmallMediaPlayer_Tests
             DWORD len = GetLength();
             Assert::AreEqual(2.6f,len/1000.0f,0.25f); //seconds
 
+            GetMultimediaInfoString(buf, 5000);
             Stop();
             ClearPlaylist();
+
+            Assert_Contains(buf, L"Формат: MPEG1 Layer 3");
         }
         
         TEST_METHOD(Test_PlayTrackByNumber_Error)
@@ -243,12 +252,16 @@ namespace SmallMediaPlayer_Tests
 	    
         TEST_METHOD(Test_OpenFile_DirectShow)
         {
+            WCHAR buf[5000]=L"";
             BOOL res = Player_OpenFileCore(L"..\\SmallMediaPlayer_Tests\\data\\robin.mp3", TRUE, FALSE);
             Assert::IsTrue(res!=FALSE);
             Assert::AreEqual((int)STOPPED,(int)PlayerState);
             
             DWORD len = GetLength();
             Assert::AreEqual(2.6f,len/1000.0f,0.25f); //seconds
+
+            GetMultimediaInfoString(buf, 5000);
+            Assert_Contains(buf, L"Формат: MPEG1 Layer 3");
         }
     };
 }
