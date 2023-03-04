@@ -203,6 +203,12 @@ bool pin_GetAudioInfo(IPin* pin,SMP_AUDIOINFO* pAudioInfo){
     if(amt->subtype==MEDIASUBTYPE_MPEG2_AUDIO){
         pAudioInfo->wFormatTag=AUDIO_MPEG2AAC;
     }
+
+    if(pAudioInfo->wFormatTag == 0){
+        //extract wFormatTag from audio subtype GUID
+        pAudioInfo->wFormatTag = (WORD)(amt->subtype.Data1 & 0x0000FFFF);
+    }
+
     pEnum->Release();
     MyDeleteMediaType(amt);
     return true;

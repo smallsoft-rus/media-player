@@ -80,7 +80,9 @@ MEDIA_FORMAT_ENTRY AudioFormatsTable[] = {
     {AUDIO_AMR_NB,                       L"AMR NB",     L"AMR Narrowband"},
     {AUDIO_AMR_WB,                       L"AMR WB",     L"AMR Wideband"},
     {AUDIO_MPEG2AAC,                     L"MPEG2",      L"MPEG2"},
-    {AUDIO_APE,                          L"APE",        L"Monkey's Audio (APE)"}
+    {AUDIO_APE,                          L"APE",        L"Monkey's Audio (APE)"},
+    {WAVE_FORMAT_DTS2,                   L"DTS",        L"Digital Theater Systems (DTS)"},
+    {AUDIO_DVD_LPCM,                     L"DVD",        L"DVD LPCM Audio"}
 };
 
 // File stream (container) formats table

@@ -172,6 +172,7 @@ typedef union{
 // *** From ksuuids.h ***
 
 #define AUDIO_DOLBY_AC3 0x802c /* MEDIASUBTYPE_DOLBY_AC3: e06d802c-db46-11cf-b4d1-00805f6cbbea*/
+#define AUDIO_DVD_LPCM  0x8032 /* MEDIASUBTYPE_DVD_LPCM_AUDIO: e06d8032-db46-11cf-b4d1-00805f6cbbea*/
 
 #define INFORES_NO 0
 #define INFORES_AUDIO 1
