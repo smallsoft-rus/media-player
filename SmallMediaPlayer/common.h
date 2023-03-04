@@ -149,10 +149,15 @@ typedef union{
 #define AUDIO_AC3 (0x2000)
 #define AUDIO_DVI_ADPCM (0x0011)
 
+// *** From https://github.com/jeeb/mpc-be/blob/master/include/moreuuids.h
+
 // Monkey's Audio / APE
 #define AUDIO_APE (0x5041)
-// https://github.com/jeeb/mpc-be/blob/master/include/moreuuids.h
 // MPC_GUID_ENTRY(MEDIASUBTYPE_APE, 0x20455041, 0x0000, 0x0010, 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71)
+
+// AAC-ADTS LAVF/LAVC specific
+#define AUDIO_LAV_AAC_ADTS (0x4441)
+// MEDIASUBTYPE_AAC_ADTS {53544441-0000-0010-8000-00AA00389B71} 
 
 // Apple IMA4 ADPCM
 #define AUDIO_IMA4_ADPCM 0x6D69
