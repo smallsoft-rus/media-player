@@ -27,5 +27,21 @@ namespace SmallMediaPlayer_Tests
             str = Player_GetAudioFormatString(0xA200, FALSE);
             Assert::AreEqual(L"неизвестно", str);
         }
+
+        TEST_METHOD(Test_GetFileFormatString)
+        {
+            const WCHAR* str = Player_GetFileFormatString(STREAM_AVI, FALSE);
+            Assert::AreEqual(L"AVI", str);
+            str = Player_GetFileFormatString(STREAM_AVI, TRUE);
+            Assert::AreEqual(L"Audio-Video Interleaved", str);
+
+            str = Player_GetFileFormatString(STREAM_MPEG2, FALSE);
+            Assert::AreEqual(L"MPEG2", str);
+            str = Player_GetFileFormatString(STREAM_MPEG2, TRUE);
+            Assert::AreEqual(L"MPEG2", str);
+
+            str = Player_GetFileFormatString((SMP_STREAM)0xFFFF, FALSE);
+            Assert::AreEqual(L"неизвестно", str);
+        }
     };
 }

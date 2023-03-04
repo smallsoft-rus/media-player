@@ -391,6 +391,7 @@ SMP_VIDEOINFO vi={0};
 FOURCC_EXTRACTOR* fcc=NULL;
 TCHAR buf[MAX_PATH];
 SMP_STREAM stream=STREAM_UNKNOWN;
+const WCHAR* pFormatName = L"";
 
 GetPlaylistElement(CurrentTrack,buf);
 StringCchCopy(text,len,buf);
@@ -398,24 +399,16 @@ StringCchCat(text,len,L"\n\n");
 
 wRes=GetMultimediaInfo(&ai,&vi,&stream);
 
-if(stream != STREAM_UNKNOWN){
-    StringCchCat(text,len,L"Формат: ");
-
-    switch(stream){
-        case STREAM_AVI:StringCchCat(text,len,L"AVI\n");break;
-        case STREAM_ASF:StringCchCat(text,len,L"ASF\n");break;
-        case STREAM_MPEG1:StringCchCat(text,len,L"MPEG1\n");break;
-        case STREAM_MPEG1VCD:StringCchCat(text,len,L"MPEG1 VideoCD\n");break;
-        case STREAM_MPEG2:StringCchCat(text,len,L"MPEG2\n");break;
-        case STREAM_WAVE:StringCchCat(text,len,L"WAV\n");break;
-        case STREAM_QUICKTIME:StringCchCat(text,len,L"Quick Time\n");break;
-        case STREAM_AIFF:StringCchCat(text,len,L"AIFF\n");break;
+    if(stream != STREAM_UNKNOWN){
+        StringCchCat(text,len,L"Формат: ");
+        pFormatName = Player_GetFileFormatString(stream, FALSE);
+        StringCchCat(text, len, pFormatName);
+        StringCchCat(text, len,L"\n");
     }
-}
 
 StringCchCat(text,len,L"Аудио: ");
 if(wRes==INFORES_AUDIO||wRes==INFORES_BOTH){
-    const WCHAR* pFormatName = Player_GetAudioFormatString(ai.wFormatTag, FALSE);
+    pFormatName = Player_GetAudioFormatString(ai.wFormatTag, FALSE);
     StringCchCat(text, len, pFormatName);
 
 	StringCchPrintf(buf,256,L" | %d кан. | %d Гц |",(int)ai.chans,(int)ai.nFreq);

@@ -12,11 +12,18 @@ extern SMPSETTINGS Settings;
 extern TAGS_GENERIC OpenedFileTags;
 extern bool fOpenedFileTags;
 
-typedef struct tagAUDIO_FORMAT_ENTRY{
-    WORD wFormatTag;
+// Represents entry in media formats table (used to lookup human-readable format names)
+typedef struct tagMEDIA_FORMAT_ENTRY{
+
+    // Format tag or other identifier
+    int code;
+
+    // Format short name (displayed in main window)
     const WCHAR* pShortName;
+
+    // Format full name (displayed in media info)
     const WCHAR* pFullName;
-}AUDIO_FORMAT_ENTRY;
+}MEDIA_FORMAT_ENTRY;
 
 PLAYER_IMPL CurrentImpl=IMPL_DSHOW;
 
@@ -35,8 +42,9 @@ bool FullScreen=false;
 PLAYER_EVENT_CALLBACK pfnEventCallback=NULL;
 
 #define AUDIO_FORMATS_TABLE_COUNT (sizeof(AudioFormatsTable)/sizeof(AudioFormatsTable[0]))
+#define FILE_FORMATS_TABLE_COUNT (sizeof(FileFormatsTable)/sizeof(FileFormatsTable[0]))
 
-AUDIO_FORMAT_ENTRY AudioFormatsTable[] = {
+MEDIA_FORMAT_ENTRY AudioFormatsTable[] = {
     {WAVE_FORMAT_PCM,                    L"PCM",        L"PCM Waveform Audio"},
     {WAVE_FORMAT_ADPCM,                  L"ADPCM",      L"Adaptive Differential PCM"},
     {AUDIO_IMA4_ADPCM,                   L"IMA4 ADPCM", L"Apple IMA4 ADPCM"},
@@ -74,6 +82,18 @@ AUDIO_FORMAT_ENTRY AudioFormatsTable[] = {
     {AUDIO_APE,                          L"APE",        L"Monkey's Audio (APE)"}
 };
 
+// File stream (container) formats table
+MEDIA_FORMAT_ENTRY FileFormatsTable[] = {
+    {STREAM_AVI,           L"AVI",           L"Audio-Video Interleaved"},
+    {STREAM_ASF,           L"ASF",           L"Advanced Systems Format"},
+    {STREAM_MPEG1,         L"MPEG1",         L"MPEG1"},
+    {STREAM_MPEG1VCD,      L"MPEG1 VideoCD", L"MPEG1 VideoCD"},
+    {STREAM_MPEG2,         L"MPEG2",         L"MPEG2"},
+    {STREAM_WAVE,          L"WAV",           L"Waveform Audio"},
+    {STREAM_QUICKTIME,     L"Quick Time",    L"Apple(tm) Quick Time Movie"},
+    {STREAM_AIFF,          L"AIFF",          L"Audio Interchange File Format"}    
+};
+
 void Player_SetEventCallback(PLAYER_EVENT_CALLBACK callback){
     pfnEventCallback=callback;
 }
@@ -100,7 +120,7 @@ WORD GetMultimediaInfo(SMP_AUDIOINFO* pAudioInfo,SMP_VIDEOINFO* pVideoInfo,SMP_S
 
 const WCHAR* Player_GetAudioFormatString(WORD wFormatTag, BOOL full){
     for(int i=0;i<AUDIO_FORMATS_TABLE_COUNT;i++){
-        if(AudioFormatsTable[i].wFormatTag != wFormatTag) continue;
+        if(AudioFormatsTable[i].code != (int)wFormatTag) continue;
 
         if(full) return AudioFormatsTable[i].pFullName;
         else return AudioFormatsTable[i].pShortName;
@@ -109,42 +129,45 @@ const WCHAR* Player_GetAudioFormatString(WORD wFormatTag, BOOL full){
     return L"неизвестно";
 }
 
-void GetMultimediaInfoString(WCHAR* text,size_t size){
-WORD wRes=0;
-SMP_AUDIOINFO ai={0};
-SMP_VIDEOINFO vi={0};
-FOURCC_EXTRACTOR* fcc=NULL;
-TCHAR buf[MAX_PATH];
-SMP_STREAM stream=STREAM_UNKNOWN;
+const WCHAR* Player_GetFileFormatString(SMP_STREAM code, BOOL full){
+    for(int i=0;i<FILE_FORMATS_TABLE_COUNT;i++){
+        if(FileFormatsTable[i].code != (int)code) continue;
 
-wRes=GetMultimediaInfo(&ai,&vi,&stream);
-StringCchCopy(text,size,L"\n==ВХОДНОЙ ПОТОК:==\n");
-StringCchCat(text,size,L"Формат: ");
+        if(full) return FileFormatsTable[i].pFullName;
+        else return FileFormatsTable[i].pShortName;
+    }
 
-switch(stream){
-    case STREAM_AVI:StringCchCat(text,size,L"Audio-Video Interleaved\n");break;
-    case STREAM_ASF:StringCchCat(text,size,L"Advanced Systems Format\n");break;
-    case STREAM_MPEG1:StringCchCat(text,size,L"MPEG1\n");break;
-    case STREAM_MPEG1VCD:StringCchCat(text,size,L"MPEG1 VideoCD\n");break;
-    case STREAM_MPEG2:StringCchCat(text,size,L"MPEG2\n");break;
-    case STREAM_WAVE:StringCchCat(text,size,L"Waveform Audio\n");break;
-    case STREAM_QUICKTIME:StringCchCat(text,size,L"Apple(tm) Quick Time Movie\n");break;
-    case STREAM_AIFF:StringCchCat(text,size,L"Audio Interchange File Format\n");break;
-    case STREAM_UNKNOWN:default:StringCchCat(text,size,L"[нет данных]\n");break;
+    return L"неизвестно";
 }
 
-StringCchCat(text,5000,L"==АУДИО:==\n");
+void GetMultimediaInfoString(WCHAR* text,size_t size){
+    WORD wRes=0;
+    SMP_AUDIOINFO ai={0};
+    SMP_VIDEOINFO vi={0};
+    FOURCC_EXTRACTOR* fcc=NULL;
+    TCHAR buf[MAX_PATH];
+    SMP_STREAM stream=STREAM_UNKNOWN;
+    const WCHAR* pFormatName = L"";
 
-if(wRes==INFORES_AUDIO||wRes==INFORES_BOTH){
+    wRes=GetMultimediaInfo(&ai,&vi,&stream);
+
+    StringCchCopy(text,size,L"\n==ВХОДНОЙ ПОТОК:==\n");
     StringCchCat(text,size,L"Формат: ");
-    const WCHAR* pFormatName = Player_GetAudioFormatString(ai.wFormatTag, TRUE);
+    pFormatName = Player_GetFileFormatString(stream, TRUE);
     StringCchCat(text, size, pFormatName);
 
-    StringCchPrintf(buf,256,L"\nКаналов: %d\nРазрешение: %d бит\nЧастота: %d Гц\n",(int)ai.chans,(int)ai.BitsPerSample,(int)ai.nFreq);
-    StringCchCat(text,size,buf);
-    StringCchPrintf(buf,256,L"Скорость: %d кбит/с\n",(int)(ai.BitsPerSecond/1000.0));StringCchCat(text,size,buf);
-}
-else{StringCchCat(text,size,L"[Нет данных]\n");}
+    StringCchCat(text,5000,L"\n==АУДИО:==\n");
+
+    if(wRes==INFORES_AUDIO||wRes==INFORES_BOTH){
+        StringCchCat(text,size,L"Формат: ");
+        pFormatName = Player_GetAudioFormatString(ai.wFormatTag, TRUE);
+        StringCchCat(text, size, pFormatName);
+
+        StringCchPrintf(buf,256,L"\nКаналов: %d\nРазрешение: %d бит\nЧастота: %d Гц\n",(int)ai.chans,(int)ai.BitsPerSample,(int)ai.nFreq);
+        StringCchCat(text,size,buf);
+        StringCchPrintf(buf,256,L"Скорость: %d кбит/с\n",(int)(ai.BitsPerSecond/1000.0));StringCchCat(text,size,buf);
+    }
+    else{StringCchCat(text,size,L"[Нет данных]\n");}
 
 StringCchCat(text,size,L"==ВИДЕО:==\n");
 if(wRes==INFORES_VIDEO||wRes==INFORES_BOTH){

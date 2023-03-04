@@ -17,15 +17,11 @@
 
 #include "common.h"
 
-#define MY_DEFINE_GUID(name, l, w1, w2, b1, b2, b3, b4, b5, b6, b7, b8) \
-        EXTERN_C const GUID DECLSPEC_SELECTANY name \
-                = { l, w1, w2, { b1, b2,  b3,  b4,  b5,  b6,  b7,  b8 } }
-
-MY_DEFINE_GUID(MFMediaType_Audio,
+SMP_DEFINE_GUID(MFMediaType_Audio,
 0x73647561, 0x0000, 0x0010, 0x80, 0x00, 0x00, 0xAA, 0x00, 0x38, 0x9B, 0x71);
-MY_DEFINE_GUID(MFMediaType_Video,
+SMP_DEFINE_GUID(MFMediaType_Video,
 0x73646976, 0x0000, 0x0010, 0x80, 0x00, 0x00, 0xAA, 0x00, 0x38, 0x9B, 0x71);
-MY_DEFINE_GUID(MF_EVENT_TOPOLOGY_STATUS,
+SMP_DEFINE_GUID(MF_EVENT_TOPOLOGY_STATUS,
 0x30c5018d, 0x9a53, 0x454b, 0xad, 0x9e, 0x6d, 0x5f, 0x8f, 0xa7, 0xc4, 0x3b);
 
 

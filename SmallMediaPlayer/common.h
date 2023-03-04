@@ -186,6 +186,10 @@ typedef union{
 //DirectShow time unit
 #define TIME_KOEFF 10000
 
+#define SMP_DEFINE_GUID(name, l, w1, w2, b1, b2, b3, b4, b5, b6, b7, b8) \
+        EXTERN_C const GUID DECLSPEC_SELECTANY name \
+                = { l, w1, w2, { b1, b2,  b3,  b4,  b5,  b6,  b7,  b8 } }
+
 //Gets the path to the module where the implementation of the specified COM object is located
 BOOL SMP_GetModuleFromObject(IUnknown* pObject, WCHAR* output, DWORD cchOutput);
 

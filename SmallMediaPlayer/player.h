@@ -58,5 +58,6 @@ void ShowPropertyPage(TOPOLOGY_NODE node);
 LRESULT Player_InitWindows(HWND hVideo,HWND hEvent);
 void Player_OnMfEvent(HWND hwnd, WPARAM pUnkPtr);
 const WCHAR* Player_GetAudioFormatString(WORD wFormatTag, BOOL full);
+const WCHAR* Player_GetFileFormatString(SMP_STREAM code, BOOL full);
 
 #endif
