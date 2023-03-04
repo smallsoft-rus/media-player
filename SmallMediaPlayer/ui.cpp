@@ -409,6 +409,7 @@ if(stream != STREAM_UNKNOWN){
         case STREAM_MPEG2:StringCchCat(text,len,L"MPEG2\n");break;
         case STREAM_WAVE:StringCchCat(text,len,L"WAV\n");break;
         case STREAM_QUICKTIME:StringCchCat(text,len,L"Quick Time\n");break;
+        case STREAM_AIFF:StringCchCat(text,len,L"AIFF\n");break;
     }
 }
 

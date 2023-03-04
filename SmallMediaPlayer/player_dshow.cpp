@@ -318,6 +318,8 @@ if(guidStreamSubType==MEDIASUBTYPE_MPEG2_PROGRAM||
 if(guidStreamSubType==MEDIASUBTYPE_QTMovie)*pStreamType=STREAM_QUICKTIME;
 if(guidStreamSubType==GUID_NULL)*pStreamType=STREAM_UNKNOWN;
 
+    if(guidStreamSubType == MEDIASUBTYPE_AIFF) *pStreamType=STREAM_AIFF;
+
 if(fAudio==false){
 	if(fVideo==false)return INFORES_NO;
 	else return INFORES_VIDEO;

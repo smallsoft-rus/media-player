@@ -120,16 +120,19 @@ SMP_STREAM stream=STREAM_UNKNOWN;
 wRes=GetMultimediaInfo(&ai,&vi,&stream);
 StringCchCopy(text,size,L"\n==ВХОДНОЙ ПОТОК:==\n");
 StringCchCat(text,size,L"Формат: ");
+
 switch(stream){
-case STREAM_AVI:StringCchCat(text,size,L"Audio-Video Interleaved\n");break;
-case STREAM_ASF:StringCchCat(text,size,L"Advanced Systems Format\n");break;
-case STREAM_MPEG1:StringCchCat(text,size,L"MPEG1\n");break;
-case STREAM_MPEG1VCD:StringCchCat(text,size,L"MPEG1 VideoCD\n");break;
-case STREAM_MPEG2:StringCchCat(text,size,L"MPEG2\n");break;
-case STREAM_WAVE:StringCchCat(text,size,L"Waveform Audio\n");break;
-case STREAM_QUICKTIME:StringCchCat(text,size,L"Apple(tm) Quick Time Movie\n");break;
-case STREAM_UNKNOWN:default:StringCchCat(text,size,L"[нет данных]\n");break;
+    case STREAM_AVI:StringCchCat(text,size,L"Audio-Video Interleaved\n");break;
+    case STREAM_ASF:StringCchCat(text,size,L"Advanced Systems Format\n");break;
+    case STREAM_MPEG1:StringCchCat(text,size,L"MPEG1\n");break;
+    case STREAM_MPEG1VCD:StringCchCat(text,size,L"MPEG1 VideoCD\n");break;
+    case STREAM_MPEG2:StringCchCat(text,size,L"MPEG2\n");break;
+    case STREAM_WAVE:StringCchCat(text,size,L"Waveform Audio\n");break;
+    case STREAM_QUICKTIME:StringCchCat(text,size,L"Apple(tm) Quick Time Movie\n");break;
+    case STREAM_AIFF:StringCchCat(text,size,L"Audio Interchange File Format\n");break;
+    case STREAM_UNKNOWN:default:StringCchCat(text,size,L"[нет данных]\n");break;
 }
+
 StringCchCat(text,5000,L"==АУДИО:==\n");
 
 if(wRes==INFORES_AUDIO||wRes==INFORES_BOTH){
