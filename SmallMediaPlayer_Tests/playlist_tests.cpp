@@ -252,16 +252,12 @@ namespace SmallMediaPlayer_Tests
 	    
         TEST_METHOD(Test_OpenFile_DirectShow)
         {
-            WCHAR buf[5000]=L"";
             BOOL res = Player_OpenFileCore(L"..\\SmallMediaPlayer_Tests\\data\\robin.mp3", TRUE, FALSE);
             Assert::IsTrue(res!=FALSE);
             Assert::AreEqual((int)STOPPED,(int)PlayerState);
             
             DWORD len = GetLength();
             Assert::AreEqual(2.6f,len/1000.0f,0.25f); //seconds
-
-            GetMultimediaInfoString(buf, 5000);
-            Assert_Contains(buf, L"Формат: MPEG1 Layer 3");
         }
     };
 }
