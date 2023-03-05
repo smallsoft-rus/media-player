@@ -473,7 +473,6 @@ if(res==FALSE)goto end_fail;
 break;
 	case MT_MPEG:
 res=InsertSplitter(file,&sdMpegSource);
-if(res==FALSE)res=InsertSplitter(file,&sdMpeg1Splitter);
 if(res==FALSE)res=InsertSplitter(file,&sdMpeg2Splitter);
 if(res==FALSE)res=InsertSplitter(file,&sdMpegSrcGabest);
 if(res==FALSE)res=InsertSplitter(file,&sdNeroSplitter);
@@ -853,6 +852,7 @@ void DS_ProcessNotify(WPARAM NotifyValue){
     LONG_PTR param1;
     LONG_PTR param2;
     HRESULT hr;
+    int c_errors = 0;
 
     while(1){
         if(pEvent==NULL)break;
@@ -864,6 +864,18 @@ void DS_ProcessNotify(WPARAM NotifyValue){
             //errors
             case EC_FILE_CLOSED:OnPlayerEvent(EVT_FILE_CLOSED);break;
             case EC_ERRORABORT:OnPlayerEvent(EVT_ERRORABORT);break;
+            case EC_STREAM_ERROR_STILLPLAYING:
+                c_errors++;
+
+                if(c_errors>2000) {
+                    //Prevent freezes when filter graph produces tons of error events. This could happen with MPEG-I Stream Splitter
+                    //on certain .mpeg files (https://github.com/smallsoft-rus/media-player/issues/36)
+                    HandleDirectShowError(L"Слишком много ошибок при воспроизведении файла. Последняя ошибка -", (int)param1, L"");
+                    OnPlayerEvent(EVT_ERRORABORT);
+                    return;
+                }
+
+                break;
             //complete
             case EC_COMPLETE:OnPlayerEvent(EVT_COMPLETE);break;
         }

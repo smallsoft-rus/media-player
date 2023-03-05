@@ -370,23 +370,30 @@ void LogMessage(
     }
 }
 
-void HandlePlayError(HRESULT hr, const WCHAR* file){ //export
+void HandleDirectShowError(const WCHAR* text, HRESULT hr, const WCHAR* file){ //export
 	WCHAR buf[100]=L"";
 	WCHAR mes[MAX_ERROR_TEXT_LEN]=L"";
-	const int output_len=1000;
+	const int output_len=1500;
 	WCHAR output[output_len]=L"";
 
 	//get directshow error message
 	AMGetErrorTextW(hr,mes,sizeof(mes));
 
-	StringCchCopyW(output,output_len,L"Ошибка воспроизведения ");
-	StringCchPrintfW(buf,100,L"0x%x: ",(UINT)hr);
+	StringCchCopyW(output,output_len,text);
+	StringCchPrintfW(buf,100,L" 0x%x: ",(UINT)hr);
 	StringCchCatW(output,output_len,buf);
 	StringCchCatW(output,output_len,mes);
-	StringCchCatW(output,output_len,L" - ");
-	StringCchCatW(output,output_len,file);
+
+    if(lstrlen(file)>0){
+	    StringCchCatW(output,output_len,L" - ");
+	    StringCchCatW(output,output_len,file);
+    }
 	
 	HandleError(output,SMP_ALERT_NONBLOCKING,L"");
+}
+
+void HandlePlayError(HRESULT hr, const WCHAR* file){ //export
+    HandleDirectShowError(L"Ошибка воспроизведения", hr, file);
 }
 
 void HandleMfError(HRESULT hr, const WCHAR* pszErrorMessage, const WCHAR* file){ //export

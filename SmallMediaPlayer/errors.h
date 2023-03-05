@@ -17,6 +17,7 @@ const int SMP_ALERT_SILENT = 2;      //no visible UI
 void InitErrorHandler(BOOL enableGUI);
 void HandleError(const WCHAR* message,SMP_ALERTTYPE alerttype, const WCHAR* info);
 void HandleError(const WCHAR* message,SMP_ALERTTYPE alerttype, const WCHAR* info, CONTEXT* pContext);
+void HandleDirectShowError(const WCHAR* text, HRESULT hr, const WCHAR* file);
 void HandlePlayError(HRESULT hr, const WCHAR* file);
 void HandleMediaError(HRESULT hr);
 void HandleMfError(HRESULT hr, const WCHAR* pszErrorMessage, const WCHAR* file);
