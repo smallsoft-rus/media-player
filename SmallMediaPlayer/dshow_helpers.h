@@ -31,6 +31,10 @@ typedef struct{
     bool IsSource;
 }SPLITTER_DATA;
 
+// LAV Splitter: 171252A0-8820-4AFE-9DF8-5C92B2D66B04
+SMP_DEFINE_GUID(CLSID_LavSplitter, 0x171252A0, 0x8820, 0x4AFE, 0x9D, 0xF8, 0x5C, 0x92, 0xB2, 0xD6, 0x6B, 0x04);
+// https://github.com/Nevcairiel/LAVFilters/blob/master/common/includes/moreuuids.h
+
 const SPLITTER_DATA sdAsfReader={SOURCE_FILTER,true};
 const SPLITTER_DATA sdBassSource={L"DC-Bass Source",true};
 const SPLITTER_DATA sdGretechMp3={L"Gretech MP3 Source Filter",true};
@@ -52,6 +56,8 @@ void MyFreeMediaType(AM_MEDIA_TYPE& mt);
 BOOL ShowFilterProperties(IBaseFilter* pFilter);
 BOOL CheckMediaType(IPin* pin,GUID mediatype);
 IBaseFilter* FindFilter(TCHAR* FilterName);
+IBaseFilter* DShow_CreateFilter(const GUID& clsid);
+
 HRESULT GetUnconnectedPin(
     IBaseFilter *pFilter,   // Pointer to the filter.
     PIN_DIRECTION PinDir,   // Direction of the pin to find.
@@ -60,6 +66,7 @@ HRESULT FindPin(
     IBaseFilter *pFilter,   // Pointer to the filter.
     TCHAR* name,
     IPin **ppPin);
+
 IBaseFilter* FindFileSource(IGraphBuilder* pGraph);
 IBaseFilter* GetDownstreamFilter(IPin* PinOut);
 IPin* GetOutputPin(    IBaseFilter *pFilter )  ;

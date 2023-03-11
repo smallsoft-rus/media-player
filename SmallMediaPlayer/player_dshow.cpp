@@ -38,6 +38,65 @@ GUID guidStreamSubType={0,0,0,{0,0,0,0,0,0,0,0}};
 
 //implementation
 
+// Add splitter or source filter into graph by CLSID
+BOOL InsertSplitterByCLSID(WCHAR* file, const GUID& clsid, BOOL isSource){
+    IPin* pin1=NULL;
+    IPin* pin2=NULL;
+    HRESULT hr;
+    IFileSourceFilter* fs=NULL;
+
+    // Source filter
+    if(isSource!=FALSE) pSource=DShow_CreateFilter(clsid);
+    else pSource=FindFilter(L"File Source (Async.)");
+
+    if(pSource==NULL) goto end_fail;
+
+    hr=pGraph->AddFilter(pSource, L"source");
+    if(FAILED(hr)) goto end_fail;
+
+    hr=pSource->QueryInterface(IID_IFileSourceFilter,(void**)&fs);
+    if(FAILED(hr)) goto end_fail;
+
+    hr=fs->Load(file,NULL);
+    fs->Release();
+    if(FAILED(hr)) goto end_fail;
+
+    // Splitter
+    if(isSource==FALSE){
+        fUseSplitter=true;
+        hr=GetUnconnectedPin(pSource,PINDIR_OUTPUT,&pin1);
+        if(FAILED(hr)) goto end_fail;
+
+        pSplitter=DShow_CreateFilter(clsid);
+        if(pSplitter==NULL) goto end_fail;
+
+        hr=pGraph->AddFilter(pSplitter, L"splitter");
+        if(FAILED(hr)) goto end_fail;
+
+        hr=GetUnconnectedPin(pSplitter,PINDIR_INPUT,&pin2);
+        if(FAILED(hr)) goto end_fail;
+
+        hr=pGraph->ConnectDirect(pin1,pin2,NULL);
+        if(FAILED(hr)) goto end_fail;
+    }
+    else{
+        fUseSplitter=false;
+    }
+
+    if(pin1!=NULL) pin1->Release();
+    if(pin2!=NULL) pin2->Release();
+
+    return TRUE;
+
+end_fail:
+
+    if(pin1!=NULL)pin1->Release();
+    if(pin2!=NULL)pin2->Release();
+    if(pSplitter!=NULL){pGraph->RemoveFilter(pSplitter);pSplitter->Release();pSplitter=NULL;}
+    if(pSource!=NULL){pGraph->RemoveFilter(pSource);pSource->Release();pSource=NULL;}
+    return FALSE;
+}
+
 BOOL InsertSplitter(TCHAR* file,const SPLITTER_DATA* sd){
 IPin* pin1=NULL;
 IPin* pin2=NULL;
@@ -445,48 +504,51 @@ if(pin!=NULL){
 }
 
 BOOL BuildGraph(MEDIATYPE mt,TCHAR* file){
-	IPin* pin=NULL;
-	IPin* pins[10];
-IEnumPins* pEnum=NULL;
-ULONG c,i;
-HRESULT hr;
-BOOL res;
-IBaseFilter* pf;
-AM_MEDIA_TYPE* amt=NULL;
-PIN_DIRECTION PinDir;
+    IPin* pin=NULL;
+    IPin* pins[10];
+    IEnumPins* pEnum=NULL;
+    ULONG c,i;
+    HRESULT hr;
+    BOOL res;
+    IBaseFilter* pf;
+    AM_MEDIA_TYPE* amt=NULL;
+    PIN_DIRECTION PinDir;
 
-switch(mt){
-	case MT_AUDIO:
-		res=InsertSplitter(file,&sdBassSource);
-	if(res==FALSE)res=InsertSplitter(file,&sdAsfReader);	
-	if(res==FALSE)res=InsertSplitter(file,&sdGretechMp3);
-	if(res==FALSE)res=InsertSplitter(file,&sdNeroSplitter);
-	if(res==FALSE)res=InsertSplitter(file,&sdMpeg1Splitter);
-	if(res==FALSE)goto end_fail;
-	break;
-	case MT_AVI:		
-res=InsertSplitter(file,&sdAviSplitter);
-if(res==FALSE)res=InsertSplitter(file,&sdGretechAvi);
-if(res==FALSE)res=InsertSplitter(file,&sdNeroSplitter);
-if(res==FALSE)res=InsertSplitter(file,&sdAviSource);
-if(res==FALSE)goto end_fail;
-break;
-	case MT_MPEG:
-res=InsertSplitter(file,&sdMpegSource);
-if(res==FALSE)res=InsertSplitter(file,&sdMpeg2Splitter);
-if(res==FALSE)res=InsertSplitter(file,&sdMpegSrcGabest);
-if(res==FALSE)res=InsertSplitter(file,&sdNeroSplitter);
-if(res==FALSE)goto end_fail;
-break;
-	case MT_MKV:		
-res=InsertSplitter(file,&sdMkvSource);
-if(res==FALSE){res=InsertSplitter(file,&sdHaaliSplitter);}
-if(res==FALSE){goto end_fail;}
-break;
+    // Try to manually insert some known well-behaving splitters for specific media formats, to mitigate 
+    // issues when automatically chosen splitter is bugged.
 
-	default:goto end_fail;
+    switch(mt){
+    case MT_AUDIO:
+        res=InsertSplitter(file,&sdBassSource);
+        if(res==FALSE) res=InsertSplitter(file,&sdAsfReader);	
+        if(res==FALSE) res=InsertSplitter(file,&sdGretechMp3);
+        if(res==FALSE) res=InsertSplitter(file,&sdNeroSplitter);
+        if(res==FALSE) res=InsertSplitter(file,&sdMpeg1Splitter);
+        if(res==FALSE) goto end_fail;
+        break;
+    case MT_AVI:		
+        res=InsertSplitter(file,&sdAviSplitter);
+        if(res==FALSE) res=InsertSplitter(file,&sdGretechAvi);
+        if(res==FALSE) res=InsertSplitter(file,&sdNeroSplitter);
+        if(res==FALSE) res=InsertSplitter(file,&sdAviSource);
+        if(res==FALSE) goto end_fail;
+        break;
+    case MT_MPEG:
+        res=InsertSplitter(file,&sdMpegSource);
+        if(res==FALSE) res=InsertSplitter(file,&sdMpeg2Splitter);
+        if(res==FALSE) res=InsertSplitter(file,&sdMpegSrcGabest);
+        if(res==FALSE) res=InsertSplitter(file,&sdNeroSplitter);
+        if(res==FALSE) res=InsertSplitterByCLSID(file,CLSID_LavSplitter,FALSE);
+        if(res==FALSE) goto end_fail;
+        break;
+    case MT_MKV:		
+        res=InsertSplitter(file,&sdMkvSource);
+        if(res==FALSE) res=InsertSplitter(file,&sdHaaliSplitter);
+        if(res==FALSE) goto end_fail;
+        break;
 
-}
+    default: goto end_fail;
+    }
 
 	if(fUseSplitter==true)pf=pSplitter;
 	else pf=pSource;

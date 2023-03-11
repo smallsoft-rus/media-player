@@ -6,6 +6,16 @@
 
 void LogMessage(const WCHAR* message, BOOL fTime); //from errors.cpp
 
+IBaseFilter* DShow_CreateFilter(const GUID& clsid){
+    HRESULT hr;
+    IBaseFilter* ret = NULL;
+
+    hr = CoCreateInstance(clsid, NULL, CLSCTX_INPROC_SERVER, IID_IBaseFilter, (void **)&ret);
+
+    if (FAILED(hr)) return NULL;
+    else return ret;
+}
+
 IBaseFilter* FindFilter(TCHAR* FilterName){
 	HRESULT hr; 
 // Create the System Device Enumerator.
