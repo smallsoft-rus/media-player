@@ -242,35 +242,57 @@ bool pin_GetAudioInfo(IPin* pin,SMP_AUDIOINFO* pAudioInfo){
     WAVEFORMATEX* wf=NULL;
     HRESULT hr;
     ULONG res=0;
+    bool ret;
 
     hr=pin->EnumMediaTypes(&pEnum);
     if(FAILED(hr))return false;
     hr=pEnum->Next(1,&amt,&res);
     if(FAILED(hr)||res==0){pEnum->Release();return false;}
-    if(amt->formattype!=FORMAT_WaveFormatEx){pEnum->Release();return false;}
-    wf=(WAVEFORMATEX*)amt->pbFormat;
-    pAudioInfo->chans=wf->nChannels;
-    pAudioInfo->BitsPerSample=wf->wBitsPerSample;
-    pAudioInfo->BitsPerSecond=wf->nAvgBytesPerSec*8;
-    pAudioInfo->nFreq=wf->nSamplesPerSec;
-    pAudioInfo->wFormatTag=wf->wFormatTag;
+    
+    if(amt->formattype==FORMAT_WaveFormatEx){ //WAVE
+        wf=(WAVEFORMATEX*)amt->pbFormat;
+        pAudioInfo->chans=wf->nChannels;
+        pAudioInfo->BitsPerSample=wf->wBitsPerSample;
+        pAudioInfo->BitsPerSecond=wf->nAvgBytesPerSec*8;
+        pAudioInfo->nFreq=wf->nSamplesPerSec;
+        pAudioInfo->wFormatTag=wf->wFormatTag;
 
-    if(amt->subtype==MEDIASUBTYPE_DOLBY_AC3){
-	    pAudioInfo->wFormatTag=AUDIO_AC3;
+        if(amt->subtype==MEDIASUBTYPE_DOLBY_AC3){
+	        pAudioInfo->wFormatTag=AUDIO_AC3;
+        }
+
+        if(amt->subtype==MEDIASUBTYPE_MPEG2_AUDIO){
+            pAudioInfo->wFormatTag=AUDIO_MPEG2AAC;
+        }
+
+        if(pAudioInfo->wFormatTag == 0){
+            //extract wFormatTag from audio subtype GUID
+            pAudioInfo->wFormatTag = (WORD)(amt->subtype.Data1 & 0x0000FFFF);
+        }
+
+        ret = true;
     }
+    else if(amt->formattype==FORMAT_VorbisFormat2){ //OGG vorbis
 
-    if(amt->subtype==MEDIASUBTYPE_MPEG2_AUDIO){
-        pAudioInfo->wFormatTag=AUDIO_MPEG2AAC;
+        pAudioInfo->wFormatTag = AUDIO_OGG;
+
+        if(amt->cbFormat >= sizeof(VORBISFORMAT2)){
+            VORBISFORMAT2 vf={0};
+            memcpy(&vf, amt->pbFormat, sizeof(VORBISFORMAT2));
+            pAudioInfo->chans=vf.Channels;
+            pAudioInfo->nFreq=vf.SamplesPerSec;
+            pAudioInfo->BitsPerSample=vf.BitsPerSample;
+        }
+
+        ret = true;
     }
-
-    if(pAudioInfo->wFormatTag == 0){
-        //extract wFormatTag from audio subtype GUID
-        pAudioInfo->wFormatTag = (WORD)(amt->subtype.Data1 & 0x0000FFFF);
+    else{
+        ret = false; //unknown or not audio
     }
 
     pEnum->Release();
     MyDeleteMediaType(amt);
-    return true;
+    return ret;
 }
 
 bool pin_GetVideoInfo(IPin* pin,SMP_VIDEOINFO* pVideoInfo){

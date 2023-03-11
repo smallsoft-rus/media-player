@@ -82,7 +82,8 @@ MEDIA_FORMAT_ENTRY AudioFormatsTable[] = {
     {AUDIO_MPEG2AAC,                     L"MPEG2",      L"MPEG2"},
     {AUDIO_APE,                          L"APE",        L"Monkey's Audio (APE)"},
     {WAVE_FORMAT_DTS2,                   L"DTS",        L"Digital Theater Systems (DTS)"},
-    {AUDIO_DVD_LPCM,                     L"DVD",        L"DVD LPCM Audio"}
+    {AUDIO_DVD_LPCM,                     L"DVD",        L"DVD LPCM Audio"},
+    {AUDIO_OGG,                          L"OGG",        L"OGG Vorbis"}
 };
 
 // File stream (container) formats table

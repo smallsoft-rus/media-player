@@ -115,6 +115,16 @@ typedef union{
     char chars[4];
 }FOURCC_EXTRACTOR;
 
+// OGG Vorbis Audio Format
+// From: https://github.com/Matroska-Org/mkxds/blob/master/CoreVorbisGUID.h
+typedef struct tagVORBISFORMAT2
+{
+	DWORD Channels;
+	DWORD SamplesPerSec;
+	DWORD BitsPerSample;	
+	DWORD HeaderSize[3]; // 0: Identification, 1: Comment, 2: Setup
+} VORBISFORMAT2, *PVORBISFORMAT2;
+
 #define VIDEO_YUV (0x56595559)
 #define VIDEO_XVID (MAKEFOURCC('X','V','I','D'))
 #define VIDEO_DIVX (MAKEFOURCC('D','I','V','X'))
@@ -149,6 +159,10 @@ typedef union{
 #define AUDIO_AC3 (0x2000)
 #define AUDIO_DVI_ADPCM (0x0011)
 
+#define SMP_DEFINE_GUID(name, l, w1, w2, b1, b2, b3, b4, b5, b6, b7, b8) \
+        EXTERN_C const GUID DECLSPEC_SELECTANY name \
+                = { l, w1, w2, { b1, b2,  b3,  b4,  b5,  b6,  b7,  b8 } }
+
 // *** From https://github.com/jeeb/mpc-be/blob/master/include/moreuuids.h
 
 // Monkey's Audio / APE
@@ -158,6 +172,9 @@ typedef union{
 // AAC-ADTS LAVF/LAVC specific
 #define AUDIO_LAV_AAC_ADTS (0x4441)
 // MEDIASUBTYPE_AAC_ADTS {53544441-0000-0010-8000-00AA00389B71} 
+
+// OGG Vorbis Audio: {B36E107F-A938-4387-93C7-55E966757473}
+SMP_DEFINE_GUID(FORMAT_VorbisFormat2, 0xb36e107f, 0xa938, 0x4387, 0x93, 0xc7, 0x55, 0xe9, 0x66, 0x75, 0x74, 0x73);
 
 // Apple IMA4 ADPCM
 #define AUDIO_IMA4_ADPCM 0x6D69
@@ -192,9 +209,7 @@ typedef union{
 //DirectShow time unit
 #define TIME_KOEFF 10000
 
-#define SMP_DEFINE_GUID(name, l, w1, w2, b1, b2, b3, b4, b5, b6, b7, b8) \
-        EXTERN_C const GUID DECLSPEC_SELECTANY name \
-                = { l, w1, w2, { b1, b2,  b3,  b4,  b5,  b6,  b7,  b8 } }
+
 
 //Gets the path to the module where the implementation of the specified COM object is located
 BOOL SMP_GetModuleFromObject(IUnknown* pObject, WCHAR* output, DWORD cchOutput);
