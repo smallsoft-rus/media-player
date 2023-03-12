@@ -44,7 +44,6 @@ const SPLITTER_DATA sdGretechAvi={L"Gretech AVI Source Filter",true};
 const SPLITTER_DATA sdMpeg1Splitter={L"MPEG-I Stream Splitter",false};
 const SPLITTER_DATA sdMpeg2Splitter={L"MPEG-2 Splitter",false};
 const SPLITTER_DATA sdMpegSource={L"Mpeg Source",true};
-const SPLITTER_DATA sdMpegSrcGabest={L"MPC - Mpeg Source (Gabest)",true};
 const SPLITTER_DATA sdHaaliSplitter={L"Haali Media Splitter",true};
 const SPLITTER_DATA sdMkvSource={L"Matroska Source",true};
 const SPLITTER_DATA sdNeroSplitter={L"Nero Splitter",false};

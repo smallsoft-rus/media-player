@@ -558,7 +558,6 @@ BOOL BuildGraph(MEDIATYPE mt,TCHAR* file){
     case MT_MPEG:
         res=InsertSplitter(file,&sdMpegSource);
         if(res==FALSE) res=InsertSplitter(file,&sdMpeg2Splitter);
-        if(res==FALSE) res=InsertSplitter(file,&sdMpegSrcGabest);
         if(res==FALSE) res=InsertSplitter(file,&sdNeroSplitter);
         if(res==FALSE) res=InsertSplitterByCLSID(file,CLSID_LavSplitter,FALSE);
         if(res==FALSE) goto end_fail;
