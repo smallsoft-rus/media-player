@@ -46,6 +46,7 @@ PLAYER_EVENT_CALLBACK pfnEventCallback=NULL;
 
 MEDIA_FORMAT_ENTRY AudioFormatsTable[] = {
     {WAVE_FORMAT_PCM,                    L"PCM",        L"PCM Waveform Audio"},
+    {AUDIO_PCM_BE,                       L"PCM BE",     L"PCM big-endian"},
     {WAVE_FORMAT_ADPCM,                  L"ADPCM",      L"Adaptive Differential PCM"},
     {AUDIO_IMA4_ADPCM,                   L"IMA4 ADPCM", L"Apple IMA4 ADPCM"},
     {AUDIO_DVI_ADPCM,                    L"DVI ADPCM",  L"DVI ADPCM"},
