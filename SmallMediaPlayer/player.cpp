@@ -180,11 +180,12 @@ fcc=(FOURCC_EXTRACTOR*)&vi.dwVideoCodec;
 StringCchCat(text,size,L"Кодек: ");
 
 if(vi.dwVideoCodec==BI_RGB){
-	switch(vi.VideoType){
-	case VIDEOTYPE_MPEG1:StringCchCat(text,size,L"MPEG1\n");break;
-	case VIDEOTYPE_MPEG2:StringCchCat(text,size,L"MPEG2\n");break;
-	case VIDEOTYPE_VIDEO:default:StringCchCat(text,size,L"RGB\n");
-	}
+    switch(vi.VideoType){
+    case VIDEOTYPE_MPEG1:StringCchCat(text,size,L"MPEG1\n");break;
+    case VIDEOTYPE_MPEG2:StringCchCat(text,size,L"MPEG2\n");break;
+    case VIDEOTYPE_H264ES:StringCchCat(text,size,L"H.264 elementary stream\n");break;
+    default:StringCchCat(text,size,L"RGB\n");break;
+    }
 }
 else{
 	StringCchPrintf(buf,256,L"%c%c%c%c\n",fcc->chars[0],fcc->chars[1],fcc->chars[2],fcc->chars[3]);

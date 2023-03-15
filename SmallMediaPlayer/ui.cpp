@@ -426,7 +426,8 @@ if(wRes==INFORES_VIDEO||wRes==INFORES_BOTH){
         switch(vi.VideoType){
           case VIDEOTYPE_MPEG1:StringCchCat(text,len,L"MPEG1 ");break;
           case VIDEOTYPE_MPEG2:StringCchCat(text,len,L"MPEG2 ");break;
-          case VIDEOTYPE_VIDEO:default:StringCchCat(text,len,L"RGB ");
+          case VIDEOTYPE_H264ES:StringCchCat(text,len,L"H264 ES ");break;
+          default:StringCchCat(text,len,L"RGB ");
 	    }
     }
     else{

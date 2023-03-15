@@ -1453,6 +1453,10 @@ WORD GetSourceInfo(IMFMediaSource *pSource, SMP_AUDIOINFO* pAudioInfo,SMP_VIDEOI
                 pVideoInfo->dwVideoCodec = fourcc;
                 pVideoInfo->BitsPerPixel = 32;
             }
+            else if(subtype == MFVideoFormat_H264_ES){
+                pVideoInfo->dwVideoCodec = 0;
+                pVideoInfo->VideoType = VIDEOTYPE_H264ES; //H.264 elementary stream
+            }
             else { //other format identified by FOURCC
                 pVideoInfo->VideoType=VIDEOTYPE_VIDEO;
                 pVideoInfo->dwVideoCodec = fourcc;
