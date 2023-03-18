@@ -560,6 +560,7 @@ BOOL BuildGraph(MEDIATYPE mt,TCHAR* file){
         if(res==FALSE) res=InsertSplitter(file,&sdMpeg2Splitter);
         if(res==FALSE) res=InsertSplitter(file,&sdNeroSplitter);
         if(res==FALSE) res=InsertSplitterByCLSID(file,CLSID_LavSplitter,FALSE);
+        if(res==FALSE) res=InsertSplitterByCLSID(file,CLSID_GabestMpegSplitter,FALSE);
         if(res==FALSE) goto end_fail;
         break;
     case MT_MKV:		
@@ -583,9 +584,16 @@ if(FAILED(hr))c=0;
 for(i=0;i<c;i++){
 	pins[i]->QueryDirection(&PinDir);
 	if(PinDir==PINDIR_INPUT)continue;
-	if(CheckMediaType(pins[i],MEDIATYPE_Audio)!=FALSE){
-		if(fAudioRendered==true)goto next;
-		res=InsertAudioDecoder(pins[i],L"ffdshow Audio Decoder");
+
+    if(CheckMediaType(pins[i],MEDIATYPE_Audio)!=FALSE){
+        if(fAudioRendered==true)goto next;
+
+        // Try to manually insert some known well-behaving audio decoders, to mitigate issues with 
+        // Windows MPEG Audio decoder.
+
+        res=InsertAudioDecoder(pins[i],L"LAV Audio Decoder");
+        if(res==FALSE && mt==MT_MPEG) res=InsertAudioDecoder(pins[i],L"DScaler Audio Decoder");
+        if(res==FALSE) res=InsertAudioDecoder(pins[i],L"ffdshow Audio Decoder");
 		
 		if(res==FALSE){pGraph->Render(pins[i]);}
 		else {fAudioRendered=true;}

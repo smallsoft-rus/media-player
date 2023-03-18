@@ -35,6 +35,10 @@ typedef struct{
 SMP_DEFINE_GUID(CLSID_LavSplitter, 0x171252A0, 0x8820, 0x4AFE, 0x9D, 0xF8, 0x5C, 0x92, 0xB2, 0xD6, 0x6B, 0x04);
 // https://github.com/Nevcairiel/LAVFilters/blob/master/common/includes/moreuuids.h
 
+// MPC - Mpeg Splitter (Gabest): DC257063-045F-4BE2-BD5B-E12279C464F0
+SMP_DEFINE_GUID(CLSID_GabestMpegSplitter, 0xDC257063, 0x045F, 0x4BE2, 0xBD, 0x5B, 0xE1, 0x22, 0x79, 0xC4, 0x64, 0xF0);
+// https://github.com/jeeb/mpc-be/blob/master/src/filters/parser/MpegSplitter/MpegSplitter.h
+
 const SPLITTER_DATA sdAsfReader={SOURCE_FILTER,true};
 const SPLITTER_DATA sdBassSource={L"DC-Bass Source",true};
 const SPLITTER_DATA sdGretechMp3={L"Gretech MP3 Source Filter",true};
