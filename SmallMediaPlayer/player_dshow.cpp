@@ -236,6 +236,64 @@ return FALSE;
 
 }
 
+BOOL InsertDecoder(IPin* pin, const GUID& clsid, TOPOLOGY_NODE nodeType){
+    HRESULT hr;
+    IBaseFilter* pf=NULL;
+    IPin* pin2=NULL;
+    IPin* pins[10];
+    IEnumPins* pEnum=NULL;
+    ULONG c,i;
+    PIN_DIRECTION PinDir;
+    const WCHAR* nodeName = NULL;
+
+    // Add filter into graph
+    pf=DShow_CreateFilter(clsid);
+    if(pf==NULL) goto end_fail;
+
+    if(nodeType == TN_AUDIO_DECODER) nodeName = L"audiodecoder";
+    else if(nodeType == TN_VIDEO_DECODER) nodeName = L"videodecoder";
+
+    hr=pGraph->AddFilter(pf, nodeName);
+    if(FAILED(hr)) goto end_fail;
+
+    // Connect input pin into filter
+    hr=GetUnconnectedPin(pf,PINDIR_INPUT,&pin2);
+    if(FAILED(hr)) goto end_fail;
+
+    hr=pGraph->ConnectDirect(pin,pin2,NULL);
+    if(FAILED(hr)) goto end_fail;
+
+    pin2->Release();
+    pin2=NULL;
+
+    // Render output pins
+    hr=pf->EnumPins(&pEnum);
+    if(FAILED(hr)) goto end_fail;
+
+    hr=pEnum->Next(10,pins,&c);
+    if(FAILED(hr)) c=0;
+
+    for(i=0;i<c;i++){
+        pins[i]->QueryDirection(&PinDir);
+        if(PinDir==PINDIR_OUTPUT) pGraph->Render(pins[i]);
+        pins[i]->Release();
+    }
+
+    if(pEnum!=NULL){pEnum->Release();}
+
+    // Save filter object into global state
+    if(nodeType == TN_AUDIO_DECODER) pAudioDecoder=pf;
+    else if(nodeType == TN_VIDEO_DECODER) pVideoDecoder=pf;
+    
+    return TRUE;
+
+    end_fail:
+    if(pf!=NULL){pGraph->RemoveFilter(pf),pf->Release();}
+    if(pin2!=NULL){pin2->Release();}
+    if(pEnum!=NULL){pEnum->Release();}
+    return FALSE;
+}
+
 bool pin_GetAudioInfo(IPin* pin,SMP_AUDIOINFO* pAudioInfo){
     IEnumMediaTypes * pEnum=NULL;
     AM_MEDIA_TYPE* amt=NULL;
@@ -591,8 +649,8 @@ for(i=0;i<c;i++){
         // Try to manually insert some known well-behaving audio decoders, to mitigate issues with 
         // Windows MPEG Audio decoder.
 
-        res=InsertAudioDecoder(pins[i],L"LAV Audio Decoder");
-        if(res==FALSE && mt==MT_MPEG) res=InsertAudioDecoder(pins[i],L"DScaler Audio Decoder");
+        res=InsertDecoder(pins[i], CLSID_LavAudioDecoder, TN_AUDIO_DECODER);
+        if(res==FALSE && mt==MT_MPEG) res=InsertDecoder(pins[i], CLSID_DScalerAudioDecoder, TN_AUDIO_DECODER);
         if(res==FALSE) res=InsertAudioDecoder(pins[i],L"ffdshow Audio Decoder");
 		
 		if(res==FALSE){pGraph->Render(pins[i]);}
