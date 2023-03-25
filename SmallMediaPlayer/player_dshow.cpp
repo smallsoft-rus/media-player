@@ -599,11 +599,9 @@ BOOL BuildGraph(MEDIATYPE mt,TCHAR* file){
 
     switch(mt){
     case MT_AUDIO:
-        res=InsertSplitter(file,&sdBassSource);
-        if(res==FALSE) res=InsertSplitter(file,&sdAsfReader);	
-        if(res==FALSE) res=InsertSplitter(file,&sdGretechMp3);
-        if(res==FALSE) res=InsertSplitter(file,&sdNeroSplitter);
-        if(res==FALSE) res=InsertSplitter(file,&sdMpeg1Splitter);
+        res=InsertSplitterByCLSID(file,CLSID_DCBassSource,TRUE);
+        if(res==FALSE) res=InsertSplitterByCLSID(file,CLSID_WMAsfReader,TRUE);
+        if(res==FALSE) res=InsertSplitterByCLSID(file,CLSID_LavSplitter,FALSE);
         if(res==FALSE) goto end_fail;
         break;
     case MT_AVI:		
@@ -752,7 +750,7 @@ HRESULT DS_Player_OpenFile(WCHAR* filename){
     }
 
     //Try dynamic build filter graph
-    if(lstrcmp(ext,L"mp3")==0||lstrcmp(ext,L"MP3")==0||lstrcmp(ext,L"Mp3")==0){
+    if(lstrcmpi(ext,L"mp3")==0 || lstrcmpi(ext,L"flac")==0){
         success=BuildGraph(MT_AUDIO,filename);
         if(success!=FALSE)goto play;
     }

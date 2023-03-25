@@ -10,8 +10,6 @@
 #include "common.h"
 #include <dshow.h>
 
-#define SOURCE_FILTER L"WM ASF Reader"
-
 typedef enum {
     SYSTEM_ERROR,
     PLAY_ERROR,
@@ -31,6 +29,10 @@ typedef struct{
     bool IsSource;
 }SPLITTER_DATA;
 
+// DC-Bass Source: ABE7B1D9-4B3E-4ACD-A0D1-92611D3A4492
+SMP_DEFINE_GUID(CLSID_DCBassSource, 0xABE7B1D9, 0x4B3E, 0x4ACD, 0xA0, 0xD1, 0x92, 0x61, 0x1D, 0x3A, 0x44, 0x92);
+// https://github.com/frafv/DCBassSource/blob/trunk/DCBassSource/DCBassSource.h
+
 // LAV Splitter: 171252A0-8820-4AFE-9DF8-5C92B2D66B04
 SMP_DEFINE_GUID(CLSID_LavSplitter, 0x171252A0, 0x8820, 0x4AFE, 0x9D, 0xF8, 0x5C, 0x92, 0xB2, 0xD6, 0x6B, 0x04);
 // https://github.com/Nevcairiel/LAVFilters/blob/master/common/includes/moreuuids.h
@@ -46,9 +48,6 @@ SMP_DEFINE_GUID(CLSID_DScalerAudioDecoder, 0xD2CA75C2, 0x05A1, 0x4915, 0x88, 0xA
 SMP_DEFINE_GUID(CLSID_LavAudioDecoder, 0xE8E73B6B, 0x4CB3, 0x44A4, 0xBE, 0x99, 0x4F, 0x7B, 0xCB, 0x96, 0xE4, 0x91);
 // https://github.com/Nevcairiel/LAVFilters/blob/master/decoder/LAVAudio/LAVAudio.h
 
-const SPLITTER_DATA sdAsfReader={SOURCE_FILTER,true};
-const SPLITTER_DATA sdBassSource={L"DC-Bass Source",true};
-const SPLITTER_DATA sdGretechMp3={L"Gretech MP3 Source Filter",true};
 const SPLITTER_DATA sdAviSource={L"AVI/WAV File Source",true};
 const SPLITTER_DATA sdAviSplitter={L"AVI Splitter",false};
 const SPLITTER_DATA sdGretechAvi={L"Gretech AVI Source Filter",true};
