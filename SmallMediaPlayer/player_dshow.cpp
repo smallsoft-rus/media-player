@@ -649,6 +649,7 @@ for(i=0;i<c;i++){
 
         res=InsertDecoder(pins[i], CLSID_LavAudioDecoder, TN_AUDIO_DECODER);
         if(res==FALSE && mt==MT_MPEG) res=InsertDecoder(pins[i], CLSID_DScalerAudioDecoder, TN_AUDIO_DECODER);
+        if(res==FALSE && mt==MT_MPEG) res=InsertDecoder(pins[i], CLSID_DTVDVDAudioDecoder, TN_AUDIO_DECODER);
         if(res==FALSE) res=InsertAudioDecoder(pins[i],L"ffdshow Audio Decoder");
 		
 		if(res==FALSE){pGraph->Render(pins[i]);}

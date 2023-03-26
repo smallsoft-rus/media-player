@@ -29,6 +29,10 @@ typedef struct{
     bool IsSource;
 }SPLITTER_DATA;
 
+// Microsoft DTV-DVD Audio Decoder {E1F1A0B8-BEEE-490D-BA7C-066C40B5E2B9}
+SMP_DEFINE_GUID(CLSID_DTVDVDAudioDecoder, 0xE1F1A0B8, 0xBEEE, 0x490D, 0xBA, 0x7C, 0x06, 0x6C, 0x40, 0xB5, 0xE2, 0xB9);
+// https://learn.microsoft.com/en-us/windows/win32/directshow/microsoft-mpeg-1-dd-audio-decoder
+
 // DC-Bass Source: ABE7B1D9-4B3E-4ACD-A0D1-92611D3A4492
 SMP_DEFINE_GUID(CLSID_DCBassSource, 0xABE7B1D9, 0x4B3E, 0x4ACD, 0xA0, 0xD1, 0x92, 0x61, 0x1D, 0x3A, 0x44, 0x92);
 // https://github.com/frafv/DCBassSource/blob/trunk/DCBassSource/DCBassSource.h
