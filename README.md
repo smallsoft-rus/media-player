@@ -2,7 +2,7 @@
 
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/smallsoft-rus/media-player)](https://github.com/smallsoft-rus/media-player/releases)
 
-Лицензия: [BSD 2.0](LICENSE)
+Лицензия: [BSD 2.0](https://gitflic.ru/project/smallsoft/media-player/blob?file=LICENSE&branch=main)
 
 Легкий проигрыватель мультимедиа файлов для Windows без встроенных кодеков. Основные особенности программы:
 - воспроизведение аудиофайлов: WAV, WMA, MP3 и др.
@@ -27,4 +27,4 @@
 
 Для запуска требуется [Visual C++ 2012 Redistributable](https://www.microsoft.com/en-us/download/details.aspx?id=30679) (x86).
 
-[Руководство пользователя](docs/user-manual.md)
+[Руководство пользователя](https://gitflic.ru/project/smallsoft/media-player/blob?file=docs%2Fuser-manual.md&branch=main)
