@@ -1,6 +1,6 @@
 # Small Media Player
 
-[![GitHub release (latest by date)](https://img.shields.io/github/v/release/smallsoft-rus/media-player)](https://github.com/smallsoft-rus/media-player/releases)
+[![gitflic-catalog](https://img.shields.io/badge/gitflic--catalog-blue)](https://gitflic.ru/project/smallsoft/gitflic-catalog) &nbsp; [![GitHub release (latest by date)](https://img.shields.io/github/v/release/smallsoft-rus/media-player)](https://github.com/smallsoft-rus/media-player/releases)
 
 Лицензия: [BSD 2.0](https://gitflic.ru/project/smallsoft/media-player/blob?file=LICENSE&branch=main)
 
